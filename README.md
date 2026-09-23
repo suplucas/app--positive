@@ -13,3 +13,14 @@ EXPO_PUBLIC_API_URL=http://localhost:3001 npx expo start
 ```
 
 Cenários manuais: spec §6.
+
+## Cenários de validação manual (spec §6)
+
+| # | Ação | Esperado |
+|---|------|----------|
+| 1 | Abrir com `user_1` | ~20 cards |
+| 2 | Scroll até o fim | próxima página |
+| 3 | Pull-to-refresh | page 1 recarregado |
+| 4 | Trocar para `mogli` | lista troca |
+| 5 | FLUSHDB + refresh | cards do Postgres, sem erro |
+| 6 | flush + 1 POST /reviews + refresh | poucos cards; próximo refresh mais completo (fill async) |
