@@ -189,4 +189,54 @@ describe("useFeed", () => {
     expect(h.get().items).toHaveLength(40);
     expect(getFeedMock).toHaveBeenNthCalledWith(2, "user_1", 2, 20);
   });
+
+  it("loadMore após erro na primeira carga não busca página 2", async () => {
+    getFeedMock.mockRejectedValueOnce(new Error("network down"));
+    const h = renderHook("user_1");
+    await act(async () => {});
+    expect(h.get().status).toBe("error");
+    const calls = getFeedMock.mock.calls.length;
+    await act(async () => {
+      await h.get().loadMore();
+    });
+    expect(getFeedMock.mock.calls.length).toBe(calls);
+  });
+
+  it("refresh durante loadMore descarta resposta do append", async () => {
+    let resolveAppend: (v: FeedResponse) => void = () => {};
+    getFeedMock
+      .mockResolvedValueOnce(page20(1))
+      .mockImplementationOnce(
+        () =>
+          new Promise((res) => {
+            resolveAppend = res;
+          }),
+      )
+      .mockResolvedValueOnce({
+        page: 1,
+        limit: 20,
+        results: [page20(1).results[0]!],
+      });
+    const h = renderHook("user_1");
+    await act(async () => {});
+    expect(h.get().items).toHaveLength(20);
+
+    let appendDone: Promise<void> = Promise.resolve();
+    act(() => {
+      appendDone = h.get().loadMore();
+    });
+    await act(async () => {
+      await h.get().refresh();
+    });
+    expect(h.get().items).toHaveLength(1);
+    expect(h.get().hasMore).toBe(false);
+
+    await act(async () => {
+      resolveAppend(page20(2));
+      await appendDone;
+    });
+    expect(h.get().items).toHaveLength(1);
+    expect(h.get().hasMore).toBe(false);
+    expect(h.get().status).toBe("idle");
+  });
 });

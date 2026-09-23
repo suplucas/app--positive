@@ -12,19 +12,22 @@ export function useFeed(userId: string, limit: number = DEFAULT_LIMIT) {
   const pageRef = useRef(1);
   const userRef = useRef(userId);
   const busyRef = useRef(false);
+  const genRef = useRef(0);
 
   userRef.current = userId;
 
   const loadPage = useCallback(
     async (page: number, mode: "replace" | "append") => {
       if (mode === "append" && busyRef.current) return;
+      if (mode === "replace") genRef.current += 1;
+      const gen = genRef.current;
       busyRef.current = true;
       const requestedUser = userRef.current;
       setStatus(mode === "replace" ? "loading" : "loading-more");
       setError(null);
       try {
         const data = await getFeed(requestedUser, page, limit);
-        if (userRef.current !== requestedUser) return; // stale
+        if (userRef.current !== requestedUser || genRef.current !== gen) return; // stale
         pageRef.current = page;
         setHasMore(data.results.length >= limit);
         setItems((prev) =>
@@ -36,11 +39,11 @@ export function useFeed(userId: string, limit: number = DEFAULT_LIMIT) {
           setStatus("idle");
         }
       } catch (e) {
-        if (userRef.current !== requestedUser) return;
+        if (userRef.current !== requestedUser || genRef.current !== gen) return;
         setError(e instanceof Error ? e.message : String(e));
         setStatus("error");
       } finally {
-        busyRef.current = false;
+        if (genRef.current === gen) busyRef.current = false;
       }
     },
     [limit],
@@ -51,9 +54,9 @@ export function useFeed(userId: string, limit: number = DEFAULT_LIMIT) {
   }, [loadPage]);
 
   const loadMore = useCallback(async () => {
-    if (!hasMore || status === "empty") return;
+    if (!hasMore || status === "empty" || items.length === 0) return;
     await loadPage(pageRef.current + 1, "append");
-  }, [hasMore, status, loadPage]);
+  }, [hasMore, status, items.length, loadPage]);
 
   // initial load + reload on user change
   useEffect(() => {
