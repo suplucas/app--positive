@@ -1,4 +1,4 @@
-import type { FeedResponse } from "./types.js";
+import type { FeedResponse } from "./types";
 
 export async function getFeed(
   userId: string,

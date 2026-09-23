@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { getFeed } from "./api.js";
+import { getFeed } from "./api";
 
 const okBody = {
   page: 1,

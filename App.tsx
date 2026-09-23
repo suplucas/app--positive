@@ -8,9 +8,9 @@ import {
   Text,
   View,
 } from 'react-native';
-import { FeedCard } from './src/FeedCard.js';
-import { useFeed } from './src/useFeed.js';
-import type { Review } from './src/types.js';
+import { FeedCard } from './src/FeedCard';
+import { useFeed } from './src/useFeed';
+import type { Review } from './src/types';
 
 const USERS = ['user_1', 'user_2', 'mogli', 'dosso', 'lucas'] as const;
 

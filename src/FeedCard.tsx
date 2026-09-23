@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View } from 'react-native';
-import type { Review } from './types.js';
+import type { Review } from './types';
 
 export function FeedCard({ review }: { review: Review }) {
   return (

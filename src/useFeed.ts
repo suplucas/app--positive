@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { getFeed } from "./api.js";
-import type { FeedStatus, Review } from "./types.js";
+import { getFeed } from "./api";
+import type { FeedStatus, Review } from "./types";
 
 const DEFAULT_LIMIT = 20;
 

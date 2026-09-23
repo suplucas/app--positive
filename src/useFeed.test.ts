@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { act, create, ReactTestRenderer } from "react-test-renderer";
 import { createElement } from "react";
-import { useFeed } from "./useFeed.js";
-import { getFeed } from "./api.js";
-import type { FeedResponse } from "./types.js";
+import { useFeed } from "./useFeed";
+import { getFeed } from "./api";
+import type { FeedResponse } from "./types";
 
 vi.mock("./api.js", () => ({ getFeed: vi.fn() }));
 

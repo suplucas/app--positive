@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { create, ReactTestRenderer } from 'react-test-renderer';
 import { createElement } from 'react';
-import { FeedCard } from './FeedCard.js';
+import { FeedCard } from './FeedCard';
 
 describe('FeedCard', () => {
   it('renderiza campos do review', () => {
