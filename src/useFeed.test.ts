@@ -107,6 +107,32 @@ describe("useFeed", () => {
   });
 
   it("troca de usuário descarta resposta antiga (race)", async () => {
+    const slowFeed: FeedResponse = {
+      page: 1,
+      limit: 20,
+      results: Array.from({ length: 20 }, (_, i) => ({
+        id: 900 + i,
+        userId: "user_slow",
+        restaurantCnpj: null,
+        rating: 5,
+        comment: null,
+        likes: 0,
+        createdAt: "2026-01-01T00:00:00.000Z",
+      })),
+    };
+    const fastFeed: FeedResponse = {
+      page: 1,
+      limit: 20,
+      results: Array.from({ length: 20 }, (_, i) => ({
+        id: 100 + i,
+        userId: "user_fast",
+        restaurantCnpj: null,
+        rating: 5,
+        comment: null,
+        likes: 0,
+        createdAt: "2026-01-01T00:00:00.000Z",
+      })),
+    };
     let resolveFirst: (v: FeedResponse) => void = () => {};
     getFeedMock
       .mockImplementationOnce(
@@ -115,21 +141,23 @@ describe("useFeed", () => {
             resolveFirst = res;
           }),
       )
-      .mockResolvedValueOnce(page20(1));
+      .mockResolvedValueOnce(fastFeed);
     const h = renderHook("user_slow");
     // second user loads fully
     h.setUser("user_fast");
     await act(async () => {});
     expect(h.get().items).toHaveLength(20);
+    expect(h.get().items.every((r) => r.userId === "user_fast")).toBe(true);
     // late response for user_slow arrives
     await act(async () => {
-      resolveFirst(page20(1));
+      resolveFirst(slowFeed);
       await Promise.resolve();
     });
-    // must still be user_fast data (20 items from second call)
+    // must still be user_fast data — stale slow payload discarded
     expect(getFeedMock).toHaveBeenLastCalledWith("user_fast", 1, 20);
     expect(h.get().items).toHaveLength(20);
-    expect(h.get().items.every((r) => Number(r.id) >= 100)).toBe(true);
+    expect(h.get().items.every((r) => r.userId === "user_fast")).toBe(true);
+    expect(h.get().items.some((r) => Number(r.id) >= 900)).toBe(false);
   });
 
   it("refresh zeta e recarrega page 1", async () => {
