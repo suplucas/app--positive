@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { getFeed } from "./api";
+import { getFeed, postReview } from "./api";
 
 const okBody = {
   page: 1,
@@ -82,5 +82,83 @@ describe("getFeed", () => {
     );
     if (prev === undefined) delete process.env.EXPO_PUBLIC_API_URL;
     else process.env.EXPO_PUBLIC_API_URL = prev;
+  });
+});
+
+describe("postReview", () => {
+  const created = {
+    id: 99,
+    userId: "user_19",
+    restaurantCnpj: "123",
+    rating: 4,
+    comment: "bom",
+    likes: 0,
+    createdAt: "2026-09-24T00:00:00.000Z",
+  };
+
+  it("monta URL, method, headers e body", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => created,
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const r = await postReview(
+      "user_19",
+      { restaurantCnpj: "123", rating: 4, comment: "bom" },
+      "http://api.test",
+    );
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "http://api.test/reviews",
+      expect.objectContaining({
+        method: "POST",
+        headers: expect.objectContaining({
+          "x-user-id": "user_19",
+          "Content-Type": "application/json",
+        }),
+        body: JSON.stringify({
+          restaurantCnpj: "123",
+          rating: 4,
+          comment: "bom",
+        }),
+      }),
+    );
+    expect(r.id).toBe(99);
+  });
+
+  it("lança em non-2xx", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 400,
+        json: async () => ({}),
+      }),
+    );
+    await expect(
+      postReview(
+        "user_1",
+        { restaurantCnpj: "1", rating: 3, comment: null },
+        "http://api.test",
+      ),
+    ).rejects.toThrow(/400/);
+  });
+
+  it("lança quando payload inválido", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ sem: "id" }),
+      }),
+    );
+    await expect(
+      postReview(
+        "user_1",
+        { restaurantCnpj: "1", rating: 3, comment: null },
+        "http://api.test",
+      ),
+    ).rejects.toThrow(/invalid payload/);
   });
 });

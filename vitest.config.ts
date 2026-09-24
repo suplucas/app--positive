@@ -6,6 +6,12 @@ import { createElement } from 'react';
 const host = (name) => (props) => createElement(name, null, props.children);
 export const View = host('View');
 export const Text = host('Text');
+export const Pressable = host('Pressable');
+export const TextInput = host('TextInput');
+export const ScrollView = host('ScrollView');
+export const FlatList = host('FlatList');
+export const RefreshControl = host('RefreshControl');
+export const SafeAreaView = host('SafeAreaView');
 export const StyleSheet = { create: (s) => s, hairlineWidth: 1 };
 `;
 
