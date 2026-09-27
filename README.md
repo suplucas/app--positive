@@ -4,12 +4,26 @@ Expo mínimo para validar `GET /feed` (ver spec em `../docs/superpowers/specs/20
 
 ## Rodar
 
+**macOS / Linux:**
+
 ```bash
 npm install
 # API de pé na porta 3001
 EXPO_PUBLIC_API_URL=http://localhost:3001 npx expo start
 # Android emulador: EXPO_PUBLIC_API_URL=http://10.0.2.2:3001
-# Celular real (Expo Go): EXPO_PUBLIC_API_URL=http://<IP-da-LAN>:3001
+# Celular real (Expo Go): EXPO_PUBLIC_API_URL=http://<IP-da-LAN>:3001 npx expo start
+```
+
+**Windows (PowerShell):**
+
+```powershell
+npm install
+# API de pé na porta 3001
+$env:EXPO_PUBLIC_API_URL="http://localhost:3001"; npx expo start
+# Android emulador:
+$env:EXPO_PUBLIC_API_URL="http://10.0.2.2:3001"; npx expo start
+# Celular real (Expo Go) — substitua pelo IP da sua LAN:
+$env:EXPO_PUBLIC_API_URL="http://192.168.15.33:3001"; npx expo start
 ```
 
 Cenários manuais: spec §6.
