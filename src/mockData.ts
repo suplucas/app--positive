@@ -25,10 +25,32 @@ export type DiaryCell =
 // Item da estante de favoritos: cor sólida ou foto real (photoIndex).
 export type FavoriteItem = { cor: string; nota: string; photoIndex?: number };
 
+// Destaque (bento v3): card foto ou texto no mosaico de destaques.
+export type HighlightCard = {
+  kind: "photo" | "text";
+  place: string;
+  quote: string;
+  nota?: string;
+  cor: string;
+  photoIndex?: number;
+};
+
+// Entrada do diário (lista v3): coluna de data + miniatura + corpo.
+export type DiaryEntry = {
+  day: number;
+  weekday: string;
+  place: string;
+  nota?: string;
+  excerpt?: string;
+  cor: string;
+  photoIndex?: number;
+};
+
 export const PERFIL = {
   userId: "bea_come_tudo",
   nome: "Bea Ferraz",
   handle: "@bea_come_tudo · São Paulo",
+  nicho: "sommelier de boteco",
   bio: "Crítica de fim de semana. Se a fila for grande, provavelmente eu tô nela.",
   stats: [
     { n: "184", l: "avaliações" },
@@ -63,6 +85,76 @@ export const PERFIL = {
     },
     { kind: "note", cor: "#5E3E6B", nota: "9.6", photoIndex: 6 },
   ] as DiaryCell[],
+  destaques: [
+    {
+      kind: "photo",
+      place: "Boteco da Ana",
+      quote: "A cachaça mais honesta de SP.",
+      nota: "9.6",
+      cor: "#8A3550",
+      photoIndex: 0,
+    },
+    {
+      kind: "text",
+      place: "Empório Real",
+      quote: "Fila valeu cada minuto, sem exagero.",
+      nota: "8.2",
+      cor: "#F2A93B",
+    },
+    {
+      kind: "photo",
+      place: "Sushi Kaza",
+      quote: "Yakissoba pra chamar de meu.",
+      nota: "8.9",
+      cor: "#3E5C78",
+      photoIndex: 2,
+    },
+  ] as HighlightCard[],
+  diarioEntradas: [
+    {
+      day: 14,
+      weekday: "sáb",
+      place: "Boteco da Ana",
+      nota: "9.6",
+      excerpt: "A cachaça mais honesta de SP. Petiscos pra ficar a tarde inteira.",
+      cor: "#8A3550",
+      photoIndex: 0,
+    },
+    {
+      day: 8,
+      weekday: "dom",
+      place: "Empório Real",
+      nota: "8.2",
+      excerpt: "Fila valeu cada minuto, sem exagero.",
+      cor: "#C98A3F",
+      photoIndex: 1,
+    },
+    {
+      day: 3,
+      weekday: "ter",
+      place: "Sushi Kaza",
+      nota: "8.9",
+      cor: "#3E5C78",
+      photoIndex: 2,
+    },
+    {
+      day: 28,
+      weekday: "sáb",
+      place: "Café Tupinambá",
+      nota: "7.4",
+      excerpt: "Cheiro bom, barulho demais.",
+      cor: "#5A4A3E",
+    },
+    {
+      day: 21,
+      weekday: "dom",
+      place: "Pizzaria 1900",
+      nota: "9.1",
+      excerpt: "A melhor calzone que eu já comi na vida.",
+      cor: "#5A6B3A",
+      photoIndex: 4,
+    },
+  ] as DiaryEntry[],
   // Curadorias do usuário (aba "listas" do perfil v2). `cores` alimenta o
   // colagem 2×2 do card (a 1ª ocupa a coluna inteira).
   listas: [
