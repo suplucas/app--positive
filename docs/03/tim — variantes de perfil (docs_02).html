@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>tim — variantes de perfil</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700;800&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FBF2E4; --ink:#241A22; --sub:rgba(36,26,34,0.58);
+    --mustard:#F2A93B; --pink:#E63E75; --pickle:#7A9A3D;
+    --line:rgba(36,26,34,0.10);
+    box-sizing:border-box;
+    padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0; background:var(--ink); color:var(--ink);
+    font-family:'Instrument Sans',sans-serif; -webkit-font-smoothing:antialiased;
+    display:flex; justify-content:center;
+  }
+  .disp{font-family:'Bricolage Grotesque';}
+
+  .phone{width:100%; max-width:400px; min-height:100%; background:var(--bg); position:relative; overflow-x:hidden; display:flex; flex-direction:column;}
+
+  header{
+    position:sticky; top:0; z-index:6; background:var(--bg);
+    padding:14px 16px 10px; padding-top:calc(14px + env(safe-area-inset-top,0px));
+    display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--line);
+  }
+  .word{font-family:'Bricolage Grotesque'; font-weight:800; font-size:16px;}
+  .theme-btn{
+    width:30px; height:30px; border-radius:50%; background:none; border:1px solid var(--line);
+    color:var(--ink); font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0;
+  }
+
+  .tabs{
+    position:sticky; top:53px; z-index:5; background:var(--bg);
+    display:flex; gap:6px; padding:10px 16px; border-bottom:1px solid var(--line); overflow-x:auto;
+  }
+  .tab{
+    font-size:12px; font-weight:600; padding:6px 12px; border-radius:20px; border:1px solid var(--line);
+    color:var(--sub); background:none; cursor:pointer; white-space:nowrap;
+  }
+  .tab.active{background:var(--ink); color:var(--bg); border-color:var(--ink);}
+
+  .variant{display:none;}
+  .variant.active{display:block;}
+
+  .section-title{font-family:'Bricolage Grotesque'; font-weight:700; font-size:13px; color:var(--sub); padding:16px 16px 10px;}
+  .avatar{border-radius:50%; background:var(--pink); flex-shrink:0;}
+
+  /* stats reutilizavel */
+  .stats{display:flex; padding:0 16px 16px; border-bottom:1px solid var(--line);}
+  .stat{flex:1; text-align:center;}
+  .stat .n{font-family:'Bricolage Grotesque'; font-weight:800; font-size:16px;}
+  .stat .l{font-size:10.5px; color:var(--sub); margin-top:1px;}
+
+  /* A - lista */
+  .a-head{padding:18px 16px 14px; display:flex; gap:12px; align-items:center;}
+  .a-head .avatar{width:52px; height:52px;}
+  .a-uname{font-family:'Bricolage Grotesque'; font-weight:800; font-size:17px;}
+  .a-handle{font-size:12px; color:var(--sub);}
+  .a-list{display:flex; flex-direction:column;}
+  .a-row{display:flex; justify-content:space-between; gap:10px; padding:12px 16px; border-bottom:1px solid var(--line); font-size:13px;}
+  .a-row .place{font-weight:600;}
+  .a-row .note{font-family:'Bricolage Grotesque'; font-weight:800; flex-shrink:0;}
+
+  /* B - grid posts */
+  .b-head{padding:18px 16px 12px; display:flex; gap:12px; align-items:center;}
+  .b-head .avatar{width:56px; height:56px;}
+  .b-uname{font-family:'Bricolage Grotesque'; font-weight:800; font-size:16px;}
+  .b-bio{font-size:12px; color:var(--sub); margin-top:2px;}
+  .b-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:3px; padding:0 3px;}
+  .b-grid .cell{aspect-ratio:1; position:relative;}
+  .b-grid .cell .n{position:absolute; bottom:4px; right:4px; background:rgba(0,0,0,0.55); color:#fff; font-family:'Bricolage Grotesque'; font-weight:800; font-size:10px; padding:1px 4px; border-radius:4px;}
+
+  /* C - minimalista */
+  .c-wrap{padding:40px 24px; text-align:center;}
+  .c-wrap .avatar{width:72px; height:72px; margin:0 auto 12px;}
+  .c-uname{font-family:'Bricolage Grotesque'; font-weight:800; font-size:19px;}
+  .c-bio{font-size:12.5px; color:var(--sub); margin-top:4px;}
+  .c-stats{display:flex; justify-content:center; gap:22px; margin-top:16px;}
+  .c-stats .stat{flex:none;}
+  .c-cta{
+    margin:20px auto 0; display:block; font-family:'Bricolage Grotesque'; font-weight:700; font-size:12.5px;
+    background:var(--ink); color:var(--bg); border:none; border-radius:20px; padding:10px 20px; cursor:pointer;
+  }
+
+  /* D - com foto de capa */
+  .d-cover{height:110px; position:relative;}
+  .d-avatar-wrap{padding:0 16px; margin-top:-30px;}
+  .d-avatar-wrap .avatar{width:64px; height:64px; border:3px solid var(--bg);}
+  .d-info{padding:8px 16px 16px;}
+  .d-uname{font-family:'Bricolage Grotesque'; font-weight:800; font-size:18px;}
+  .d-bio{font-size:13px; margin-top:4px; line-height:1.45;}
+
+  footer.legend{padding:16px 16px 40px; font-size:12px; color:var(--sub); line-height:1.5;}
+
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){ --bg:#121212; --ink:#F2F0EF; --sub:rgba(242,240,239,0.55); --line:rgba(242,240,239,0.09); }
+  }
+  :root[data-theme="dark"]{ --bg:#121212; --ink:#F2F0EF; --sub:rgba(242,240,239,0.55); --line:rgba(242,240,239,0.09); }
+</style>
+</head>
+<body>
+<div class="phone">
+
+  <header>
+    <div class="word disp">perfil — variantes</div>
+    <button class="theme-btn" id="themeBtn" onclick="toggleTheme()">🌙</button>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active" data-v="a" onclick="showVariant('a')">A · lista</button>
+    <button class="tab" data-v="b" onclick="showVariant('b')">B · grid de posts</button>
+    <button class="tab" data-v="c" onclick="showVariant('c')">C · minimalista</button>
+    <button class="tab" data-v="d" onclick="showVariant('d')">D · com capa</button>
+  </div>
+
+  <!-- A: LISTA -->
+  <div class="variant active" id="v-a">
+    <div class="a-head">
+      <div class="avatar"></div>
+      <div><div class="a-uname disp">Bea Ferraz</div><div class="a-handle">@bea_come_tudo</div></div>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="n disp">184</div><div class="l">avaliações</div></div>
+      <div class="stat"><div class="n disp">92</div><div class="l">seguidores</div></div>
+      <div class="stat"><div class="n disp">9.1</div><div class="l">média</div></div>
+    </div>
+    <div class="section-title">avaliações recentes</div>
+    <div class="a-list">
+      <div class="a-row"><span class="place">Boteco da Ana</span><span class="note disp">9.1</span></div>
+      <div class="a-row"><span class="place">Sushi Kaza</span><span class="note disp">4.6</span></div>
+      <div class="a-row"><span class="place">Empório Real</span><span class="note disp">7.8</span></div>
+      <div class="a-row"><span class="place">Padaria Sol</span><span class="note disp">6.5</span></div>
+    </div>
+    <footer class="legend">Sem grid, sem foto — o conteúdo é a opinião em si. Funciona bem mesmo com zero fotos postadas.</footer>
+  </div>
+
+  <!-- B: GRID DE POSTS -->
+  <div class="variant" id="v-b">
+    <div class="b-head">
+      <div class="avatar"></div>
+      <div><div class="b-uname disp">Bea Ferraz</div><div class="b-bio">184 avaliações · São Paulo</div></div>
+    </div>
+    <div class="b-grid">
+      <div class="cell" style="background:#C98A3F;"><span class="n">9.1</span></div>
+      <div class="cell" style="background:#5A6B3A;"><span class="n">4.6</span></div>
+      <div class="cell" style="background:#8A3550;"><span class="n">7.8</span></div>
+      <div class="cell" style="background:#3E5C78;"><span class="n">8.4</span></div>
+      <div class="cell" style="background:#7A5A3E;"><span class="n">6.9</span></div>
+      <div class="cell" style="background:#5E3E6B;"><span class="n">9.6</span></div>
+      <div class="cell" style="background:#3E6B5E;"><span class="n">5.2</span></div>
+      <div class="cell" style="background:#6B4A3E;"><span class="n">8.9</span></div>
+      <div class="cell" style="background:#8A6B3E;"><span class="n">7.1</span></div>
+    </div>
+    <footer class="legend">Foto é o protagonista, texto some. Bom pra volume, ruim pra usuário sem fotos ainda.</footer>
+  </div>
+
+  <!-- C: MINIMALISTA -->
+  <div class="variant" id="v-c">
+    <div class="c-wrap">
+      <div class="avatar"></div>
+      <div class="c-uname disp">Bea Ferraz</div>
+      <div class="c-bio">@bea_come_tudo · crítica de fim de semana</div>
+      <div class="c-stats">
+        <div class="stat"><div class="n disp">184</div><div class="l">avaliações</div></div>
+        <div class="stat"><div class="n disp">92</div><div class="l">seguidores</div></div>
+        <div class="stat"><div class="n disp">9.1</div><div class="l">média</div></div>
+      </div>
+      <button class="c-cta">ver avaliações</button>
+    </div>
+    <footer class="legend">Identidade primeiro, conteúdo é uma segunda tela. Bom pra decisão rápida de "seguir ou não".</footer>
+  </div>
+
+  <!-- D: COM FOTO DE CAPA -->
+  <div class="variant" id="v-d">
+    <div class="d-cover" style="background:linear-gradient(135deg,var(--mustard),var(--pink));"></div>
+    <div class="d-avatar-wrap"><div class="avatar"></div></div>
+    <div class="d-info">
+      <div class="d-uname disp">Bea Ferraz</div>
+      <div class="d-bio">Crítica de fim de semana. Se a fila for grande, provavelmente eu tô nela.</div>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="n disp">184</div><div class="l">avaliações</div></div>
+      <div class="stat"><div class="n disp">92</div><div class="l">seguidores</div></div>
+      <div class="stat"><div class="n disp">9.1</div><div class="l">média</div></div>
+    </div>
+    <footer class="legend">Capa dá mais expressão de identidade, mas exige upload/crop extra do usuário — peso de implementação maior.</footer>
+  </div>
+
+</div>
+<script>
+  function toggleTheme(){
+    var cur = document.documentElement.getAttribute('data-theme');
+    var next = cur === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    document.getElementById('themeBtn').textContent = next === 'dark' ? '☀️' : '🌙';
+  }
+  function showVariant(v){
+    document.querySelectorAll('.variant').forEach(function(el){ el.classList.toggle('active', el.id === 'v-' + v); });
+    document.querySelectorAll('.tab').forEach(function(el){ el.classList.toggle('active', el.dataset.v === v); });
+  }
+</script>
+</body>
+</html>

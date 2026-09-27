@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>tim — telas (feed + perfil)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700;800&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{ --ink:#241A22; --bg:#FBF2E4; --sub:rgba(36,26,34,0.58); --pink:#E63E75; --line:rgba(36,26,34,0.10); }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; min-height:100vh; background:var(--bg); color:var(--ink);
+    font-family:'Instrument Sans',sans-serif; -webkit-font-smoothing:antialiased;
+    padding:32px 20px 48px;
+  }
+  .head{max-width:920px; margin:0 auto 24px;}
+  .word{font-family:'Bricolage Grotesque'; font-weight:800; font-size:22px;}
+  .word span{color:var(--pink);}
+  .sub{font-size:13px; color:var(--sub); margin-top:4px;}
+  .grid{display:flex; gap:24px; justify-content:center; flex-wrap:wrap; max-width:920px; margin:0 auto;}
+  .frame{display:flex; flex-direction:column; gap:8px;}
+  .frame .label{font-family:'Bricolage Grotesque'; font-weight:700; font-size:12px; color:var(--sub);}
+  iframe{
+    width:400px; height:820px; border:1px solid var(--line); border-radius:14px; background:#241A22;
+    box-shadow:0 12px 40px rgba(36,26,34,0.18);
+  }
+  .hint{max-width:920px; margin:28px auto 0; font-size:12px; color:var(--sub); line-height:1.6;}
+  .hint a{color:var(--ink);}
+</style>
+</head>
+<body>
+  <div class="head">
+    <div class="word">t<span>im</span> — telas</div>
+    <div class="sub">Feed e perfil lado a lado (viewport mobile 400px). Cada <em>frame</em> é um HTML autônomo com tema claro/escuro.</div>
+  </div>
+
+  <div class="grid">
+    <div class="frame">
+      <div class="label">feed.html</div>
+      <iframe src="feed.html" title="Feed"></iframe>
+    </div>
+    <div class="frame">
+      <div class="label">perfil.html</div>
+      <iframe src="perfil.html" title="Perfil"></iframe>
+    </div>
+  </div>
+
+  <div class="hint">
+    Arquivos: <a href="feed.html">feed.html</a> · <a href="perfil.html">perfil.html</a>.
+    Tokens e componentes replicados de <code>tim — app (feed + perfil)(1).html</code>:
+    paleta berinjela/papel/mostarda/pink/picles, tipografia Bricolage Grotesque + Instrument Sans,
+    escala de 4px e dark mode neutro (#121212).
+  </div>
+</body>
+</html>

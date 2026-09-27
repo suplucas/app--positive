@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getFeed } from "./api";
+import { MOCK_FEED, MOCK_USER } from "./mockFeed";
 import type { FeedStatus, Review } from "./types";
 
 const DEFAULT_LIMIT = 20;
@@ -18,6 +19,7 @@ export function useFeed(userId: string, limit: number = DEFAULT_LIMIT) {
 
   const loadPage = useCallback(
     async (page: number, mode: "replace" | "append") => {
+      if (userRef.current === MOCK_USER) return; // feed local, sem backend
       if (mode === "append" && busyRef.current) return;
       if (mode === "replace") genRef.current += 1;
       const gen = genRef.current;
@@ -50,6 +52,7 @@ export function useFeed(userId: string, limit: number = DEFAULT_LIMIT) {
   );
 
   const refresh = useCallback(async () => {
+    if (userRef.current === MOCK_USER) return;
     await loadPage(1, "replace");
   }, [loadPage]);
 
@@ -61,10 +64,17 @@ export function useFeed(userId: string, limit: number = DEFAULT_LIMIT) {
   // initial load + reload on user change
   useEffect(() => {
     pageRef.current = 1;
-    setItems([]);
     setHasMore(true);
-    setStatus("loading");
     setError(null);
+    if (userId === MOCK_USER) {
+      // Feed de demonstração: só dados locais (assets/posts), sem fetch.
+      setItems(MOCK_FEED);
+      setHasMore(false);
+      setStatus("idle");
+      return;
+    }
+    setItems([]);
+    setStatus("loading");
     void loadPage(1, "replace");
   }, [userId, loadPage]);
 

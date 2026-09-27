@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>tim — perfil v2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700;800&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FBF2E4; --ink:#241A22; --sub:rgba(36,26,34,0.58);
+    --mustard:#F2A93B; --pink:#E63E75; --pickle:#7A9A3D;
+    --line:rgba(36,26,34,0.10);
+    box-sizing:border-box;
+    padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{ margin:0; background:var(--ink); color:var(--ink); font-family:'Instrument Sans',sans-serif; -webkit-font-smoothing:antialiased; display:flex; justify-content:center; }
+  .disp{font-family:'Bricolage Grotesque';}
+
+  .phone{width:100%; max-width:400px; min-height:100%; background:var(--bg); position:relative; overflow-x:hidden;}
+
+  header{
+    position:sticky; top:0; z-index:5; background:var(--bg);
+    padding:14px 16px 10px; padding-top:calc(14px + env(safe-area-inset-top,0px));
+    display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--line);
+  }
+  .word{font-family:'Bricolage Grotesque'; font-weight:800; font-size:16px;}
+  .theme-btn{
+    width:30px; height:30px; border-radius:50%; background:none; border:1px solid var(--line);
+    color:var(--ink); font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0;
+  }
+
+  .bio-block{padding:20px 16px 4px; display:flex; gap:14px; align-items:flex-start;}
+  .avatar-lg{width:60px; height:60px; border-radius:50%; background:var(--pink); flex-shrink:0;}
+  .who{flex:1; min-width:0;}
+  .name-row{display:flex; align-items:center; gap:10px;}
+  .p-uname{font-family:'Bricolage Grotesque'; font-weight:800; font-size:18px;}
+  .follow-btn{
+    font-family:'Bricolage Grotesque'; font-weight:700; font-size:12px; padding:6px 16px; border-radius:20px;
+    cursor:pointer; border:1.5px solid var(--ink); background:var(--ink); color:var(--bg); margin-left:auto;
+  }
+  .follow-btn.following{background:transparent; color:var(--ink); opacity:0.7;}
+  .handle{font-size:12.5px; color:var(--sub); margin-top:1px;}
+  .bio{font-size:13px; margin-top:8px; line-height:1.5; padding:0 16px;}
+
+  .stats{display:flex; padding:16px 16px 16px; gap:0; border-bottom:1px solid var(--line);}
+  .stat{flex:1; text-align:center;}
+  .stat .n{font-family:'Bricolage Grotesque'; font-weight:800; font-size:16px;}
+  .stat .l{font-size:11px; color:var(--sub); margin-top:1px;}
+
+  .shelf{display:flex; gap:8px; padding:16px 16px 6px;}
+  .shelf .sq{flex:1; aspect-ratio:1; border-radius:10px; position:relative;}
+  .shelf .sq .n{
+    position:absolute; bottom:5px; right:5px; background:rgba(36,26,34,0.82); color:var(--bg);
+    font-family:'Bricolage Grotesque'; font-weight:800; font-size:10.5px; padding:1px 5px; border-radius:5px;
+  }
+  .section-title{font-family:'Bricolage Grotesque'; font-weight:700; font-size:13px; color:var(--sub); padding:16px 16px 10px;}
+
+  /* tabs diario/listas */
+  .content-tabs{display:flex; gap:20px; padding:14px 16px 0; border-bottom:1px solid var(--line);}
+  .ctab{
+    font-family:'Bricolage Grotesque'; font-weight:700; font-size:13.5px; color:var(--sub);
+    background:none; border:none; padding:0 0 10px; cursor:pointer; border-bottom:2px solid transparent;
+  }
+  .ctab.active{color:var(--ink); border-bottom-color:var(--ink);}
+
+  .content-panel{display:none;}
+  .content-panel.active{display:block;}
+
+  .diary-grid{display:grid; grid-template-columns:repeat(3,1fr); grid-auto-flow:dense; gap:5px; padding:10px 16px 8px;}
+  .diary-grid .cell{aspect-ratio:1; border-radius:12px; position:relative; overflow:hidden;}
+  .diary-grid .cell.wide{aspect-ratio:auto; grid-column:span 2;}
+  .diary-grid .cell .n{
+    position:absolute; bottom:5px; right:5px; background:rgba(36,26,34,0.82); color:var(--bg);
+    font-family:'Bricolage Grotesque'; font-weight:800; font-size:10.5px; padding:1px 5px; border-radius:5px;
+  }
+  .diary-grid .cell.quote{display:flex; flex-direction:column; padding:10px;}
+  .diary-grid .cell.quote .qmeta{display:flex; justify-content:space-between; font-size:9.5px; font-weight:600; margin-bottom:auto;}
+  .diary-grid .cell.quote .qmeta .n{position:static; background:none; padding:0; font-size:12px;}
+  .diary-grid .cell.quote .qtext{font-family:'Bricolage Grotesque'; font-weight:700; font-size:13px; line-height:1.25; margin-top:auto;}
+
+  /* listas */
+  .lists{display:flex; flex-direction:column; padding:8px 16px 20px;}
+  .list-card{display:flex; gap:12px; align-items:center; padding:12px 0; border-bottom:1px solid var(--line);}
+  .list-collage{width:64px; height:64px; border-radius:10px; flex-shrink:0; display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; gap:2px; overflow:hidden;}
+  .list-collage span{display:block;}
+  .list-collage span:first-child{grid-row:span 2;}
+  .list-body .title{font-family:'Bricolage Grotesque'; font-weight:700; font-size:14px;}
+  .list-body .meta{font-size:12px; color:var(--sub); margin-top:3px;}
+
+  footer.legend{padding:16px 16px 34px; font-size:12px; color:var(--sub); line-height:1.5;}
+
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){ --bg:#121212; --ink:#F2F0EF; --sub:rgba(242,240,239,0.55); --line:rgba(242,240,239,0.09); }
+  }
+  :root[data-theme="dark"]{ --bg:#121212; --ink:#F2F0EF; --sub:rgba(242,240,239,0.55); --line:rgba(242,240,239,0.09); }
+</style>
+</head>
+<body>
+<div class="phone">
+
+  <header>
+    <div class="word disp">perfil</div>
+    <button class="theme-btn" id="themeBtn" onclick="toggleTheme()">🌙</button>
+  </header>
+
+  <div class="bio-block">
+    <div class="avatar-lg"></div>
+    <div class="who">
+      <div class="name-row">
+        <div class="p-uname disp">Bea Ferraz</div>
+        <button class="follow-btn disp" id="followBtn" onclick="toggleFollow()">seguir</button>
+      </div>
+      <div class="handle">@bea_come_tudo · São Paulo</div>
+    </div>
+  </div>
+  <div class="bio">Crítica de fim de semana. Se a fila for grande, provavelmente eu tô nela.</div>
+
+  <div class="stats">
+    <div class="stat"><div class="n disp">184</div><div class="l">avaliações</div></div>
+    <div class="stat"><div class="n disp">92</div><div class="l">seguidores</div></div>
+    <div class="stat"><div class="n disp">76</div><div class="l">seguindo</div></div>
+    <div class="stat"><div class="n disp">9.1</div><div class="l">média</div></div>
+  </div>
+
+  <div class="section-title">favoritos</div>
+  <div class="shelf">
+    <div class="sq" style="background:#C98A3F;"><span class="n disp">9.6</span></div>
+    <div class="sq" style="background:#8A3550;"><span class="n disp">9.4</span></div>
+    <div class="sq" style="background:#5A6B3A;"><span class="n disp">9.2</span></div>
+  </div>
+
+  <div class="content-tabs">
+    <button class="ctab active" data-tab="diario" onclick="showTab('diario')">diário</button>
+    <button class="ctab" data-tab="listas" onclick="showTab('listas')">listas · 4</button>
+  </div>
+
+  <div class="content-panel active" id="panel-diario">
+    <div class="diary-grid">
+      <div class="cell" style="background:#C98A3F;"><span class="n disp">9.1</span></div>
+      <div class="cell" style="background:#5A6B3A;"><span class="n disp">4.6</span></div>
+      <div class="cell quote wide" style="background:var(--mustard);">
+        <div class="qmeta"><span>Empório Real</span><span class="n disp">8.2</span></div>
+        <div class="qtext">"Fila valeu cada minuto, sem exagero."</div>
+      </div>
+      <div class="cell" style="background:#8A3550;"><span class="n disp">7.8</span></div>
+      <div class="cell" style="background:#3E5C78;"><span class="n disp">8.4</span></div>
+      <div class="cell" style="background:#7A5A3E;"><span class="n disp">6.9</span></div>
+      <div class="cell quote wide" style="background:var(--pink); color:#FBF2E4;">
+        <div class="qmeta"><span>Boteco da Ana</span><span class="n disp">9.6</span></div>
+        <div class="qtext">"Chorei de tão bom, sem exagero nenhum."</div>
+      </div>
+      <div class="cell" style="background:#5E3E6B;"><span class="n disp">9.6</span></div>
+    </div>
+  </div>
+
+  <div class="content-panel" id="panel-listas">
+    <div class="lists">
+      <div class="list-card">
+        <div class="list-collage"><span style="background:#C98A3F;"></span><span style="background:#8A3550;"></span><span style="background:#5A6B3A;"></span></div>
+        <div class="list-body"><div class="title disp">Melhores pizzarias de SP</div><div class="meta">12 lugares · atualizada há 3 dias</div></div>
+      </div>
+      <div class="list-card">
+        <div class="list-collage"><span style="background:#3E5C78;"></span><span style="background:#7A5A3E;"></span><span style="background:#5E3E6B;"></span></div>
+        <div class="list-body"><div class="title disp">Pra ir sozinho sem graça</div><div class="meta">7 lugares · atualizada há 1 semana</div></div>
+      </div>
+      <div class="list-card">
+        <div class="list-collage"><span style="background:#8A6B3E;"></span><span style="background:#3E6B5E;"></span><span style="background:#6B4A3E;"></span></div>
+        <div class="list-body"><div class="title disp">Café bom de verdade</div><div class="meta">9 lugares · atualizada há 2 semanas</div></div>
+      </div>
+      <div class="list-card">
+        <div class="list-collage"><span style="background:#5A6B3A;"></span><span style="background:#C98A3F;"></span><span style="background:#8A3550;"></span></div>
+        <div class="list-body"><div class="title disp">Levar visita de fora</div><div class="meta">15 lugares · atualizada ontem</div></div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="legend">Botão de seguir ao lado do nome (clique pra alternar seguir/seguindo). Abas "diário/listas" separam histórico cronológico de curadoria intencional — cada uma com o próprio conteúdo abaixo.</footer>
+
+</div>
+<script>
+  function toggleTheme(){
+    var cur = document.documentElement.getAttribute('data-theme');
+    var next = cur === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    document.getElementById('themeBtn').textContent = next === 'dark' ? '☀️' : '🌙';
+  }
+  function toggleFollow(){
+    var btn = document.getElementById('followBtn');
+    var isFollowing = btn.classList.toggle('following');
+    btn.textContent = isFollowing ? 'seguindo' : 'seguir';
+  }
+  function showTab(tab){
+    document.querySelectorAll('.ctab').forEach(function(b){ b.classList.toggle('active', b.dataset.tab === tab); });
+    document.querySelectorAll('.content-panel').forEach(function(p){ p.classList.toggle('active', p.id === 'panel-' + tab); });
+  }
+</script>
+</body>
+</html>

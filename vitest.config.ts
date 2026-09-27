@@ -12,6 +12,7 @@ export const ScrollView = host('ScrollView');
 export const FlatList = host('FlatList');
 export const RefreshControl = host('RefreshControl');
 export const SafeAreaView = host('SafeAreaView');
+export const Image = host('Image');
 export const StyleSheet = { create: (s) => s, hairlineWidth: 1 };
 `;
 

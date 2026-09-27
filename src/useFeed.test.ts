@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { act, create, ReactTestRenderer } from "react-test-renderer";
 import { createElement } from "react";
 import { useFeed } from "./useFeed";
+import { MOCK_FEED, MOCK_USER } from "./mockFeed";
 import { getFeed } from "./api";
 import type { FeedResponse } from "./types";
 
@@ -238,5 +239,36 @@ describe("useFeed", () => {
     expect(h.get().items).toHaveLength(1);
     expect(h.get().hasMore).toBe(false);
     expect(h.get().status).toBe("idle");
+  });
+
+  it("usuário mock usa feed local e nunca chama o backend", async () => {
+    const h = renderHook(MOCK_USER);
+    await act(async () => {});
+    expect(getFeedMock).not.toHaveBeenCalled();
+    expect(h.get().items).toHaveLength(MOCK_FEED.length);
+    expect(h.get().status).toBe("idle");
+    expect(h.get().hasMore).toBe(false);
+    expect(h.get().items.some((r) => r.layout === "photo")).toBe(true);
+    expect(h.get().items.some((r) => r.layout === "quote")).toBe(true);
+    expect(h.get().items.some((r) => r.layout === "row")).toBe(true);
+    // refresh/loadMore são no-op no modo mock (sem fetch)
+    await act(async () => {
+      await h.get().refresh();
+    });
+    await act(async () => {
+      await h.get().loadMore();
+    });
+    expect(getFeedMock).not.toHaveBeenCalled();
+  });
+
+  it("sair do mock para usuário real volta a buscar no backend", async () => {
+    getFeedMock.mockResolvedValue(page20(1));
+    const h = renderHook(MOCK_USER);
+    await act(async () => {});
+    expect(getFeedMock).not.toHaveBeenCalled();
+    h.setUser("user_1");
+    await act(async () => {});
+    expect(getFeedMock).toHaveBeenCalledWith("user_1", 1, 20);
+    expect(h.get().items.every((r) => r.userId === "u")).toBe(true);
   });
 });

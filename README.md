@@ -24,3 +24,4 @@ Cenários manuais: spec §6.
 | 4 | Trocar para `mogli` | lista troca |
 | 5 | FLUSHDB + refresh | cards do Postgres, sem erro |
 | 6 | flush + 1 POST /reviews + refresh | poucos cards; próximo refresh mais completo (fill async) |
+| 7 | Trocar para `mock` | feed 100% local com as imagens de `assets/posts`, sem chamar a API |

@@ -4,6 +4,7 @@ import {
   Pressable,
   RefreshControl,
   SafeAreaView,
+  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -21,6 +22,10 @@ import {
 import { useFonts } from 'expo-font';
 import { StatusBar } from 'expo-status-bar';
 import { FeedCard } from './src/FeedCard';
+import { FeedPhoto } from './src/FeedPhoto';
+import { FeedQuote } from './src/FeedQuote';
+import { MOCK_USER } from './src/mockFeed';
+import { MOCK_POST_PHOTOS, photoFor } from './src/postPhotos';
 import { ComposeScreen } from './src/ComposeScreen';
 import { Navbar, type Screen } from './src/Navbar';
 import { Podium } from './src/Podium';
@@ -36,9 +41,10 @@ import {
   type Theme,
 } from './src/theme';
 import { useFeed } from './src/useFeed';
-import type { Review } from './src/types';
+import type { Review, ReviewLayout } from './src/types';
+import type { ImageSourcePropType } from 'react-native';
 
-const USERS = ['user_1', 'user_2', 'mogli', 'dosso', 'lucas'] as const;
+const USERS = ['user_1', 'user_2', 'mogli', 'dosso', 'lucas', MOCK_USER] as const;
 
 // Nota forte na escala 0-10: flair "chorei de tão bom" no máx. 1 por tela.
 const STRONG_NOTE = 9;
@@ -69,11 +75,39 @@ export default function App() {
     }
   }, [status, loadMore]);
 
-  // Primeiro review com nota >= 9 ganha o flair forte da tela.
-  const strongId = useMemo(
-    () => items.find((r) => r.rating != null && r.rating * 2 >= STRONG_NOTE)?.id ?? null,
-    [items],
-  );
+  // Formato de cada item do feed + tom das quote cards (alterna
+  // mostarda/lambe-lambe). `layout` explícito vence (feeds mock);
+  // senão deriva: foto pela regra de índice, quote para nota >= 9,
+  // caso contrário linha compacta.
+  const decorated = useMemo(() => {
+    const map = new Map<
+      Review['id'],
+      {
+        layout: ReviewLayout;
+        photo?: ImageSourcePropType;
+        tone?: 'mostarda' | 'lambeLambe';
+      }
+    >();
+    let quotes = 0;
+    items.forEach((item, index) => {
+      const photo = photoFor(item, index);
+      const strong = item.rating != null && item.rating * 2 >= STRONG_NOTE;
+      const layout: ReviewLayout =
+        item.layout ?? (photo ? 'photo' : strong ? 'quote' : 'row');
+      if (layout === 'photo') {
+        map.set(item.id, { layout, photo: photo ?? MOCK_POST_PHOTOS[0] });
+      } else if (layout === 'quote') {
+        map.set(item.id, {
+          layout,
+          tone: quotes % 2 === 0 ? 'mostarda' : 'lambeLambe',
+        });
+        quotes += 1;
+      } else {
+        map.set(item.id, { layout });
+      }
+    });
+    return map;
+  }, [items]);
 
   const banner =
     status === 'loading' && items.length === 0
@@ -122,7 +156,12 @@ export default function App() {
 
           {screen === 'feed' ? (
             <>
-              <View style={styles.chips}>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.chips}
+                style={styles.chipsScroll}
+              >
                 {USERS.map((u) => {
                   const active = u === userId;
                   return (
@@ -149,7 +188,7 @@ export default function App() {
                     </Pressable>
                   );
                 })}
-              </View>
+              </ScrollView>
               {banner ? (
                 <View style={[styles.banner, { backgroundColor: theme.quietBg }]}>
                   <Text style={[styles.bannerText, { color: theme.sub }]}>{banner}</Text>
@@ -165,13 +204,20 @@ export default function App() {
             keyExtractor={(item) => String(item.id)}
             ListHeaderComponent={
               <View>
-                <Podium />
+                {/* <Podium /> */}
                 <SectionTitle>reviews recentes</SectionTitle>
               </View>
             }
-            renderItem={({ item }) => (
-              <FeedCard review={item} strong={item.id === strongId} />
-            )}
+            renderItem={({ item }) => {
+              const d = decorated.get(item.id);
+              if (d?.layout === 'photo' && d.photo) {
+                return <FeedPhoto review={item} photo={d.photo} />;
+              }
+              if (d?.layout === 'quote') {
+                return <FeedQuote review={item} tone={d.tone} />;
+              }
+              return <FeedCard review={item} />;
+            }}
             onEndReachedThreshold={0.4}
             onEndReached={onEndReached}
             refreshControl={
@@ -227,7 +273,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.interno },
+  chipsScroll: { flexGrow: 0 },
+  chips: {
+    flexDirection: 'row',
+    gap: spacing.interno,
+    paddingRight: spacing.padrao,
+  },
   chip: {
     minHeight: 44,
     paddingHorizontal: spacing.padrao,

@@ -85,6 +85,13 @@ Pacote de ideias menores, todas de baixo esforço relativo:
 
 ---
 
+## 6. Review com nota maxima teria animacao
+
+Poderia aparecer uma animacao com TIIIIM na tela, tipo tocando o sininho para a nota maxima, uma "recompensa" que o proprio usuario da
+
+---
+
+
 ## Priorização sugerida (na ausência de dados de usuário)
 
 1. Sync com delivery (2) — maior impacto no cold-start, menor complexidade técnica relativa.

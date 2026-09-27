@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>tim — feed</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700;800&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FBF2E4; --ink:#241A22; --sub:rgba(36,26,34,0.58);
+    --mustard:#F2A93B; --pink:#E63E75; --pickle:#7A9A3D;
+    --line:rgba(36,26,34,0.10);
+    box-sizing:border-box;
+    padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0; background:var(--ink); color:var(--ink);
+    font-family:'Instrument Sans',sans-serif; -webkit-font-smoothing:antialiased;
+    display:flex; justify-content:center;
+  }
+  .disp{font-family:'Bricolage Grotesque';}
+
+  .phone{width:100%; max-width:400px; min-height:100%; background:var(--bg); position:relative; overflow-x:hidden; display:flex; flex-direction:column;}
+
+  header{
+    position:sticky; top:0; z-index:5; background:var(--bg);
+    padding:14px 16px 10px; padding-top:calc(14px + env(safe-area-inset-top,0px));
+    display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--line);
+  }
+  .word{font-family:'Bricolage Grotesque'; font-weight:800; font-size:18px;}
+  .word span{color:var(--pink);}
+  .theme-btn{
+    width:30px; height:30px; border-radius:50%; background:none; border:1px solid var(--line);
+    color:var(--ink); font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0;
+  }
+
+  .screen{flex:1;}
+
+  .section-title{font-family:'Bricolage Grotesque'; font-weight:700; font-size:13px; color:var(--sub); padding:18px 16px 12px;}
+
+  /* podio */
+  .podium{display:flex; align-items:flex-end; gap:8px; padding:0 16px 20px; border-bottom:1px solid var(--line);}
+  .pod{flex:1; text-align:center;}
+  .pod .plate{border-radius:10px 10px 4px 4px; display:flex; align-items:flex-end; justify-content:center; padding-bottom:6px;}
+  .pod .medal{font-size:13px;}
+  .pod .place-name{font-size:11.5px; font-weight:600; margin-top:6px; line-height:1.25;}
+  .pod .note{font-family:'Bricolage Grotesque'; font-weight:800; font-size:14px; margin-top:2px;}
+  .pod.p1 .plate{height:96px; background:var(--mustard); color:var(--ink);}
+  .pod.p2 .plate{height:76px; background:var(--pink); color:var(--bg);}
+  .pod.p3 .plate{height:60px; background:var(--pickle); color:var(--bg);}
+
+  /* lista de reviews */
+  .list{display:flex; flex-direction:column;}
+  .row{display:flex; gap:11px; align-items:flex-start; padding:13px 16px; border-bottom:1px solid var(--line);}
+  .avatar{width:32px; height:32px; border-radius:50%; flex-shrink:0; margin-top:1px;}
+  .row-body{flex:1; min-width:0;}
+  .row-top{display:flex; align-items:baseline; gap:6px; flex-wrap:wrap;}
+  .uname{font-family:'Bricolage Grotesque'; font-weight:700; font-size:13.5px;}
+  .place{font-size:13px; color:var(--sub);}
+  .place b{color:var(--ink); font-weight:600;}
+  .caption{font-size:13px; line-height:1.45; margin-top:4px;}
+  .row-meta{display:flex; gap:10px; align-items:center; margin-top:6px; font-size:11.5px; color:var(--sub);}
+  .row-note{font-family:'Bricolage Grotesque'; font-weight:800; font-size:15px; flex-shrink:0; margin-top:1px;}
+
+  /* feed quote card - avaliacao textual em destaque, mesmo tratamento do grid de perfil */
+  .feed-quote{
+    margin:10px 16px; border-radius:16px; padding:14px 16px 16px;
+    display:flex; flex-direction:column;
+  }
+  .feed-quote-top{display:flex; align-items:center; gap:9px;}
+  .feed-quote-top .avatar{width:28px; height:28px;}
+  .feed-quote-top .uname{font-family:'Bricolage Grotesque'; font-weight:700; font-size:13px;}
+  .feed-quote-top .fq-note{
+    margin-left:auto; font-family:'Bricolage Grotesque'; font-weight:800; font-size:14px;
+  }
+  .feed-quote-text{font-family:'Bricolage Grotesque'; font-weight:700; font-size:20px; line-height:1.3; margin:14px 0 12px;}
+  .feed-quote-meta{display:flex; justify-content:space-between; align-items:center; font-size:11.5px; font-weight:600;}
+  .feed-quote-actions{display:flex; gap:14px; font-size:11.5px; opacity:0.85;}
+
+  /* feed photo post */
+  .feed-photo-post{padding:13px 0; border-bottom:1px solid var(--line);}
+  .fp-top{display:flex; align-items:center; gap:9px; padding:0 16px 10px;}
+  .fp-top .avatar{width:30px; height:30px;}
+  .fp-top .uname{font-family:'Bricolage Grotesque'; font-weight:700; font-size:13.5px;}
+  .fp-top .place{font-size:12.5px; color:var(--sub);}
+  .fp-top .place b{color:var(--ink); font-weight:600;}
+  .fp-top .time{margin-left:auto; font-size:12px; color:var(--sub);}
+  .fp-photo-wrap{position:relative;}
+  .fp-photo{width:100%; height:220px; display:block; object-fit:cover;}
+  .fp-note{
+    position:absolute; top:10px; right:12px; background:rgba(36,26,34,0.82); color:var(--bg);
+    font-family:'Bricolage Grotesque'; font-weight:800; font-size:14px; padding:3px 9px; border-radius:8px;
+  }
+  .fp-caption{font-size:13px; line-height:1.5; padding:10px 16px 0;}
+  .fp-actions{display:flex; gap:16px; padding:10px 16px 0; font-size:12px; color:var(--sub);}
+
+  footer.legend{padding:20px 16px 34px; font-size:12px; color:var(--sub); line-height:1.5;}
+
+  .navbar{
+    position:sticky; bottom:0; z-index:5; display:flex; align-items:center; justify-content:space-around;
+    background:var(--bg); border-top:1px solid var(--line); padding:10px 8px calc(10px + env(safe-area-inset-bottom,0px));
+    margin-top:auto;
+  }
+  .nav-item{display:flex; flex-direction:column; align-items:center; gap:3px; font-size:10.5px; color:var(--sub); background:none; border:none; cursor:pointer; text-decoration:none; font-family:inherit;}
+  .nav-item .ico{font-size:18px; line-height:1;}
+  .nav-item.active{color:var(--ink); font-weight:600;}
+  .nav-item.add .ico{
+    width:34px; height:34px; border-radius:50%; background:var(--pink); color:var(--bg);
+    display:flex; align-items:center; justify-content:center; font-size:18px; margin-top:-16px;
+  }
+
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){ --bg:#121212; --ink:#F2F0EF; --sub:rgba(242,240,239,0.55); --line:rgba(242,240,239,0.09); }
+  }
+  :root[data-theme="dark"]{ --bg:#121212; --ink:#F2F0EF; --sub:rgba(242,240,239,0.55); --line:rgba(242,240,239,0.09); }
+</style>
+</head>
+<body>
+<div class="phone">
+
+  <header>
+    <div class="word disp">t<span>im</span></div>
+    <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" aria-label="alternar tema">🌙</button>
+  </header>
+
+  <div class="screen">
+    <div class="section-title">top da semana</div>
+    <div class="podium">
+      <div class="pod p2"><div class="medal">🥈</div><div class="plate"></div><div class="place-name">Sushi Kaza</div><div class="note disp">8.9</div></div>
+      <div class="pod p1"><div class="medal">🥇</div><div class="plate"></div><div class="place-name">Boteco da Ana</div><div class="note disp">9.4</div></div>
+      <div class="pod p3"><div class="medal">🥉</div><div class="plate"></div><div class="place-name">Empório Real</div><div class="note disp">8.2</div></div>
+    </div>
+
+    <div class="section-title">reviews recentes</div>
+    <div class="list">
+      <div class="feed-quote" style="background:var(--mustard); color:var(--ink);">
+        <div class="feed-quote-top">
+          <div class="avatar" style="background:var(--pink);"></div>
+          <span class="uname disp">bea_come_tudo</span>
+          <span class="fq-note disp">9.1</span>
+        </div>
+        <div class="feed-quote-text">"Pedi o mesmo prato três vezes só pra confirmar que não foi acidente."</div>
+        <div class="feed-quote-meta">
+          <span>Boteco da Ana</span>
+          <span class="feed-quote-actions"><span>▲ 128</span><span>💬 14</span></span>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="avatar" style="background:var(--pickle);"></div>
+        <div class="row-body">
+          <div class="row-top"><span class="uname disp">renatocritico</span><span class="place">em <b>Sushi Kaza</b></span></div>
+          <div class="caption">O hype é maior que o prato. Literalmente, cabia na palma da mão.</div>
+          <div class="row-meta"><span>▲ 42</span><span>💬 31</span><span>5h</span></div>
+        </div>
+        <div class="row-note disp">4.6</div>
+      </div>
+
+      <div class="feed-photo-post">
+        <div class="fp-top">
+          <div class="avatar" style="background:var(--pickle);"></div>
+          <span class="uname disp">caio.garfo</span>
+          <span class="place">em <b>Feira do Bexiga</b></span>
+          <span class="time">4h</span>
+        </div>
+        <div class="fp-photo-wrap">
+          <img class="fp-photo" src="../../assets/posts/post1-pratocarne.jpg" alt="foto do prato" />
+          <div class="fp-note disp">8.7</div>
+        </div>
+        <div class="fp-caption">Pastel de feira ainda ganha de qualquer coisa chique. Fila rápida, vale domingo de manhã.</div>
+        <div class="fp-actions"><span>▲ 61</span><span>💬 7</span><span>salvar</span></div>
+      </div>
+
+      <div class="feed-quote" style="background:var(--pink); color:var(--bg);">
+        <div class="feed-quote-top">
+          <div class="avatar" style="background:var(--mustard);"></div>
+          <span class="uname disp">isa.mastiga</span>
+          <span class="fq-note disp">7.8</span>
+        </div>
+        <div class="feed-quote-text">"Descobri sem querer, agora é parada obrigatória com qualquer visita."</div>
+        <div class="feed-quote-meta">
+          <span>Empório Real</span>
+          <span class="feed-quote-actions"><span>▲ 76</span><span>💬 9</span></span>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="avatar" style="background:var(--pink);"></div>
+        <div class="row-body">
+          <div class="row-top"><span class="uname disp">juu.talher</span><span class="place">em <b>Padaria Sol</b></span></div>
+          <div class="caption">Café bom, atendimento devagar demais num dia de semana.</div>
+          <div class="row-meta"><span>▲ 19</span><span>💬 3</span><span>1d</span></div>
+        </div>
+        <div class="row-note disp">6.5</div>
+      </div>
+    </div>
+
+    <footer class="legend">Feed mistura 3 formatos: quote card em destaque (frase forte, sem foto), post com foto (edge-to-edge, nota sobre a imagem) e lista compacta (o resto). Cada um usa o peso visual que o conteúdo merece, em vez de forçar tudo no mesmo molde.</footer>
+  </div>
+
+  <nav class="navbar">
+    <a class="nav-item active" href="feed.html"><span class="ico">⌂</span>feed</a>
+    <a class="nav-item" href="#"><span class="ico">⌕</span>buscar</a>
+    <a class="nav-item add" href="#"><span class="ico">+</span></a>
+    <a class="nav-item" href="#"><span class="ico">♡</span>notif.</a>
+    <a class="nav-item" href="perfil.html"><span class="ico">●</span>perfil</a>
+  </nav>
+</div>
+<script>
+  function toggleTheme(){
+    var cur = document.documentElement.getAttribute('data-theme');
+    var next = cur === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    document.getElementById('themeBtn').textContent = next === 'dark' ? '☀️' : '🌙';
+  }
+</script>
+</body>
+</html>
