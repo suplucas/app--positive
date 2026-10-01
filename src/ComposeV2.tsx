@@ -18,7 +18,7 @@ import {
   searchRestaurants,
   type RestaurantHit,
 } from './format';
-import { MOCK_POST_PHOTOS } from './postPhotos';
+import { pickPhoto } from './pickPhoto';
 import { fonts, palette, spacing, useTheme } from './theme';
 
 // Flairs disponíveis (docs_04): até 2 por avaliação, o primeiro
@@ -54,11 +54,15 @@ export function ComposeV2({
   initialCnpj,
   onCancel,
   onPosted,
+  onPickPhoto,
 }: {
   userId: string;
   initialCnpj?: string | null;
   onCancel: () => void;
   onPosted: () => void;
+  // docs/13: fonte da foto (default = galeria via expo-image-picker).
+  // Seam p/ testes injetarem o resultado sem tocar no native.
+  onPickPhoto?: () => Promise<ImageSourcePropType | null>;
 }) {
   const t = useTheme();
   const [query, setQuery] = useState('');
@@ -86,6 +90,12 @@ export function ComposeV2({
       if (prev.includes(label)) return prev.filter((f) => f !== label);
       const room = prev.length >= MAX_FLAIRS ? prev.slice(1) : prev;
       return [...room, label];
+    });
+  };
+
+  const addPhoto = () => {
+    void (onPickPhoto ?? pickPhoto)().then((src) => {
+      if (src) setPhoto(src); // cancelado (null) → nada muda
     });
   };
 
@@ -194,21 +204,21 @@ export function ComposeV2({
             accessibilityIgnoresInvertColors
           />
           <Text style={[s.photoLabel, { color: t.sub }]}>
-            foto de exemplo (local) · toque p/ remover
+            sua foto (só fica local até existir endpoint) · toque p/ remover
           </Text>
         </Pressable>
       ) : (
         <Pressable
           testID="foto-add"
-          onPress={() => setPhoto(MOCK_POST_PHOTOS[0] ?? null)}
+          onPress={addPhoto}
           style={[s.photoBox, { borderColor: t.line }]}
           accessibilityRole="button"
-          accessibilityLabel="adicionar foto"
+          accessibilityLabel="adicionar foto da galeria"
         >
           <Text style={s.cam}>📷</Text>
           <Text style={[s.photoText, { color: t.sub }]}>adicionar foto</Text>
           <Text style={[s.photoSub, { color: t.sub }]}>
-            sem foto, vira um quote card
+            da sua galeria · sem foto, vira um quote card
           </Text>
         </Pressable>
       )}

@@ -54,6 +54,38 @@ function pick(r: ReactTestRenderer, cnpj: string = cnpjExemplo) {
   });
 }
 
+describe('ComposeV2 (foto real, docs/13)', () => {
+  it('picker escolhido: preview usa a URI real do device', async () => {
+    const r = render({
+      onPickPhoto: async () => ({ uri: 'file://demo/foto.jpg' }),
+    });
+    await act(async () => {
+      byID(r, 'foto-add').props.onPress();
+    });
+    expect(byID(r, 'foto-preview').props.source).toEqual({
+      uri: 'file://demo/foto.jpg',
+    });
+  });
+
+  it('picker cancelado: segue sem foto (estado intacto)', async () => {
+    const r = render({ onPickPhoto: async () => null });
+    await act(async () => {
+      byID(r, 'foto-add').props.onPress();
+    });
+    expect(r.root.findAllByProps({ testID: 'foto-preview' })).toHaveLength(0);
+  });
+
+  it('estado com foto deixa claro que ela não vai para a API', async () => {
+    const r = render({
+      onPickPhoto: async () => ({ uri: 'file://demo/foto.jpg' }),
+    });
+    await act(async () => {
+      byID(r, 'foto-add').props.onPress();
+    });
+    expect(subtreeTexts(r, 'foto-add')).toContain('local');
+  });
+});
+
 // Texts de um subtree (instâncias não expõem toJSON nesta versão do
 // react-test-renderer; só a raiz).
 function subtreeTexts(r: ReactTestRenderer, testID: string): string {
@@ -168,9 +200,12 @@ describe('ComposeV2', () => {
 
   it('foto é local: alterna no estado mas não entra no POST', async () => {
     const onPosted = vi.fn();
-    const r = render({ onPosted });
+    const r = render({
+      onPosted,
+      onPickPhoto: async () => ({ uri: 'file://demo/foto.jpg' }),
+    });
     pick(r);
-    act(() => byID(r, 'foto-add').props.onPress());
+    await act(async () => byID(r, 'foto-add').props.onPress());
     expect(r.root.findAllByProps({ testID: 'foto-preview' })).toHaveLength(1);
     await act(async () => {
       byID(r, 'publicar-v2').props.onPress();

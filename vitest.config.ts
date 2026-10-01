@@ -41,6 +41,10 @@ const testStubs: Plugin = {
     if (path.endsWith("node_modules/react-native/index.js")) return rnStub;
     if (path.endsWith("node_modules/react-test-renderer/index.js"))
       return rtrStub;
+    // expo-image-picker não roda em Node: stub que "cancela" o picker
+    // (testes injetam o resultado via a seam `onPickPhoto`).
+    if (path.includes("/expo-image-picker/"))
+      return `export const launchImageLibraryAsync = async () => ({ canceled: true, assets: [] });`;
   },
 };
 
