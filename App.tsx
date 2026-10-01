@@ -40,6 +40,7 @@ import { Podium } from './src/Podium';
 import { ProfileScreen } from './src/ProfileScreen';
 import { RestaurantScreen } from './src/RestaurantScreen';
 import { SectionTitle } from './src/SectionTitle';
+import { SearchScreen } from './src/SearchScreen';
 import { SettingsScreen, type ThemeMode } from './src/SettingsScreen';
 import {
   ThemeContext,
@@ -156,6 +157,8 @@ export default function App() {
                 t
                 <Text style={{ color: palette.lambeLambe }}>im</Text>
               </>
+            ) : screen === 'busca' ? (
+              'busca'
             ) : screen === 'perfil' ? (
               'perfil'
             ) : (
@@ -202,7 +205,9 @@ export default function App() {
         </View>
 
         <View style={styles.content}>
-          {screen === 'perfil' ? (
+          {screen === 'busca' ? (
+            <SearchScreen onOpenRestaurant={(cnpj) => setRestaurantCnpj(cnpj)} />
+          ) : screen === 'perfil' ? (
             <ProfileScreen onSettings={() => setSettingsOpen(true)} />
           ) : (
             <FlatList<Review>
