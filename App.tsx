@@ -1,10 +1,8 @@
 import { useCallback, useMemo, useState } from 'react';
 import {
   FlatList,
-  Pressable,
   RefreshControl,
   SafeAreaView,
-  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -30,7 +28,9 @@ import { ComposeScreen } from './src/ComposeScreen';
 import { Navbar, type Screen } from './src/Navbar';
 import { Podium } from './src/Podium';
 import { ProfileScreen } from './src/ProfileScreen';
+import { RestaurantScreen } from './src/RestaurantScreen';
 import { SectionTitle } from './src/SectionTitle';
+import { SettingsScreen, type ThemeMode } from './src/SettingsScreen';
 import {
   ThemeContext,
   darkTheme,
@@ -43,8 +43,6 @@ import {
 import { useFeed } from './src/useFeed';
 import type { Review, ReviewLayout } from './src/types';
 import type { ImageSourcePropType } from 'react-native';
-
-const USERS = ['user_1', 'user_2', 'mogli', 'dosso', 'lucas', MOCK_USER] as const;
 
 // Nota forte na escala 0-10: flair "chorei de tão bom" no máx. 1 por tela.
 const STRONG_NOTE = 9;
@@ -59,14 +57,23 @@ export default function App() {
   });
 
   const systemScheme = useColorScheme();
-  const [themeOverride, setThemeOverride] = useState<Theme['mode'] | null>(null);
+  // Escolha do usuário na tela de configurações: null = seguir o sistema.
+  const [themeMode, setThemeMode] = useState<ThemeMode>('system');
   const mode: Theme['mode'] =
-    themeOverride ?? (systemScheme === 'dark' ? 'dark' : 'light');
+    themeMode === 'system'
+      ? systemScheme === 'dark'
+        ? 'dark'
+        : 'light'
+      : themeMode;
   const theme = mode === 'dark' ? darkTheme : lightTheme;
-  const toggleTheme = () => setThemeOverride(mode === 'dark' ? 'light' : 'dark');
 
   const [screen, setScreen] = useState<Screen>('feed');
   const [userId, setUserId] = useState<string>('user_1');
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  // Sub-páginas: página do restaurante (aberta no toque em card de feed)
+  // e local pré-selecionado na composição (botão "avaliar" do restaurante).
+  const [restaurantCnpj, setRestaurantCnpj] = useState<string | null>(null);
+  const [composeCnpj, setComposeCnpj] = useState<string | null>(null);
   const { items, status, error, hasMore, refresh, loadMore } = useFeed(userId);
 
   const onEndReached = useCallback(() => {
@@ -127,78 +134,44 @@ export default function App() {
       <SafeAreaView style={[styles.root, { backgroundColor: theme.bg }]}>
         <StatusBar style={mode === 'dark' ? 'light' : 'dark'} />
         <View style={[styles.header, { borderBottomColor: theme.line }]}>
-          <View style={styles.headerRow}>
-            <Text style={[styles.word, { color: theme.ink }]}>
-              {screen === 'feed' ? (
-                <>
-                  t
-                  <Text style={{ color: palette.lambeLambe }}>im</Text>
-                </>
-              ) : screen === 'perfil' ? (
-                'perfil'
-              ) : (
-                'avaliar'
-              )}
-            </Text>
-            <Pressable
-              onPress={toggleTheme}
-              hitSlop={7}
-              style={[
-                styles.themeBtn,
-                { borderColor: theme.line },
-              ]}
-              accessibilityRole="button"
-              accessibilityLabel={mode === 'dark' ? 'Usar tema claro' : 'Usar tema escuro'}
-            >
-              <Text style={{ fontSize: 14 }}>{mode === 'dark' ? '☀️' : '🌙'}</Text>
-            </Pressable>
-          </View>
-
-          {screen === 'feed' ? (
-            <>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.chips}
-                style={styles.chipsScroll}
-              >
-                {USERS.map((u) => {
-                  const active = u === userId;
-                  return (
-                    <Pressable
-                      key={u}
-                      onPress={() => setUserId(u)}
-                      style={[
-                        styles.chip,
-                        { backgroundColor: theme.quietBg },
-                        active && { backgroundColor: theme.chipActiveBg },
-                      ]}
-                      accessibilityRole="button"
-                      accessibilityState={{ selected: active }}
-                    >
-                      <Text
-                        style={[
-                          styles.chipText,
-                          { color: active ? theme.chipActiveInk : theme.sub },
-                          active && styles.chipTextActive,
-                        ]}
-                      >
-                        {u}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
-              </ScrollView>
-              {banner ? (
-                <View style={[styles.banner, { backgroundColor: theme.quietBg }]}>
-                  <Text style={[styles.bannerText, { color: theme.sub }]}>{banner}</Text>
-                </View>
-              ) : null}
-            </>
+          <Text style={[styles.word, { color: theme.ink }]}>
+            {screen === 'feed' ? (
+              <>
+                t
+                <Text style={{ color: palette.lambeLambe }}>im</Text>
+              </>
+            ) : screen === 'perfil' ? (
+              'perfil'
+            ) : (
+              'avaliar'
+            )}
+          </Text>
+          {screen === 'feed' && banner ? (
+            <View style={[styles.banner, { backgroundColor: theme.quietBg }]}>
+              <Text style={[styles.bannerText, { color: theme.sub }]}>{banner}</Text>
+            </View>
           ) : null}
         </View>
 
-        {screen === 'feed' ? (
+        {settingsOpen ? (
+          <SettingsScreen
+            userId={userId}
+            onUserChange={(id) => setUserId(id)}
+            themeMode={themeMode}
+            onThemeChange={(m) => setThemeMode(m)}
+            onBack={() => setSettingsOpen(false)}
+          />
+        ) : restaurantCnpj ? (
+          <RestaurantScreen
+            cnpj={restaurantCnpj}
+            onBack={() => setRestaurantCnpj(null)}
+            onEvaluate={() => {
+              setComposeCnpj(restaurantCnpj);
+              setRestaurantCnpj(null);
+              setScreen('compose');
+            }}
+          />
+        ) : screen === 'feed' ? (
           <FlatList<Review>
             data={items}
             keyExtractor={(item) => String(item.id)}
@@ -210,13 +183,18 @@ export default function App() {
             }
             renderItem={({ item }) => {
               const d = decorated.get(item.id);
+              const openPlace = () => {
+                if (item.restaurantCnpj) {
+                  setRestaurantCnpj(String(item.restaurantCnpj));
+                }
+              };
               if (d?.layout === 'photo' && d.photo) {
-                return <FeedPhoto review={item} photo={d.photo} />;
+                return <FeedPhoto review={item} photo={d.photo} onPress={openPlace} />;
               }
               if (d?.layout === 'quote') {
-                return <FeedQuote review={item} tone={d.tone} />;
+                return <FeedQuote review={item} tone={d.tone} onPress={openPlace} />;
               }
-              return <FeedCard review={item} />;
+              return <FeedCard review={item} onPress={openPlace} />;
             }}
             onEndReachedThreshold={0.4}
             onEndReached={onEndReached}
@@ -228,23 +206,30 @@ export default function App() {
             }
           />
         ) : screen === 'perfil' ? (
-          <ProfileScreen />
+          <ProfileScreen onSettings={() => setSettingsOpen(true)} />
         ) : (
           <ComposeScreen
             userId={userId}
+            initialCnpj={composeCnpj}
             onCancel={() => setScreen('feed')}
             onPosted={() => {
+              setComposeCnpj(null);
               setScreen('feed');
               void refresh();
             }}
           />
         )}
 
-        <Navbar
-          active={screen}
-          onNavigate={setScreen}
-          onCompose={() => setScreen('compose')}
-        />
+        {settingsOpen || restaurantCnpj ? null : (
+          <Navbar
+            active={screen}
+            onNavigate={setScreen}
+            onCompose={() => {
+              setComposeCnpj(null);
+              setScreen('compose');
+            }}
+          />
+        )}
       </SafeAreaView>
     </ThemeContext.Provider>
   );
@@ -259,35 +244,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     gap: spacing.interno,
   },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
   word: { fontFamily: fonts.display800, fontSize: 18 },
-  themeBtn: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    borderWidth: StyleSheet.hairlineWidth,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  chipsScroll: { flexGrow: 0 },
-  chips: {
-    flexDirection: 'row',
-    gap: spacing.interno,
-    paddingRight: spacing.padrao,
-  },
-  chip: {
-    minHeight: 44,
-    paddingHorizontal: spacing.padrao,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  chipText: { fontSize: 13, fontFamily: fonts.corpo500 },
-  chipTextActive: { fontWeight: '600' },
   banner: {
     borderRadius: 5,
     paddingHorizontal: spacing.interno,

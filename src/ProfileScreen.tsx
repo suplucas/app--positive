@@ -28,7 +28,7 @@ function photoAt(index: number): ImageSourcePropType {
 // feed): v1 = layout simples (bio + stats + favoritos + diário); v2 =
 // mock docs/04 (botão seguir + abas diário/listas + listas). Ambas usam
 // as fotos reais de assets/posts.
-export function ProfileScreen() {
+export function ProfileScreen({ onSettings }: { onSettings?: () => void }) {
   const t = useTheme();
   const [versao, setVersao] = useState<Versao>('v2');
 
@@ -50,6 +50,18 @@ export function ProfileScreen() {
           onPress={() => setVersao('v2')}
           testID="perfil-v2"
         />
+        {onSettings ? (
+          <Pressable
+            testID="configuracoes"
+            onPress={onSettings}
+            hitSlop={8}
+            style={[s.settingsBtn, { borderColor: t.line }]}
+            accessibilityRole="button"
+            accessibilityLabel="abrir configurações"
+          >
+            <Text style={{ fontSize: 14 }}>⚙</Text>
+          </Pressable>
+        ) : null}
       </View>
 
       {versao === 'v1' ? <PerfilV1 /> : <PerfilV2 />}
@@ -367,6 +379,15 @@ const s = StyleSheet.create({
   },
   vchipText: { fontSize: 12.5, fontFamily: fonts.corpo500 },
   vchipTextActive: { fontWeight: '600' },
+  settingsBtn: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    borderWidth: StyleSheet.hairlineWidth,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 'auto',
+  },
   bioBlock: {
     flexDirection: 'row',
     gap: 14,

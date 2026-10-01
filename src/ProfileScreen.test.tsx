@@ -1,11 +1,11 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { act, create, ReactTestRenderer } from 'react-test-renderer';
 import { createElement } from 'react';
 import { ProfileScreen } from './ProfileScreen';
 import { MOCK_POST_PHOTOS } from './postPhotos';
 
-function render() {
-  const r: ReactTestRenderer = create(createElement(ProfileScreen));
+function render(props: Partial<Parameters<typeof ProfileScreen>[0]> = {}) {
+  const r: ReactTestRenderer = create(createElement(ProfileScreen, props));
   return { r, text: () => JSON.stringify(r.toJSON()) };
 }
 
@@ -79,5 +79,16 @@ describe('ProfileScreen (v2)', () => {
       r.root.findByProps({ testID: 'perfil-v2' }).props.onPress();
     });
     expect(r.root.findAllByProps({ testID: 'seguir' }).length).toBeGreaterThan(0);
+  });
+});
+
+describe('ProfileScreen (configurações)', () => {
+  it('botão de configurações chama onSettings', () => {
+    const onSettings = vi.fn();
+    const { r } = render({ onSettings });
+    act(() => {
+      r.root.findByProps({ testID: 'configuracoes' }).props.onPress();
+    });
+    expect(onSettings).toHaveBeenCalled();
   });
 });

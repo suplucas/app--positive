@@ -4,6 +4,17 @@ import type { Review } from "./types";
 // assets/posts. Não chama o backend (ver short-circuit em useFeed).
 export const MOCK_USER = "mock";
 
+// Usuários de demo alternáveis na tela de configurações (havia no header
+// do feed; o x-user-id muda o feed carregado).
+export const DEMO_USERS = [
+  "user_1",
+  "user_2",
+  "mogli",
+  "dosso",
+  "lucas",
+  MOCK_USER,
+] as const;
+
 function hoursAgo(hours: number): string {
   return new Date(Date.now() - hours * 3_600_000).toISOString();
 }
