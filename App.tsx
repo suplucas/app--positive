@@ -40,6 +40,7 @@ import { Podium } from './src/Podium';
 import { ProfileScreen } from './src/ProfileScreen';
 import { RestaurantScreen } from './src/RestaurantScreen';
 import { SectionTitle } from './src/SectionTitle';
+import { NotificationScreen } from './src/NotificationScreen';
 import { SearchScreen } from './src/SearchScreen';
 import { SettingsScreen, type ThemeMode } from './src/SettingsScreen';
 import {
@@ -159,6 +160,8 @@ export default function App() {
               </>
             ) : screen === 'busca' ? (
               'busca'
+            ) : screen === 'notif' ? (
+              'notifs'
             ) : screen === 'perfil' ? (
               'perfil'
             ) : (
@@ -207,6 +210,10 @@ export default function App() {
         <View style={styles.content}>
           {screen === 'busca' ? (
             <SearchScreen onOpenRestaurant={(cnpj) => setRestaurantCnpj(cnpj)} />
+          ) : screen === 'notif' ? (
+            <NotificationScreen
+              onOpenRestaurant={(cnpj) => setRestaurantCnpj(cnpj)}
+            />
           ) : screen === 'perfil' ? (
             <ProfileScreen onSettings={() => setSettingsOpen(true)} />
           ) : (
