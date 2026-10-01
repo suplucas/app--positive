@@ -214,7 +214,7 @@ export function ComposeV2({
       )}
 
       <View style={[s.noteField, { borderBottomColor: t.line, borderTopColor: t.line }]}>
-        <SectionTitle>nota</SectionTitle>
+        {/* O rótulo "nota" (centralizado, docs/16) vive dentro do slider. */}
         <NoteSlider value={note} onChange={setNote} />
       </View>
 

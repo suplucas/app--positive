@@ -90,6 +90,49 @@ describe('NoteSlider', () => {
     expect(trackTicks).toHaveLength(21);
   });
 
+  it('label "nota" centralizado acima do valor (mock docs/16)', () => {
+    const r = render();
+    const label = r.root.findByProps({ testID: 'nota-label' });
+    expect(String(label.props.children)).toBe('nota');
+    const style = (label.props.style as object[]).flat();
+    expect(
+      style.some((s) => (s as { textAlign?: string })?.textAlign === 'center'),
+    ).toBe(true);
+  });
+
+  it('scroll encaixa nos ticks (snap de 34px, alinhado ao centro)', () => {
+    const r = render();
+    const scroll = r.root.findByProps({ testID: 'nota-scroll' });
+    expect(scroll.props.snapToInterval).toBe(TICK_W);
+    expect(scroll.props.snapToAlignment).toBe('center');
+    expect(scroll.props.decelerationRate).toBe('fast');
+    expect(scroll.props.scrollEventThrottle).toBeGreaterThan(0);
+  });
+
+  it('valor grande acompanha o scroll ao vivo', () => {
+    const onChange = vi.fn();
+    const r = render({ onChange, value: 8 });
+    const scroll = r.root.findByProps({ testID: 'nota-scroll' });
+    act(() => {
+      scroll.props.onScroll({
+        nativeEvent: { contentOffset: { x: TICK_W * 6 } },
+      });
+    });
+    expect(onChange).toHaveBeenCalledWith(3);
+  });
+
+  it('scroll na mesma página não redispara onChange', () => {
+    const onChange = vi.fn();
+    const r = render({ onChange, value: 8 });
+    const scroll = r.root.findByProps({ testID: 'nota-scroll' });
+    act(() => {
+      scroll.props.onScroll({
+        nativeEvent: { contentOffset: { x: TICK_W * 16 } },
+      });
+    });
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
   it('fim do scroll resolve para o meio-passo mais próximo', () => {
     const onChange = vi.fn();
     const r = render({ onChange });

@@ -30,6 +30,16 @@ export function NoteSlider({
     onChange(clamp(idx * 0.5));
   };
 
+  // docs/16: o valor grande acompanha o scroll ao vivo (como no mock),
+  // não só no fim do momentum. Só dispara quando a página muda.
+  const onScroll = (e: {
+    nativeEvent: { contentOffset: { x: number } };
+  }) => {
+    const idx = Math.round((e.nativeEvent.contentOffset.x - pad) / TICK_W);
+    const v = clamp(idx * 0.5);
+    if (v !== value) onChange(v);
+  };
+
   // Centraliza o tick do valor inicial na marca rosa: só dá pra rolar depois
   // que o padding (dependente do onLayout) for aplicado no conteúdo.
   useEffect(() => {
@@ -46,6 +56,9 @@ export function NoteSlider({
 
   return (
     <View>
+      <Text testID="nota-label" style={[s.label, { color: t.sub }]}>
+        nota
+      </Text>
       <Text testID="nota-valor" style={[s.value, { color: t.ink }]}>
         {value.toFixed(1)}
       </Text>
@@ -62,6 +75,11 @@ export function NoteSlider({
           testID="nota-scroll"
           horizontal
           showsHorizontalScrollIndicator={false}
+          snapToInterval={TICK_W}
+          snapToAlignment="center"
+          decelerationRate="fast"
+          scrollEventThrottle={16}
+          onScroll={onScroll}
           onMomentumScrollEnd={onMomentumEnd}
         >
           <View
@@ -101,6 +119,12 @@ export function NoteSlider({
 
 // A marca rosa não muda entre temas; o resto segue o tema (useTheme).
 const s = StyleSheet.create({
+  label: {
+    fontFamily: fonts.display700,
+    fontSize: 11.5,
+    textAlign: 'center',
+    marginBottom: 6,
+  },
   value: {
     fontFamily: fonts.display800,
     fontSize: 40,

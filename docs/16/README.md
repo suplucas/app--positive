@@ -57,6 +57,20 @@ por `>>>` em rating/likes/createdAt/distância/bairro/preço/flairs.
   escolher preenche o local e volta pra avaliação. O campo inline do
   compose continua pro caso "nada selecionado".
 
+## 5. Seletor de nota (ajuste ao mock)
+
+- **`src/NoteSlider.tsx`**:
+  - **snap real** nos ticks (`snapToInterval={TICK_W}`,
+    `snapToAlignment="center"`, `decelerationRate="fast"`) — antes só
+    corrigíamos no fim do momentum;
+  - **valor grande acompanha o scroll ao vivo** (`onScroll`,
+    `scrollEventThrottle=16`), disparando onChange só quando a página
+    muda (como o mock);
+  - **rótulo "nota" centralizado** (`nota-label`) agora vive dentro do
+    slider.
+- **`src/ComposeV2.tsx`**: removeu o `SectionTitle` "nota" (o rótulo
+  centralizado veio pro slider).
+
 ## Testes
 
 - `src/searchFilters.test.ts`: 4 filtros, limite/textual, ordenação
