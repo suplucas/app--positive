@@ -14,8 +14,11 @@ import { fonts, spacing, useTheme } from './theme';
 // mock até existir endpoint real.
 export function NotificationScreen({
   onOpenRestaurant,
+  onBack,
 }: {
   onOpenRestaurant?: (cnpj: string) => void;
+  // docs/16: virou camada aberta pelo sino do perfil (saiu da navbar).
+  onBack?: () => void;
 }) {
   const t = useTheme();
   return (
@@ -23,6 +26,20 @@ export function NotificationScreen({
       style={{ backgroundColor: t.bg }}
       contentContainerStyle={s.scroll}
     >
+      {onBack ? (
+        <View style={s.topbar}>
+          <Pressable
+            testID="voltar"
+            onPress={onBack}
+            style={[s.tbtn, { backgroundColor: 'rgba(36,26,34,0.55)' }]}
+            hitSlop={6}
+            accessibilityRole="button"
+            accessibilityLabel="voltar"
+          >
+            <Text style={[s.tbtnText, { color: '#fff' }]}>←</Text>
+          </Pressable>
+        </View>
+      ) : null}
       {MOCK_NOTIF.map((n) => {
         const row = (
           <>
@@ -66,6 +83,15 @@ export function NotificationScreen({
 
 const s = StyleSheet.create({
   scroll: { paddingTop: spacing.interno, paddingBottom: spacing.bloco },
+  topbar: { paddingBottom: spacing.interno, paddingHorizontal: spacing.padrao },
+  tbtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tbtnText: { fontSize: 14 },
   row: {
     flexDirection: 'row',
     alignItems: 'center',

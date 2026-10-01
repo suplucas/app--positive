@@ -42,6 +42,7 @@ import { Podium } from './src/Podium';
 import { ProfileScreen } from './src/ProfileScreen';
 import { RestaurantScreen } from './src/RestaurantScreen';
 import { SectionTitle } from './src/SectionTitle';
+import { MapScreen } from './src/MapScreen';
 import { NotificationScreen } from './src/NotificationScreen';
 import { SavedScreen } from './src/SavedScreen';
 import { SearchScreen } from './src/SearchScreen';
@@ -101,6 +102,9 @@ export default function App() {
   const [savedOpen, setSavedOpen] = useState(false);
   // Thread de comentários (docs/12): review aberta pelo 💬 de um card.
   const [commentReview, setCommentReview] = useState<Review | null>(null);
+  // Notificações (docs/09) saíram da navbar (o mock docs/16 pôs o mapa
+  // no lugar): viram camada aberta pelo sino no perfil.
+  const [notifOpen, setNotifOpen] = useState(false);
   const toggleSaved = (cnpj: string) =>
     setSavedCnpjs((prev) =>
       prev.includes(cnpj) ? prev.filter((c) => c !== cnpj) : [...prev, cnpj],
@@ -179,8 +183,8 @@ export default function App() {
               </>
             ) : screen === 'busca' ? (
               'busca'
-            ) : screen === 'notif' ? (
-              'notifs'
+            ) : screen === 'mapa' ? (
+              'mapa'
             ) : screen === 'perfil' ? (
               'perfil'
             ) : (
@@ -229,14 +233,13 @@ export default function App() {
         <View style={styles.content}>
           {screen === 'busca' ? (
             <SearchScreen onOpenRestaurant={(cnpj) => setRestaurantCnpj(cnpj)} />
-          ) : screen === 'notif' ? (
-            <NotificationScreen
-              onOpenRestaurant={(cnpj) => setRestaurantCnpj(cnpj)}
-            />
+          ) : screen === 'mapa' ? (
+            <MapScreen onOpenRestaurant={(cnpj) => setRestaurantCnpj(cnpj)} />
           ) : screen === 'perfil' ? (
             <ProfileScreen
               userId={userId}
               onSettings={() => setSettingsOpen(true)}
+              onNotifications={() => setNotifOpen(true)}
               savedCount={savedCnpjs.length}
               onSavedList={() => setSavedOpen(true)}
             />
@@ -364,9 +367,20 @@ export default function App() {
               />
             </LayerScreen>
           ) : null}
+          {notifOpen ? (
+            <LayerScreen>
+              <NotificationScreen
+                onOpenRestaurant={(cnpj) => {
+                  setNotifOpen(false);
+                  setRestaurantCnpj(cnpj);
+                }}
+                onBack={() => setNotifOpen(false)}
+              />
+            </LayerScreen>
+          ) : null}
         </View>
 
-        {settingsOpen || savedOpen || commentReview || screen === 'compose' || restaurantCnpj ? null : (
+        {settingsOpen || savedOpen || commentReview || notifOpen || screen === 'compose' || restaurantCnpj ? null : (
           <Navbar
             active={screen}
             onNavigate={(s) => {

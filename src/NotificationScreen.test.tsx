@@ -51,6 +51,15 @@ describe('NotificationScreen (docs/09, mock)', () => {
     expect(r.root.findByProps({ testID: 'notif-n3' }).props.onPress).toBeUndefined();
   });
 
+  it('com onBack: botão voltar (agora é camada, docs/16)', () => {
+    const onBack = vi.fn();
+    const { r } = render({ onBack });
+    act(() => {
+      r.root.findByProps({ testID: 'voltar' }).props.onPress();
+    });
+    expect(onBack).toHaveBeenCalled();
+  });
+
   it('tempo relativo no rodapé de cada linha', () => {
     const { r } = render();
     const text = allText(r);

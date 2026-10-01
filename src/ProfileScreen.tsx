@@ -30,11 +30,14 @@ function photoAt(index: number): ImageSourcePropType {
 // as fotos reais de assets/posts.
 export function ProfileScreen({
   onSettings,
+  onNotifications,
   savedCount,
   onSavedList,
   userId: propsUserId,
 }: {
   onSettings?: () => void;
+  // docs/16: notificações saíram da navbar e ganharam atalho (sino) aqui.
+  onNotifications?: () => void;
   // Lista "quero ir" (docs/10): estado vive no App; o chip é só a porta
   // de entrada (escondido quando não há callback).
   savedCount?: number;
@@ -77,6 +80,18 @@ export function ProfileScreen({
             <Text style={[s.vchipText, { color: t.sub }]}>
               {`☆ quero ir · ${savedCount ?? 0}`}
             </Text>
+          </Pressable>
+        ) : null}
+        {onNotifications ? (
+          <Pressable
+            testID="abrir-notificacoes"
+            onPress={onNotifications}
+            hitSlop={8}
+            style={[s.settingsBtn, { borderColor: t.line }]}
+            accessibilityRole="button"
+            accessibilityLabel="abrir notificações"
+          >
+            <Text style={{ fontSize: 14 }}>♡</Text>
           </Pressable>
         ) : null}
         {onSettings ? (

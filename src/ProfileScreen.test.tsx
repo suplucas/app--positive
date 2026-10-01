@@ -119,6 +119,20 @@ describe('ProfileScreen (usuário ativo, N5)', () => {
   });
 });
 
+describe('ProfileScreen (notificações, docs/16)', () => {
+  it('sino só aparece com onNotifications e chama o callback', () => {
+    expect(
+      render().r.root.findAllByProps({ testID: 'abrir-notificacoes' }).length,
+    ).toBe(0);
+    const onNotifications = vi.fn();
+    const { r } = render({ onNotifications });
+    act(() => {
+      r.root.findByProps({ testID: 'abrir-notificacoes' }).props.onPress();
+    });
+    expect(onNotifications).toHaveBeenCalled();
+  });
+});
+
 describe('ProfileScreen (configurações)', () => {
   it('botão de configurações chama onSettings', () => {
     const onSettings = vi.fn();

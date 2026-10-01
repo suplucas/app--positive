@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { fonts, spacing, useTheme } from './theme';
 
-export type Screen = 'feed' | 'busca' | 'notif' | 'perfil' | 'compose';
+export type Screen = 'feed' | 'busca' | 'mapa' | 'perfil' | 'compose';
 
 // Navbar: ativo com cor plena + peso 600; inativo com opacidade 50%;
 // ainda não implementado com opacidade 30% e sem resposta a toque
@@ -30,7 +30,7 @@ export function Navbar({
           <Text style={s.addIcon}>+</Text>
         </View>
       </Pressable>
-      <NavItem label="notif." icon="♡" active={active === 'notif'} onPress={() => onNavigate('notif')} />
+      <NavItem label="mapa" icon="📍" active={active === 'mapa'} onPress={() => onNavigate('mapa')} />
       <NavItem label="perfil" icon="●" active={active === 'perfil'} onPress={() => onNavigate('perfil')} />
     </View>
   );
