@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { create, ReactTestRenderer } from 'react-test-renderer';
+import { describe, it, expect, vi } from 'vitest';
+import { create, ReactTestRenderer, act } from 'react-test-renderer';
 import { createElement } from 'react';
 import { FeedCard } from './FeedCard';
 import type { Review } from './types';
@@ -55,5 +55,19 @@ describe('FeedCard', () => {
     const { r } = render();
     const strong = r.root.findAllByProps({ testID: 'flair-forte' });
     expect(strong).toHaveLength(0);
+  });
+
+  it('dispara onPress quando recebido (abre página do restaurante)', () => {
+    const onPress = vi.fn();
+    const { r } = render({ onPress });
+    act(() => {
+      r.root.findByProps({ testID: 'card-1' }).props.onPress();
+    });
+    expect(onPress).toHaveBeenCalled();
+  });
+
+  it('sem onPress, o card não expõe ação', () => {
+    const { r } = render();
+    expect(r.root.findByProps({ testID: 'card-1' }).props.onPress).toBeUndefined();
   });
 });

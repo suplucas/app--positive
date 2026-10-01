@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { create, ReactTestRenderer } from 'react-test-renderer';
+import { describe, it, expect, vi } from 'vitest';
+import { create, ReactTestRenderer, act } from 'react-test-renderer';
 import { createElement } from 'react';
 import { FeedPhoto } from './FeedPhoto';
 import type { Review } from './types';
@@ -42,5 +42,14 @@ describe('FeedPhoto', () => {
   it('passa a fonte de imagem recebida para o Image', () => {
     const { r } = render({ photo: 42 });
     expect(r.root.findAllByProps({ source: 42 }).length).toBeGreaterThan(0);
+  });
+
+  it('dispara onPress quando recebido (abre página do restaurante)', () => {
+    const onPress = vi.fn();
+    const { r } = render({ onPress });
+    act(() => {
+      r.root.findByProps({ testID: 'photo-3' }).props.onPress();
+    });
+    expect(onPress).toHaveBeenCalled();
   });
 });

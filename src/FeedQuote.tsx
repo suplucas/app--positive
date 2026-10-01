@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Avatar } from './Avatar';
 import { formatRelative, getNote, restaurantName } from './format';
 import { fonts, palette, spacing } from './theme';
@@ -7,21 +7,21 @@ import type { Review } from './types';
 // Quote card: avaliação textual em destaque (frase forte, sem foto) —
 // fundo de marca, cantos arredondados, mesmo tratamento dos quote cards
 // do diário do perfil. `tone` alterna mostarda/lambe-lambe como no mock.
+// `onPress` (opcional) abre a página do restaurante.
 export function FeedQuote({
   review,
   tone = 'mostarda',
+  onPress,
 }: {
   review: Review;
   tone?: 'mostarda' | 'lambeLambe';
+  onPress?: () => void;
 }) {
   const nome = restaurantName(review.restaurantCnpj);
   const bg = tone === 'lambeLambe' ? palette.lambeLambe : palette.mostarda;
   const ink = tone === 'lambeLambe' ? palette.papel : palette.berinjela;
-  return (
-    <View
-      testID={`quote-${review.id}`}
-      style={[s.card, { backgroundColor: bg }]}
-    >
+  const body = (
+    <>
       <View style={s.top}>
         <Avatar userId={review.userId} size={28} />
         <Text style={[s.uname, { color: ink }]}>{review.userId}</Text>
@@ -38,6 +38,22 @@ export function FeedQuote({
           ▲ {review.likes} · {formatRelative(review.createdAt)}
         </Text>
       </View>
+    </>
+  );
+  const style = [s.card, { backgroundColor: bg }];
+  return onPress ? (
+    <Pressable
+      style={({ pressed }) => [...style, pressed && { opacity: 0.85 }]}
+      testID={`quote-${review.id}`}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={`avaliações em ${nome ?? 'restaurante'}`}
+    >
+      {body}
+    </Pressable>
+  ) : (
+    <View style={style} testID={`quote-${review.id}`}>
+      {body}
     </View>
   );
 }

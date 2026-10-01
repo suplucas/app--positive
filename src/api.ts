@@ -26,7 +26,9 @@ export async function getFeed(
 
 export type NewReview = {
   restaurantCnpj: string;
-  rating: number; // inteiro 1-5 (coluna INTEGER no Postgres)
+  // escala da API 0-5; a UI v2 envia float (nota 0-10 / 2). O Postgres
+  // ainda guarda INTEGER — trocar a coluna p/ NUMERIC(2,1) em breve.
+  rating: number;
   comment: string | null;
 };
 

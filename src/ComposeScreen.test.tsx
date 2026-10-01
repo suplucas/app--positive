@@ -14,6 +14,7 @@ const postReviewMock = vi.mocked(postReview);
 
 // Usa um restaurante real do mapa do seed.
 const [cnpjExemplo, nomeExemplo] = Object.entries(restaurantNames)[0];
+const [cnpjInicial] = Object.entries(restaurantNames)[5];
 const reviewCreated: Review = {
   id: 1,
   userId: 'user_1',
@@ -38,8 +39,15 @@ function renderCompose(props: Partial<ComposeProps> = {}) {
   return renderer as ReactTestRenderer;
 }
 
-// Preenche busca → seleciona o resultado → marca a nota.
+function toV1(r: ReactTestRenderer) {
+  act(() => {
+    r.root.findByProps({ testID: 'avaliar-v1' }).props.onPress();
+  });
+}
+
+// Preenche busca → seleciona o resultado → marca a nota (em v1).
 function fill(r: ReactTestRenderer, rating: number) {
+  toV1(r);
   act(() => {
     r.root.findByProps({ testID: 'busca' }).props.onChangeText(
       nomeExemplo.toLowerCase(),
@@ -58,9 +66,28 @@ beforeEach(() => {
   postReviewMock.mockResolvedValue(reviewCreated);
 });
 
-describe('ComposeScreen', () => {
+describe('ComposeScreen (seletor de versão)', () => {
+  it('renderiza v2 por padrão (docs_04)', () => {
+    const text = JSON.stringify(renderCompose().toJSON());
+    expect(text).toContain('avaliar v1');
+    expect(text).toContain('avaliar v2');
+    // conteúdo da v2 presente, da v1 ausente
+    expect(text).toContain('flair (até 2)');
+    expect(renderCompose().root.findAllByProps({ testID: 'busca' })).toHaveLength(0);
+  });
+
+  it('alterna para v1 no chip', () => {
+    const r = renderCompose();
+    toV1(r);
+    expect(r.root.findAllByProps({ testID: 'busca' })).toHaveLength(1);
+    expect(JSON.stringify(r.toJSON())).toContain('comentário');
+  });
+});
+
+describe('ComposeScreen v1', () => {
   it('renderiza campos e ação publicar', () => {
     const r = renderCompose();
+    toV1(r);
     const text = JSON.stringify(r.toJSON());
     expect(text).toContain('restaurante');
     expect(text).toContain('nota');
@@ -70,6 +97,7 @@ describe('ComposeScreen', () => {
 
   it('publicar começa desabilitado (sem restaurante e nota)', () => {
     const r = renderCompose();
+    toV1(r);
     const btn = r.root.findByProps({ testID: 'publicar' });
     expect(btn.props.accessibilityState.disabled).toBe(true);
   });
@@ -96,6 +124,13 @@ describe('ComposeScreen', () => {
     expect(onPosted).toHaveBeenCalled();
   });
 
+  it('inicialCnpj pré-seleciona o restaurante em v1', () => {
+    const r = renderCompose({ initialCnpj: cnpjInicial });
+    toV1(r);
+    expect(r.root.findAllByProps({ testID: 'busca' })).toHaveLength(0);
+    expect(JSON.stringify(r.toJSON())).toContain(restaurantNames[cnpjInicial]);
+  });
+
   it('erro de rede mostra mensagem e mantém na tela', async () => {
     postReviewMock.mockRejectedValue(new Error('POST /reviews failed: 500'));
     const onPosted = vi.fn();
@@ -118,6 +153,7 @@ describe('ComposeScreen', () => {
   it('cancelar chama onCancel', () => {
     const onCancel = vi.fn();
     const r = renderCompose({ onCancel });
+    toV1(r);
     act(() => {
       r.root.findByProps({ testID: 'cancelar' }).props.onPress();
     });

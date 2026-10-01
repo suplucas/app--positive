@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Avatar } from './Avatar';
 import { Flair } from './Flair';
 import { NoteBadge } from './NoteBadge';
@@ -8,18 +8,20 @@ import type { Review } from './types';
 
 // Linha do feed: texto-primeiro, avatar à esquerda, nota à direita
 // (protótipo app-mobile). `strong` marca flair forte (máx. 1 por tela,
-// decidido pelo App).
+// decidido pelo App). `onPress` (opcional) abre a página do restaurante.
 export function FeedCard({
   review,
   strong = false,
+  onPress,
 }: {
   review: Review;
   strong?: boolean;
+  onPress?: () => void;
 }) {
   const t = useTheme();
   const nome = restaurantName(review.restaurantCnpj);
-  return (
-    <View style={[s.row, { borderBottomColor: t.line }]} testID={`card-${review.id}`}>
+  const body = (
+    <>
       <Avatar userId={review.userId} />
       <View style={s.body}>
         <View style={s.top}>
@@ -42,6 +44,22 @@ export function FeedCard({
         </View>
       </View>
       <NoteBadge note={getNote(review.rating)} />
+    </>
+  );
+  const style = [s.row, { borderBottomColor: t.line }];
+  return onPress ? (
+    <Pressable
+      style={({ pressed }) => [...style, pressed && { opacity: 0.7 }]}
+      testID={`card-${review.id}`}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={`avaliações em ${nome ?? 'restaurante'}`}
+    >
+      {body}
+    </Pressable>
+  ) : (
+    <View style={style} testID={`card-${review.id}`}>
+      {body}
     </View>
   );
 }

@@ -1,5 +1,5 @@
 import type { ImageSourcePropType } from 'react-native';
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Avatar } from './Avatar';
 import { formatRelative, getNote, restaurantName } from './format';
 import { fonts, palette, spacing, useTheme } from './theme';
@@ -7,20 +7,20 @@ import type { Review } from './types';
 
 // Post com foto: mídia edge-to-edge (sangra na borda), nota sobre a
 // imagem. Mesmo peso visual de um post, sem moldura de card.
+// `onPress` (opcional) abre a página do restaurante.
 export function FeedPhoto({
   review,
   photo,
+  onPress,
 }: {
   review: Review;
   photo: ImageSourcePropType;
+  onPress?: () => void;
 }) {
   const t = useTheme();
   const nome = restaurantName(review.restaurantCnpj);
-  return (
-    <View
-      testID={`photo-${review.id}`}
-      style={[s.post, { borderBottomColor: t.line }]}
-    >
+  const body = (
+    <>
       <View style={s.top}>
         <Avatar userId={review.userId} size={30} />
         <Text style={[s.uname, { color: t.ink }]}>{review.userId}</Text>
@@ -54,6 +54,22 @@ export function FeedPhoto({
         <Text style={[s.action, { color: t.sub }]}>▲ {review.likes}</Text>
         <Text style={[s.action, { color: t.sub }]}>salvar</Text>
       </View>
+    </>
+  );
+  const style = [s.post, { borderBottomColor: t.line }];
+  return onPress ? (
+    <Pressable
+      style={({ pressed }) => [...style, pressed && { opacity: 0.85 }]}
+      testID={`photo-${review.id}`}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={`avaliações em ${nome ?? 'restaurante'}`}
+    >
+      {body}
+    </Pressable>
+  ) : (
+    <View style={style} testID={`photo-${review.id}`}>
+      {body}
     </View>
   );
 }

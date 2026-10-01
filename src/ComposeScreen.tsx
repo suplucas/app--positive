@@ -8,25 +8,89 @@ import {
   View,
 } from 'react-native';
 import { postReview } from './api';
+import { ComposeV2 } from './ComposeV2';
 import { SectionTitle } from './SectionTitle';
-import { getNote, searchRestaurants, type RestaurantHit } from './format';
+import { getNote, restaurantName, searchRestaurants, type RestaurantHit } from './format';
 import { fonts, spacing, useTheme } from './theme';
 
-// Tela de composição (botão + da navbar). Estende a identidade: flat,
-// fundo quietBg nos campos, nota numérica sempre visível (preview 0-10),
-// botão publicar em pink cheio. Sem imagem por enquanto.
+type Versao = 'v1' | 'v2';
+
+// Tela de composição com seletor de versão (mesmo padrão do perfil
+// v1/v2). v1: layout original (busca + botões 1-5). v2: mock docs_04
+// (slider 0-10, flairs, foto opcional e preview do quote card).
 export function ComposeScreen({
   userId,
+  initialCnpj,
   onCancel,
   onPosted,
 }: {
   userId: string;
+  initialCnpj?: string | null;
+  onCancel: () => void;
+  onPosted: () => void;
+}) {
+  const t = useTheme();
+  const [versao, setVersao] = useState<Versao>('v2');
+
+  return (
+    <ScrollView
+      style={{ backgroundColor: t.bg }}
+      contentContainerStyle={s.scroll}
+      keyboardShouldPersistTaps="handled"
+    >
+      <View style={s.versaoRow}>
+        <VersaoChip
+          label="avaliar v1"
+          active={versao === 'v1'}
+          onPress={() => setVersao('v1')}
+          testID="avaliar-v1"
+        />
+        <VersaoChip
+          label="avaliar v2"
+          active={versao === 'v2'}
+          onPress={() => setVersao('v2')}
+          testID="avaliar-v2"
+        />
+      </View>
+
+      {versao === 'v1' ? (
+        <ComposeV1
+          userId={userId}
+          initialCnpj={initialCnpj}
+          onCancel={onCancel}
+          onPosted={onPosted}
+        />
+      ) : (
+        <ComposeV2
+          userId={userId}
+          initialCnpj={initialCnpj}
+          onCancel={onCancel}
+          onPosted={onPosted}
+        />
+      )}
+    </ScrollView>
+  );
+}
+
+// ---- v1: layout original (busca + botões de nota 1-5) -------------------
+function ComposeV1({
+  userId,
+  initialCnpj,
+  onCancel,
+  onPosted,
+}: {
+  userId: string;
+  initialCnpj?: string | null;
   onCancel: () => void;
   onPosted: () => void;
 }) {
   const t = useTheme();
   const [query, setQuery] = useState('');
-  const [selected, setSelected] = useState<RestaurantHit | null>(null);
+  const [selected, setSelected] = useState<RestaurantHit | null>(() =>
+    initialCnpj
+      ? { cnpj: initialCnpj, nome: restaurantName(initialCnpj) ?? initialCnpj }
+      : null,
+  );
   const [rating, setRating] = useState<number | null>(null);
   const [comment, setComment] = useState('');
   const [sending, setSending] = useState(false);
@@ -57,11 +121,7 @@ export function ComposeScreen({
   };
 
   return (
-    <ScrollView
-      style={{ backgroundColor: t.bg }}
-      contentContainerStyle={s.scroll}
-      keyboardShouldPersistTaps="handled"
-    >
+    <>
       <SectionTitle>restaurante</SectionTitle>
       {selected ? (
         <View style={[s.selected, { backgroundColor: t.quietBg }]}>
@@ -195,12 +255,64 @@ export function ComposeScreen({
       >
         <Text style={[s.cancelText, { color: t.sub }]}>cancelar</Text>
       </Pressable>
-    </ScrollView>
+    </>
+  );
+}
+
+function VersaoChip({
+  label,
+  active,
+  onPress,
+  testID,
+}: {
+  label: string;
+  active: boolean;
+  onPress: () => void;
+  testID: string;
+}) {
+  const t = useTheme();
+  return (
+    <Pressable
+      testID={testID}
+      onPress={onPress}
+      style={[
+        s.vchip,
+        { backgroundColor: t.quietBg },
+        active && { backgroundColor: t.chipActiveBg },
+      ]}
+      accessibilityRole="button"
+      accessibilityState={{ selected: active }}
+    >
+      <Text
+        style={[
+          s.vchipText,
+          { color: active ? t.chipActiveInk : t.sub },
+          active && s.vchipTextActive,
+        ]}
+      >
+        {label}
+      </Text>
+    </Pressable>
   );
 }
 
 const s = StyleSheet.create({
   scroll: { paddingBottom: spacing.bloco },
+  versaoRow: {
+    flexDirection: 'row',
+    gap: spacing.interno,
+    paddingHorizontal: spacing.padrao,
+    paddingBottom: spacing.interno,
+  },
+  vchip: {
+    minHeight: 36,
+    paddingHorizontal: spacing.padrao - 2,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  vchipText: { fontSize: 12.5, fontFamily: fonts.corpo500 },
+  vchipTextActive: { fontWeight: '600' },
   input: {
     borderRadius: 6,
     paddingHorizontal: spacing.padrao,

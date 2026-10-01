@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { create, ReactTestRenderer } from 'react-test-renderer';
+import { describe, it, expect, vi } from 'vitest';
+import { create, ReactTestRenderer, act } from 'react-test-renderer';
 import { createElement } from 'react';
 import { FeedQuote } from './FeedQuote';
 import type { Review } from './types';
@@ -42,5 +42,14 @@ describe('FeedQuote', () => {
   it('usa o container sem depender de props de tema', () => {
     const { r } = render({ tone: 'lambeLambe' });
     expect(r.toJSON()).toBeTruthy();
+  });
+
+  it('dispara onPress quando recebido (abre página do restaurante)', () => {
+    const onPress = vi.fn();
+    const { r } = render({ onPress });
+    act(() => {
+      r.root.findByProps({ testID: 'quote-7' }).props.onPress();
+    });
+    expect(onPress).toHaveBeenCalled();
   });
 });
