@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { FeedCard } from './FeedCard';
 import { FeedQuote } from './FeedQuote';
@@ -14,14 +13,19 @@ export function RestaurantScreen({
   cnpj,
   onBack,
   onEvaluate,
+  saved = false,
+  onSaveToggle,
 }: {
   cnpj: string;
   onBack: () => void;
   onEvaluate: () => void;
+  // "quero ir" é estado do App (lista salva, docs/10): o toggle só
+  // avisa; quem decide é a lista.
+  saved?: boolean;
+  onSaveToggle?: () => void;
 }) {
   const t = useTheme();
   const data = restaurantFor(cnpj);
-  const [saved, setSaved] = useState(false);
 
   return (
     <ScrollView style={{ backgroundColor: t.bg }}>
@@ -69,7 +73,7 @@ export function RestaurantScreen({
         </Pressable>
         <Pressable
           testID="quero-ir"
-          onPress={() => setSaved((v) => !v)}
+          onPress={onSaveToggle}
           style={[
             s.btn,
             s.secondary,

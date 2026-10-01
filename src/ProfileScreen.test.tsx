@@ -82,6 +82,21 @@ describe('ProfileScreen (v2)', () => {
   });
 });
 
+describe('ProfileScreen (lista "quero ir")', () => {
+  it('chip "quero ir · N" só aparece com onSavedList e toca o callback', () => {
+    expect(
+      render().r.root.findAllByProps({ testID: 'abrir-quero-ir' }).length,
+    ).toBe(0);
+    const onSavedList = vi.fn();
+    const { r, text } = render({ onSavedList, savedCount: 2 });
+    expect(text()).toContain('quero ir · 2');
+    act(() => {
+      r.root.findByProps({ testID: 'abrir-quero-ir' }).props.onPress();
+    });
+    expect(onSavedList).toHaveBeenCalled();
+  });
+});
+
 describe('ProfileScreen (configurações)', () => {
   it('botão de configurações chama onSettings', () => {
     const onSettings = vi.fn();

@@ -67,12 +67,19 @@ describe('RestaurantScreen (docs_05)', () => {
     ).toHaveLength(1);
   });
 
-  it('quero ir alterna para salvo', () => {
-    const r = render();
+  it('quero ir sem estado salvo: inativo, chama onSaveToggle', () => {
+    const onSaveToggle = vi.fn();
+    const r = render({ onSaveToggle });
     expect(byID(r, 'quero-ir').props.accessibilityState.selected).toBe(false);
+    expect(JSON.stringify(r.toJSON())).toContain('☆ quero ir');
     act(() => byID(r, 'quero-ir').props.onPress());
+    expect(onSaveToggle).toHaveBeenCalled();
+  });
+
+  it('estado compartilhado: saved=true reflete "★ salvo"', () => {
+    const r = render({ saved: true });
     expect(byID(r, 'quero-ir').props.accessibilityState.selected).toBe(true);
-    expect(JSON.stringify(r.toJSON())).toContain('salvo');
+    expect(JSON.stringify(r.toJSON())).toContain('★ salvo');
   });
 
   it('flairs agregados: 1º é forte, resto quieto', () => {

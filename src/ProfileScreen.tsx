@@ -28,7 +28,17 @@ function photoAt(index: number): ImageSourcePropType {
 // feed): v1 = layout simples (bio + stats + favoritos + diário); v2 =
 // mock docs/04 (botão seguir + abas diário/listas + listas). Ambas usam
 // as fotos reais de assets/posts.
-export function ProfileScreen({ onSettings }: { onSettings?: () => void }) {
+export function ProfileScreen({
+  onSettings,
+  savedCount,
+  onSavedList,
+}: {
+  onSettings?: () => void;
+  // Lista "quero ir" (docs/10): estado vive no App; o chip é só a porta
+  // de entrada (escondido quando não há callback).
+  savedCount?: number;
+  onSavedList?: () => void;
+}) {
   const t = useTheme();
   const [versao, setVersao] = useState<Versao>('v2');
 
@@ -50,6 +60,19 @@ export function ProfileScreen({ onSettings }: { onSettings?: () => void }) {
           onPress={() => setVersao('v2')}
           testID="perfil-v2"
         />
+        {onSavedList ? (
+          <Pressable
+            testID="abrir-quero-ir"
+            onPress={onSavedList}
+            style={[s.vchip, { backgroundColor: t.quietBg }]}
+            accessibilityRole="button"
+            accessibilityLabel="abrir lista quero ir"
+          >
+            <Text style={[s.vchipText, { color: t.sub }]}>
+              {`☆ quero ir · ${savedCount ?? 0}`}
+            </Text>
+          </Pressable>
+        ) : null}
         {onSettings ? (
           <Pressable
             testID="configuracoes"

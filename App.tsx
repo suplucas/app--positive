@@ -41,6 +41,7 @@ import { ProfileScreen } from './src/ProfileScreen';
 import { RestaurantScreen } from './src/RestaurantScreen';
 import { SectionTitle } from './src/SectionTitle';
 import { NotificationScreen } from './src/NotificationScreen';
+import { SavedScreen } from './src/SavedScreen';
 import { SearchScreen } from './src/SearchScreen';
 import { SettingsScreen, type ThemeMode } from './src/SettingsScreen';
 import {
@@ -92,6 +93,14 @@ export default function App() {
   // v2 é a UI de teste em que o card de foto leva a linha de texto p/
   // dentro da imagem (docs do audit).
   const [feedVersion, setFeedVersion] = useState<'v1' | 'v2'>('v1');
+  // Lista "quero ir" (docs/10): fonte única de saves, compartilhada com
+  // o toggle da página do restaurante.
+  const [savedCnpjs, setSavedCnpjs] = useState<string[]>([]);
+  const [savedOpen, setSavedOpen] = useState(false);
+  const toggleSaved = (cnpj: string) =>
+    setSavedCnpjs((prev) =>
+      prev.includes(cnpj) ? prev.filter((c) => c !== cnpj) : [...prev, cnpj],
+    );
   const feedVisible =
     screen === 'feed' && !restaurantCnpj && !settingsOpen;
   const { items, status, error, hasMore, refresh, loadMore } = useFeed(userId);
@@ -215,7 +224,11 @@ export default function App() {
               onOpenRestaurant={(cnpj) => setRestaurantCnpj(cnpj)}
             />
           ) : screen === 'perfil' ? (
-            <ProfileScreen onSettings={() => setSettingsOpen(true)} />
+            <ProfileScreen
+              onSettings={() => setSettingsOpen(true)}
+              savedCount={savedCnpjs.length}
+              onSavedList={() => setSavedOpen(true)}
+            />
           ) : (
             <FlatList<Review>
               data={items}
@@ -270,6 +283,8 @@ export default function App() {
                   setComposeCnpj(restaurantCnpj);
                   setScreen('compose');
                 }}
+                saved={savedCnpjs.includes(restaurantCnpj)}
+                onSaveToggle={() => toggleSaved(restaurantCnpj)}
               />
             </LayerScreen>
           ) : null}
@@ -302,9 +317,25 @@ export default function App() {
               />
             </LayerScreen>
           ) : null}
+          {savedOpen ? (
+            <LayerScreen>
+              <SavedScreen
+                cnpjs={savedCnpjs}
+                onRemove={(cnpj) =>
+                  setSavedCnpjs((prev) => prev.filter((c) => c !== cnpj))
+                }
+                onOpenRestaurant={(cnpj) => {
+                  // Fecha a lista e revela a página do restaurante.
+                  setSavedOpen(false);
+                  setRestaurantCnpj(cnpj);
+                }}
+                onBack={() => setSavedOpen(false)}
+              />
+            </LayerScreen>
+          ) : null}
         </View>
 
-        {settingsOpen || screen === 'compose' || restaurantCnpj ? null : (
+        {settingsOpen || savedOpen || screen === 'compose' || restaurantCnpj ? null : (
           <Navbar
             active={screen}
             onNavigate={(s) => {
