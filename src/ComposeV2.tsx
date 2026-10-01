@@ -12,7 +12,12 @@ import type { ImageSourcePropType } from 'react-native';
 import { postReview } from './api';
 import { NoteSlider } from './NoteSlider';
 import { SectionTitle } from './SectionTitle';
-import { restaurantName, searchRestaurants, type RestaurantHit } from './format';
+import {
+  friendlyApiError,
+  restaurantName,
+  searchRestaurants,
+  type RestaurantHit,
+} from './format';
 import { MOCK_POST_PHOTOS } from './postPhotos';
 import { fonts, palette, spacing, useTheme } from './theme';
 
@@ -269,7 +274,9 @@ export function ComposeV2({
 
       {error ? (
         <View testID="compose-v2-erro" style={[s.error, { backgroundColor: t.quietBg }]}>
-          <Text style={[s.errorText, { color: t.sub }]}>{error}</Text>
+          <Text style={[s.errorText, { color: t.sub }]}>
+            {friendlyApiError(error, 'publish')}
+          </Text>
         </View>
       ) : null}
 

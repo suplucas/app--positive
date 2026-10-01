@@ -10,7 +10,13 @@ import {
 import { postReview } from './api';
 import { ComposeV2 } from './ComposeV2';
 import { SectionTitle } from './SectionTitle';
-import { getNote, restaurantName, searchRestaurants, type RestaurantHit } from './format';
+import {
+  friendlyApiError,
+  getNote,
+  restaurantName,
+  searchRestaurants,
+  type RestaurantHit,
+} from './format';
 import { fonts, spacing, useTheme } from './theme';
 
 type Versao = 'v1' | 'v2';
@@ -229,7 +235,9 @@ function ComposeV1({
 
       {error ? (
         <View testID="compose-erro" style={[s.error, { backgroundColor: t.quietBg }]}>
-          <Text style={[s.errorText, { color: t.sub }]}>{error}</Text>
+          <Text style={[s.errorText, { color: t.sub }]}>
+            {friendlyApiError(error, 'publish')}
+          </Text>
         </View>
       ) : null}
 

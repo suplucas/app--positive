@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import {
   FlatList,
+  Pressable,
   RefreshControl,
   SafeAreaView,
   StyleSheet,
@@ -40,6 +41,7 @@ import {
   spacing,
   type Theme,
 } from './src/theme';
+import { friendlyApiError } from './src/format';
 import { useFeed } from './src/useFeed';
 import type { Review, ReviewLayout } from './src/types';
 import type { ImageSourcePropType } from 'react-native';
@@ -122,7 +124,7 @@ export default function App() {
     status === 'loading' && items.length === 0
       ? 'Carregando feed…'
       : status === 'error'
-        ? `Erro: ${error ?? 'desconhecido'}`
+        ? friendlyApiError(error, 'feed')
         : status === 'empty'
           ? 'Feed vazio para este usuário'
           : null;
@@ -145,8 +147,24 @@ export default function App() {
             )}
           </Text>
           {screen === 'feed' && !restaurantCnpj && !settingsOpen && banner ? (
-            <View style={[styles.banner, { backgroundColor: theme.quietBg }]}>
-              <Text style={[styles.bannerText, { color: theme.sub }]}>{banner}</Text>
+            <View
+              style={[styles.banner, { backgroundColor: theme.quietBg }]}
+            >
+              <Text style={[styles.bannerText, { color: theme.sub }]}>
+                {banner}
+              </Text>
+              {status === 'error' ? (
+                <Pressable
+                  onPress={() => void refresh()}
+                  hitSlop={6}
+                  accessibilityRole="button"
+                  accessibilityLabel="tentar carregar o feed de novo"
+                >
+                  <Text style={[styles.retryText, { color: palette.lambeLambe }]}>
+                    · tentar de novo
+                  </Text>
+                </Pressable>
+              ) : null}
             </View>
           ) : null}
         </View>
@@ -255,6 +273,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.interno,
     paddingVertical: spacing.micro,
     alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   bannerText: { fontSize: 12 },
+  retryText: { fontSize: 12, fontFamily: fonts.corpo600, fontWeight: '600' },
 });

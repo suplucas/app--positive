@@ -142,7 +142,10 @@ describe('ComposeScreen v1', () => {
     });
 
     expect(onPosted).not.toHaveBeenCalled();
-    expect(JSON.stringify(r.toJSON())).toContain('500');
+    // copy de produto, não o erro técnico da API
+    expect(JSON.stringify(r.toJSON())).toContain(
+      'Não consegui publicar sua avaliação.',
+    );
     // volta a habilitar pra nova tentativa
     expect(
       r.root.findByProps({ testID: 'publicar' }).props.accessibilityState

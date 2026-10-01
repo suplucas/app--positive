@@ -34,9 +34,18 @@ Publicar a partir do restaurante atualiza o **feed**, mas a página do
 restaurante usa dados mock determinísticos (`restaurantMock`), então a
 review nova só aparece lá quando existir endpoint real.
 
+## Error handling (E1/E2)
+
+- `friendlyApiError(technical, 'feed' | 'publish')` (`src/format.ts`):
+  status/endpoint somem da UI; erro de rede/offline vira
+  "Sem conexão. Verifique a rede e tente de novo."; o resto vira copy
+  do contexto ("Não consegui carregar o feed." / "Não consegui publicar
+  sua avaliação."). Usada no banner do feed e nos dois composers.
+- Banner de erro no feed ganhou **"· tentar de novo"** (chama
+  `refresh()`), sem depender só do pull-to-refresh.
+
 ## Próximos passos do audit (pendentes)
 
-- Error handling: copy amigável de erro + "tentar de novo" (E1/E2).
 - Suavidade: transição de tela + tick ativo no slider de nota (S1/S2).
 - Feed v2 (variante com avatar/texto sobre a foto + seletor v1/v2).
 - Backlog: tela de busca, lista "quero ir", notificações.

@@ -193,7 +193,10 @@ describe('ComposeV2', () => {
       byID(r, 'publicar-v2').props.onPress();
     });
     expect(onPosted).not.toHaveBeenCalled();
-    expect(JSON.stringify(r.toJSON())).toContain('500');
+    // copy de produto, não o erro técnico da API
+    expect(JSON.stringify(r.toJSON())).toContain(
+      'Não consegui publicar sua avaliação.',
+    );
     expect(
       byID(r, 'publicar-v2').props.accessibilityState.disabled,
     ).toBe(false);

@@ -5,6 +5,7 @@ import {
   avatarColor,
   restaurantName,
   searchRestaurants,
+  friendlyApiError,
 } from "./format";
 
 describe("getNote", () => {
@@ -16,6 +17,35 @@ describe("getNote", () => {
 
   it("rating ausente vira traço", () => {
     expect(getNote(null)).toBe("—");
+  });
+});
+
+describe("friendlyApiError", () => {
+  it("erro de rede/offline vira copy de conexão", () => {
+    expect(friendlyApiError("Network request failed", "feed")).toBe(
+      "Sem conexão. Verifique a rede e tente de novo.",
+    );
+    expect(friendlyApiError("TypeError: Failed to fetch", "publish")).toBe(
+      "Sem conexão. Verifique a rede e tente de novo.",
+    );
+  });
+
+  it("erro de servidor vira copy genérica do contexto (sem status/endpoint)", () => {
+    expect(friendlyApiError("GET /feed failed: 500", "feed")).toBe(
+      "Não consegui carregar o feed.",
+    );
+    expect(friendlyApiError("POST /reviews failed: 500", "publish")).toBe(
+      "Não consegui publicar sua avaliação.",
+    );
+  });
+
+  it("erro desconhecido (null) ainda mostra copy do contexto", () => {
+    expect(friendlyApiError(null, "feed")).toBe(
+      "Não consegui carregar o feed.",
+    );
+    expect(friendlyApiError(null, "publish")).toBe(
+      "Não consegui publicar sua avaliação.",
+    );
   });
 });
 
