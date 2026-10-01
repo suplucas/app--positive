@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>tim</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700;800&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FBF2E4; --ink:#241A22; --sub:rgba(36,26,34,0.58);
+    --mustard:#F2A93B; --pink:#E63E75; --pickle:#7A9A3D;
+    --line:rgba(36,26,34,0.10);
+    box-sizing:border-box;
+    padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{ margin:0; background:var(--ink); color:var(--ink); font-family:'Instrument Sans',sans-serif; -webkit-font-smoothing:antialiased; display:flex; justify-content:center; }
+  .disp{font-family:'Bricolage Grotesque';}
+  button{font-family:inherit;}
+
+  .phone{width:100%; max-width:400px; min-height:100%; background:var(--bg); position:relative; overflow-x:hidden; display:flex; flex-direction:column;}
+
+  /* header principal (feed/perfil) */
+  #mainHeader{
+    position:sticky; top:0; z-index:6; background:var(--bg);
+    padding:14px 16px 10px; padding-top:calc(14px + env(safe-area-inset-top,0px));
+    display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--line);
+  }
+  .word{font-family:'Bricolage Grotesque'; font-weight:800; font-size:18px;}
+  .word span{color:var(--pink);}
+  .theme-btn{
+    width:30px; height:30px; border-radius:50%; background:none; border:1px solid var(--line);
+    color:var(--ink); font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0;
+  }
+
+  .screen{display:none;}
+  .screen.active{display:block;}
+
+  .section-title{font-family:'Bricolage Grotesque'; font-weight:700; font-size:13px; color:var(--sub); padding:18px 16px 12px;}
+  .clickable{cursor:pointer;}
+
+  /* ---------- FEED ---------- */
+  .podium{display:flex; align-items:flex-end; gap:8px; padding:0 16px 20px; border-bottom:1px solid var(--line);}
+  .pod{flex:1; text-align:center;}
+  .pod .plate{border-radius:10px 10px 4px 4px; display:flex; align-items:flex-end; justify-content:center; padding-bottom:6px;}
+  .pod .medal{font-size:13px;}
+  .pod .place-name{font-size:11.5px; font-weight:600; margin-top:6px; line-height:1.25;}
+  .pod .note{font-family:'Bricolage Grotesque'; font-weight:800; font-size:14px; margin-top:2px;}
+  .pod.p1 .plate{height:96px; background:var(--mustard); color:var(--ink);}
+  .pod.p2 .plate{height:76px; background:var(--pink); color:var(--bg);}
+  .pod.p3 .plate{height:60px; background:var(--pickle); color:var(--bg);}
+
+  .list{display:flex; flex-direction:column;}
+  .row{display:flex; gap:11px; align-items:flex-start; padding:13px 16px; border-bottom:1px solid var(--line);}
+  .avatar{width:32px; height:32px; border-radius:50%; flex-shrink:0; margin-top:1px;}
+  .row-body{flex:1; min-width:0;}
+  .row-top{display:flex; align-items:baseline; gap:6px; flex-wrap:wrap;}
+  .uname{font-family:'Bricolage Grotesque'; font-weight:700; font-size:13.5px;}
+  .place{font-size:13px; color:var(--sub);}
+  .place b{color:var(--ink); font-weight:600;}
+  .caption{font-size:13px; line-height:1.45; margin-top:4px;}
+  .row-meta{display:flex; gap:10px; align-items:center; margin-top:6px; font-size:11.5px; color:var(--sub);}
+  .row-note{font-family:'Bricolage Grotesque'; font-weight:800; font-size:15px; flex-shrink:0; margin-top:1px;}
+
+  .feed-quote{margin:10px 16px; border-radius:16px; padding:14px 16px 16px; display:flex; flex-direction:column;}
+  .feed-quote-top{display:flex; align-items:center; gap:9px;}
+  .feed-quote-top .avatar{width:28px; height:28px;}
+  .feed-quote-top .uname{font-size:13px;}
+  .feed-quote-top .fq-note{margin-left:auto; font-family:'Bricolage Grotesque'; font-weight:800; font-size:14px;}
+  .feed-quote-text{font-family:'Bricolage Grotesque'; font-weight:700; font-size:20px; line-height:1.3; margin:14px 0 12px;}
+  .feed-quote-meta{display:flex; justify-content:space-between; align-items:center; font-size:11.5px; font-weight:600;}
+  .feed-quote-actions{display:flex; gap:14px; font-size:11.5px; opacity:0.85;}
+
+  .feed-photo-post{padding:13px 0; border-bottom:1px solid var(--line);}
+  .fp-top{display:flex; align-items:center; gap:9px; padding:0 16px 10px;}
+  .fp-top .avatar{width:30px; height:30px;}
+  .fp-top .uname{font-size:13.5px;}
+  .fp-top .time{margin-left:auto; font-size:12px; color:var(--sub);}
+  .fp-photo-wrap{position:relative;}
+  .fp-photo{width:100%; height:220px; display:block;}
+  .fp-note{position:absolute; top:10px; right:12px; background:rgba(36,26,34,0.82); color:var(--bg); font-family:'Bricolage Grotesque'; font-weight:800; font-size:14px; padding:3px 9px; border-radius:8px;}
+  .fp-caption{font-size:13px; line-height:1.5; padding:10px 16px 0;}
+  .fp-actions{display:flex; gap:16px; padding:10px 16px 0; font-size:12px; color:var(--sub);}
+
+  /* ---------- PERFIL ---------- */
+  .bio-block{padding:20px 16px 16px; display:flex; gap:14px; align-items:flex-start;}
+  .avatar-lg{width:64px; height:64px; border-radius:50%; background:var(--pink); flex-shrink:0;}
+  .name-row{display:flex; align-items:center; gap:10px;}
+  .p-uname{font-family:'Bricolage Grotesque'; font-weight:800; font-size:19px;}
+  .follow-btn{font-family:'Bricolage Grotesque'; font-weight:700; font-size:12px; padding:6px 16px; border-radius:20px; cursor:pointer; border:1.5px solid var(--ink); background:var(--ink); color:var(--bg); margin-left:auto;}
+  .follow-btn.following{background:transparent; color:var(--ink); opacity:0.7;}
+  .handle{font-size:12.5px; color:var(--sub); margin-top:1px;}
+  .bio{font-size:13px; margin-top:8px; line-height:1.5;}
+
+  .stats{display:flex; padding:0 16px 18px; border-bottom:1px solid var(--line);}
+  .stat{flex:1; text-align:center;}
+  .stat .n{font-family:'Bricolage Grotesque'; font-weight:800; font-size:16px;}
+  .stat .l{font-size:11px; color:var(--sub); margin-top:1px;}
+
+  #favWrap{position:relative; margin:0 16px 4px; overflow:hidden;}
+  .fav-big, .fav-small{position:absolute; top:0; left:0; width:100%; display:flex; gap:8px;}
+  .fav-big{height:172px;}
+  .fav-big .poster{flex:1; border-radius:14px; position:relative; display:flex; align-items:flex-end; padding:10px; overflow:hidden;}
+  .fav-big .poster::after{content:''; position:absolute; inset:0; background:linear-gradient(to top, rgba(0,0,0,0.55), transparent 60%);}
+  .fav-big .poster .title{position:relative; z-index:1; color:#fff; font-family:'Bricolage Grotesque'; font-weight:800; font-size:12.5px; line-height:1.2;}
+  .fav-big .poster .note{position:absolute; top:8px; right:8px; z-index:1; background:rgba(0,0,0,0.55); color:#fff; font-family:'Bricolage Grotesque'; font-weight:800; font-size:12px; padding:2px 7px; border-radius:7px;}
+  .fav-small{height:74px;}
+  .fav-small .sq{flex:1; border-radius:8px; position:relative;}
+  .fav-small .sq .n{position:absolute; bottom:5px; right:5px; background:rgba(36,26,34,0.82); color:var(--bg); font-family:'Bricolage Grotesque'; font-weight:800; font-size:10.5px; padding:1px 5px; border-radius:5px;}
+
+  .content-tabs{display:flex; gap:18px; padding:14px 16px 0; border-bottom:1px solid var(--line);}
+  .ctab{font-family:'Bricolage Grotesque'; font-weight:700; font-size:12.5px; color:var(--sub); background:none; border:none; padding:0 0 10px; cursor:pointer; border-bottom:2px solid transparent; white-space:nowrap;}
+  .ctab.active{color:var(--ink); border-bottom-color:var(--ink);}
+  .content-panel{display:none;}
+  .content-panel.active{display:block;}
+
+  .wishlist{display:flex; flex-direction:column; padding:4px 16px 20px;}
+  .wish-item{display:flex; gap:12px; align-items:center; padding:12px 0; border-bottom:1px solid var(--line);}
+  .wish-thumb{width:52px; height:52px; border-radius:10px; flex-shrink:0;}
+  .wish-body{flex:1; min-width:0;}
+  .wish-body .wname{font-family:'Bricolage Grotesque'; font-weight:700; font-size:14px;}
+  .wish-body .waddr{font-size:12px; color:var(--sub); margin-top:2px;}
+  .wish-save{width:30px; height:30px; border-radius:50%; border:1.5px solid var(--line); background:none; display:flex; align-items:center; justify-content:center; font-size:14px; color:var(--pink); cursor:pointer; flex-shrink:0;}
+
+  .lists{display:flex; flex-direction:column; padding:8px 16px 20px;}
+  .list-card{display:flex; gap:12px; align-items:center; padding:12px 0; border-bottom:1px solid var(--line);}
+  .list-collage{width:56px; height:56px; border-radius:10px; flex-shrink:0; display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; gap:2px; overflow:hidden;}
+  .list-collage span{display:block;}
+  .list-collage span:first-child{grid-row:span 2;}
+  .list-body .ltitle{font-family:'Bricolage Grotesque'; font-weight:700; font-size:14px;}
+  .list-body .lmeta{font-size:12px; color:var(--sub); margin-top:3px;}
+
+  .diary-grid{display:grid; grid-template-columns:repeat(3,1fr); grid-auto-flow:dense; gap:5px; padding:10px 16px 8px;}
+  .diary-grid .cell{aspect-ratio:1; border-radius:12px; position:relative; overflow:hidden;}
+  .diary-grid .cell.wide{aspect-ratio:auto; grid-column:span 2;}
+  .diary-grid .cell .n{position:absolute; bottom:5px; right:5px; background:rgba(36,26,34,0.82); color:var(--bg); font-family:'Bricolage Grotesque'; font-weight:800; font-size:10.5px; padding:1px 5px; border-radius:5px;}
+  .diary-grid .cell.quote{display:flex; flex-direction:column; padding:10px;}
+  .diary-grid .cell.quote .qmeta{display:flex; justify-content:space-between; font-size:9.5px; font-weight:600; margin-bottom:auto;}
+  .diary-grid .cell.quote .qmeta .n{position:static; background:none; padding:0; font-size:12px;}
+  .diary-grid .cell.quote .qtext{font-family:'Bricolage Grotesque'; font-weight:700; font-size:13px; line-height:1.25; margin-top:auto;}
+
+  .navbar{position:sticky; bottom:0; z-index:5; display:flex; align-items:center; justify-content:space-around; background:var(--bg); border-top:1px solid var(--line); padding:10px 8px calc(10px + env(safe-area-inset-bottom,0px));}
+  .nav-item{display:flex; flex-direction:column; align-items:center; gap:3px; font-size:10.5px; color:var(--sub); background:none; border:none; cursor:pointer;}
+  .nav-item .ico{font-size:18px; line-height:1;}
+  .nav-item .ico-svg{width:19px; height:19px; display:block; color:inherit;}
+  .nav-item.active{color:var(--ink); font-weight:600;}
+  .nav-item.add .ico{width:34px; height:34px; border-radius:50%; background:var(--pink); color:var(--bg); display:flex; align-items:center; justify-content:center; font-size:18px; margin-top:-16px;}
+
+  /* ---------- CRIAR AVALIAÇÃO ---------- */
+  .sub-header{position:sticky; top:0; z-index:6; background:var(--bg); padding:14px 16px; padding-top:calc(14px + env(safe-area-inset-top,0px)); display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--line);}
+  .hbtn{background:none; border:none; font-size:13px; font-weight:600; color:var(--sub); cursor:pointer; padding:0;}
+  .htitle{font-family:'Bricolage Grotesque'; font-weight:800; font-size:14px;}
+  .publish-btn{font-family:'Bricolage Grotesque'; font-weight:700; font-size:13px; color:var(--bg); background:var(--pink); border:none; border-radius:16px; padding:7px 16px; cursor:pointer;}
+
+  .field{padding:16px;}
+  .label{font-family:'Bricolage Grotesque'; font-weight:700; font-size:11.5px; color:var(--sub); text-transform:uppercase; letter-spacing:0.03em; margin-bottom:8px;}
+
+  .place-picker{display:flex; align-items:center; gap:10px; border:1.5px solid var(--line); border-radius:14px; padding:12px 14px; cursor:pointer;}
+  .place-picker .pname{font-family:'Bricolage Grotesque'; font-weight:700; font-size:14px;}
+  .place-picker .paddr{font-size:11.5px; color:var(--sub);}
+  .place-picker .trocar{margin-left:auto; font-size:12px; font-weight:600; color:var(--pink);}
+
+  .note-field{border-top:1px solid var(--line); border-bottom:1px solid var(--line); padding:18px 0 16px;}
+  .note-value{font-family:'Bricolage Grotesque'; font-weight:800; font-size:40px; line-height:1; text-align:center;}
+  .note-scroll-wrap{position:relative; width:100%; overflow-x:auto; overflow-y:hidden; scroll-snap-type:x mandatory; -ms-overflow-style:none; scrollbar-width:none; margin-top:10px;}
+  .note-scroll-wrap::-webkit-scrollbar{display:none;}
+  .note-track{display:flex; align-items:flex-end; height:46px;}
+  .tick{width:34px; flex-shrink:0; scroll-snap-align:center; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; gap:4px; opacity:0.35; transform:scale(0.85); transition:opacity 0.1s, transform 0.1s;}
+  .tick.active{opacity:1; transform:scale(1);}
+  .tick .ticknum{font-family:'Bricolage Grotesque'; font-weight:700; font-size:11px; color:var(--ink); height:13px;}
+  .tick .tickline{width:2px; background:var(--ink); border-radius:1px; height:14px;}
+  .tick.major .tickline{height:22px; width:2.5px;}
+  .note-center-mark{position:absolute; left:50%; top:0; bottom:0; width:2px; background:var(--pink); transform:translateX(-50%); pointer-events:none;}
+
+  .photo-upload{border:1.5px dashed var(--line); border-radius:14px; height:110px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; color:var(--sub); cursor:pointer;}
+  .photo-upload .cam{font-size:22px;}
+  .photo-upload .txt{font-size:12.5px; font-weight:600;}
+  .photo-upload .sub{font-size:11px; opacity:0.8;}
+
+  .caption-box{width:100%; border:1.5px solid var(--line); border-radius:14px; padding:12px 14px; font-family:'Instrument Sans'; font-size:14px; color:var(--ink); background:var(--bg); resize:none; min-height:84px;}
+  .caption-box:focus{outline:none; border-color:var(--pink);}
+
+  .flair-row{display:flex; gap:8px; flex-wrap:wrap;}
+  .flair-opt{font-size:12px; font-weight:600; padding:7px 12px; border-radius:20px; border:1.5px solid var(--line); color:var(--sub); background:none; cursor:pointer;}
+  .flair-opt.on{background:var(--pickle); color:var(--bg); border-color:var(--pickle);}
+
+  .preview-wrap{padding:0 16px 24px;}
+  .preview-card{border-radius:16px; padding:16px; display:flex; flex-direction:column; min-height:120px; background:var(--mustard); color:var(--ink);}
+  .preview-card .pmeta{display:flex; justify-content:space-between; font-size:10px; font-weight:600; margin-bottom:auto;}
+  .preview-card .ptext{font-family:'Bricolage Grotesque'; font-weight:700; font-size:16px; line-height:1.3; margin-top:10px;}
+  .preview-label{font-size:11px; color:var(--sub); margin-top:8px;}
+
+  /* ---------- RESTAURANTE ---------- */
+  .topbar{position:sticky; top:0; z-index:6; display:flex; justify-content:space-between; align-items:center; padding:14px; padding-top:calc(14px + env(safe-area-inset-top,0px));}
+  .tbtn{width:32px; height:32px; border-radius:50%; background:rgba(36,26,34,0.55); color:#fff; display:flex; align-items:center; justify-content:center; font-size:14px; border:none; cursor:pointer;}
+  .cover{height:220px; margin-top:-57px;}
+  .cover-note{position:absolute; top:calc(57px + env(safe-area-inset-top,0px) + 14px); right:14px; background:rgba(0,0,0,0.6); color:#fff; font-family:'Bricolage Grotesque'; font-weight:800; font-size:16px; padding:4px 10px; border-radius:10px;}
+  .info-block{padding:16px 16px 0;}
+  .r-name{font-family:'Bricolage Grotesque'; font-weight:800; font-size:21px; line-height:1.15;}
+  .r-sub{font-size:12.5px; color:var(--sub); margin-top:4px;}
+  .r-stats{display:flex; padding:16px 16px 16px; border-bottom:1px solid var(--line); margin-top:4px;}
+  .actions{display:flex; gap:10px; padding:16px 16px 4px;}
+  .btn{flex:1; font-family:'Bricolage Grotesque'; font-weight:700; font-size:13.5px; padding:11px; border-radius:14px; text-align:center; cursor:pointer; border:1.5px solid var(--ink);}
+  .btn.primary{background:var(--pink); color:var(--bg); border-color:var(--pink);}
+  .btn.secondary{background:none; color:var(--ink);}
+  .btn.secondary.saved{background:var(--ink); color:var(--bg);}
+  .social-proof{font-size:12.5px; color:var(--sub); padding:12px 16px 4px;}
+  .flair-summary{display:flex; gap:7px; flex-wrap:wrap; padding:0 16px 4px;}
+  .flair-chip{font-size:11.5px; font-weight:600; padding:5px 11px; border-radius:20px; background:rgba(122,154,61,0.20); color:#4C6027;}
+  .flair-chip.strong{background:var(--pickle); color:var(--bg);}
+
+  /* ---------- BUSCA ---------- */
+  .search-header{position:sticky; top:0; z-index:6; background:var(--bg); padding:14px 16px; padding-top:calc(14px + env(safe-area-inset-top,0px)); border-bottom:1px solid var(--line); display:flex; gap:10px; align-items:center;}
+  .search-input{
+    flex:1; border:1.5px solid var(--line); border-radius:14px; padding:10px 14px; font-size:14px;
+    font-family:'Instrument Sans'; background:var(--bg); color:var(--ink);
+  }
+  .search-input:focus{outline:none; border-color:var(--pink);}
+  .chips{display:flex; gap:8px; padding:14px 16px 4px; overflow-x:auto;}
+  .chip{font-size:12px; font-weight:600; padding:7px 13px; border-radius:20px; border:1.5px solid var(--line); color:var(--sub); background:none; white-space:nowrap; cursor:pointer;}
+  .chip.active{background:var(--ink); color:var(--bg); border-color:var(--ink);}
+  .result-list{display:flex; flex-direction:column; padding:6px 16px 20px;}
+  .result-item{display:flex; gap:12px; align-items:center; padding:12px 0; border-bottom:1px solid var(--line); cursor:pointer;}
+  .result-thumb{width:52px; height:52px; border-radius:10px; flex-shrink:0;}
+  .result-body{flex:1; min-width:0;}
+  .result-body .rname{font-family:'Bricolage Grotesque'; font-weight:700; font-size:14px;}
+  .result-body .rmeta{font-size:12px; color:var(--sub); margin-top:2px;}
+  .result-note{font-family:'Bricolage Grotesque'; font-weight:800; font-size:14px; flex-shrink:0;}
+
+  /* ---------- MAPA ---------- */
+  .map-wrap{
+    position:relative; height:380px; margin:0 16px 0; border-radius:16px; overflow:hidden;
+    background:
+      radial-gradient(circle at 20% 30%, rgba(122,154,61,0.18), transparent 40%),
+      radial-gradient(circle at 75% 60%, rgba(242,169,59,0.16), transparent 45%),
+      var(--line);
+  }
+  .map-pin{
+    position:absolute; transform:translate(-50%,-100%); cursor:pointer; display:flex; flex-direction:column; align-items:center;
+  }
+  .map-pin .dot{
+    width:30px; height:30px; border-radius:50% 50% 50% 0; transform:rotate(-45deg); display:flex; align-items:center; justify-content:center;
+    box-shadow:0 2px 5px rgba(0,0,0,0.25);
+  }
+  .map-pin .dot span{transform:rotate(45deg); font-family:'Bricolage Grotesque'; font-weight:800; font-size:10px; color:#fff;}
+  .map-pin.me{transform:translate(-50%,-50%);}
+  .map-pin.me .you-dot{width:14px; height:14px; border-radius:50%; background:var(--ink); border:3px solid var(--bg); box-shadow:0 0 0 2px var(--ink);}
+
+  .map-carousel{display:flex; gap:10px; padding:14px 16px 20px; overflow-x:auto;}
+  .map-card{flex:0 0 150px; cursor:pointer;}
+  .map-card .mc-photo{width:100%; height:90px; border-radius:12px; position:relative;}
+  .map-card .mc-note{position:absolute; bottom:5px; right:5px; background:rgba(0,0,0,0.55); color:#fff; font-family:'Bricolage Grotesque'; font-weight:800; font-size:10.5px; padding:1px 5px; border-radius:5px;}
+  .map-card .mc-name{font-family:'Bricolage Grotesque'; font-weight:700; font-size:12.5px; margin-top:6px;}
+  .map-card .mc-meta{font-size:11px; color:var(--sub); margin-top:1px;}
+
+  footer.legend{padding:16px 16px 34px; font-size:12px; color:var(--sub); line-height:1.5;}
+
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){ --bg:#121212; --ink:#F2F0EF; --sub:rgba(242,240,239,0.55); --line:rgba(242,240,239,0.09); }
+  }
+  :root[data-theme="dark"]{ --bg:#121212; --ink:#F2F0EF; --sub:rgba(242,240,239,0.55); --line:rgba(242,240,239,0.09); }
+</style>
+</head>
+<body>
+<div class="phone">
+
+  <div id="mainHeader">
+    <div class="word disp" id="headerTitle"><svg width="26" height="20" viewBox="0 0 26 20" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="13" cy="3" r="1.7" fill="var(--mustard)"/><path d="M2 17C2 8.5 7 3 13 3C19 3 24 8.5 24 17" stroke="var(--ink)" stroke-width="2" fill="none" stroke-linecap="round"/><line x1="1" y1="17" x2="25" y2="17" stroke="var(--ink)" stroke-width="2" stroke-linecap="round"/></svg></div>
+    <button class="theme-btn" id="themeBtn" onclick="toggleTheme()">🌙</button>
+  </div>
+
+  <!-- FEED -->
+  <div class="screen active" id="screen-feed">
+    <div class="section-title">reviews recentes</div>
+    <div class="list">
+      <div class="feed-quote" style="background:var(--mustard); color:var(--ink);">
+        <div class="feed-quote-top">
+          <div class="avatar" style="background:var(--pink);"></div>
+          <span class="uname disp">bea_come_tudo</span>
+          <span class="fq-note disp">9.1</span>
+        </div>
+        <div class="feed-quote-text">"Pedi o mesmo prato três vezes só pra confirmar que não foi acidente."</div>
+        <div class="feed-quote-meta">
+          <span class="clickable" onclick="openRestaurant()">Boteco da Ana</span>
+          <span class="feed-quote-actions"><span>▲ 128</span><span>💬 14</span></span>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="avatar" style="background:var(--pickle);"></div>
+        <div class="row-body">
+          <div class="row-top"><span class="uname disp">renatocritico</span><span class="place">em <b class="clickable" onclick="openRestaurant()">Sushi Kaza</b></span></div>
+          <div class="caption">O hype é maior que o prato. Literalmente, cabia na palma da mão.</div>
+          <div class="row-meta"><span>▲ 42</span><span>💬 31</span><span>5h</span></div>
+        </div>
+        <div class="row-note disp">4.6</div>
+      </div>
+
+      <div class="feed-photo-post">
+        <div class="fp-top">
+          <div class="avatar" style="background:var(--pickle);"></div>
+          <span class="uname disp">caio.garfo</span>
+          <span class="place">em <b class="clickable" onclick="openRestaurant()">Feira do Bexiga</b></span>
+          <span class="time">4h</span>
+        </div>
+        <div class="fp-photo-wrap">
+          <div class="fp-photo" style="background:#B5622C;"></div>
+          <div class="fp-note disp">8.7</div>
+        </div>
+        <div class="fp-caption">Pastel de feira ainda ganha de qualquer coisa chique. Fila rápida, vale domingo de manhã.</div>
+        <div class="fp-actions"><span>▲ 61</span><span>💬 7</span><span>salvar</span></div>
+      </div>
+
+      <div class="feed-quote" style="background:var(--pink); color:var(--bg);">
+        <div class="feed-quote-top">
+          <div class="avatar" style="background:var(--mustard);"></div>
+          <span class="uname disp">isa.mastiga</span>
+          <span class="fq-note disp">7.8</span>
+        </div>
+        <div class="feed-quote-text">"Descobri sem querer, agora é parada obrigatória com qualquer visita."</div>
+        <div class="feed-quote-meta">
+          <span class="clickable" onclick="openRestaurant()">Empório Real</span>
+          <span class="feed-quote-actions"><span>▲ 76</span><span>💬 9</span></span>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="avatar" style="background:var(--pink);"></div>
+        <div class="row-body">
+          <div class="row-top"><span class="uname disp">juu.talher</span><span class="place">em <b class="clickable" onclick="openRestaurant()">Padaria Sol</b></span></div>
+          <div class="caption">Café bom, atendimento devagar demais num dia de semana.</div>
+          <div class="row-meta"><span>▲ 19</span><span>💬 3</span><span>1d</span></div>
+        </div>
+        <div class="row-note disp">6.5</div>
+      </div>
+    </div>
+    <footer class="legend">Feed mistura 3 formatos (quote card, foto, lista compacta). Toque em qualquer nome de restaurante pra abrir a página dele.</footer>
+  </div>
+
+  <!-- PERFIL -->
+  <div class="screen" id="screen-perfil">
+    <div class="bio-block">
+      <div class="avatar-lg"></div>
+      <div style="flex:1;">
+        <div class="name-row">
+          <div class="p-uname disp">Bea Ferraz</div>
+          <button class="follow-btn disp" id="followBtn" onclick="toggleFollow()">seguir</button>
+        </div>
+        <div class="handle">@bea_come_tudo · São Paulo</div>
+        <div class="bio">Crítica de fim de semana. Se a fila for grande, provavelmente eu tô nela.</div>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="n disp">184</div><div class="l">avaliações</div></div>
+      <div class="stat"><div class="n disp">92</div><div class="l">seguidores</div></div>
+      <div class="stat"><div class="n disp">76</div><div class="l">seguindo</div></div>
+    </div>
+    <div class="section-title">favoritos</div>
+    <div id="favWrap">
+      <div class="fav-big" id="favBig">
+        <div class="poster clickable" style="background-color:#C98A3F;" onclick="openRestaurant()"><span class="note disp">9.6</span><span class="title">Boteco da Ana</span></div>
+        <div class="poster clickable" style="background-color:#8A3550;" onclick="openRestaurant()"><span class="note disp">9.4</span><span class="title">Empório Real</span></div>
+        <div class="poster clickable" style="background-color:#5A6B3A;" onclick="openRestaurant()"><span class="note disp">9.2</span><span class="title">Sushi Kaza</span></div>
+      </div>
+      <div class="fav-small" id="favSmall" style="opacity:0;">
+        <div class="sq" style="background:#C98A3F;"><span class="n disp">9.6</span></div>
+        <div class="sq" style="background:#8A3550;"><span class="n disp">9.4</span></div>
+        <div class="sq" style="background:#5A6B3A;"><span class="n disp">9.2</span></div>
+      </div>
+    </div>
+
+    <div class="content-tabs">
+      <button class="ctab active" data-tab="queroir" onclick="showPTab('queroir')">quero ir · 6</button>
+      <button class="ctab" data-tab="diario" onclick="showPTab('diario')">diário</button>
+      <button class="ctab" data-tab="listas" onclick="showPTab('listas')">listas · 4</button>
+    </div>
+
+    <div class="content-panel active" id="panel-queroir">
+      <div class="wishlist">
+        <div class="wish-item">
+          <div class="wish-thumb clickable" style="background:#3E6B5E;" onclick="openRestaurant()"></div>
+          <div class="wish-body"><div class="wname disp">Nonna Giulia</div><div class="waddr">Pinheiros · indicado por 3 amigos</div></div>
+          <button class="wish-save" onclick="this.textContent=this.textContent==='★'?'☆':'★'">★</button>
+        </div>
+        <div class="wish-item">
+          <div class="wish-thumb clickable" style="background:#6B4A3E;" onclick="openRestaurant()"></div>
+          <div class="wish-body"><div class="wname disp">Casa do Porco</div><div class="waddr">Centro · fila grande nos fins de semana</div></div>
+          <button class="wish-save" onclick="this.textContent=this.textContent==='★'?'☆':'★'">★</button>
+        </div>
+        <div class="wish-item">
+          <div class="wish-thumb clickable" style="background:#8A6B3E;" onclick="openRestaurant()"></div>
+          <div class="wish-body"><div class="wname disp">Mocotó</div><div class="waddr">Vila Medeiros · na lista desde março</div></div>
+          <button class="wish-save" onclick="this.textContent=this.textContent==='★'?'☆':'★'">★</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="content-panel" id="panel-diario">
+      <div class="diary-grid">
+        <div class="cell clickable" style="background:#C98A3F;" onclick="openRestaurant()"><span class="n disp">9.1</span></div>
+        <div class="cell clickable" style="background:#5A6B3A;" onclick="openRestaurant()"><span class="n disp">4.6</span></div>
+        <div class="cell quote wide" style="background:var(--mustard);">
+          <div class="qmeta"><span>Empório Real</span><span class="n disp">8.2</span></div>
+          <div class="qtext">"Fila valeu cada minuto, sem exagero."</div>
+        </div>
+        <div class="cell clickable" style="background:#8A3550;" onclick="openRestaurant()"><span class="n disp">7.8</span></div>
+        <div class="cell clickable" style="background:#3E5C78;" onclick="openRestaurant()"><span class="n disp">8.4</span></div>
+        <div class="cell clickable" style="background:#7A5A3E;" onclick="openRestaurant()"><span class="n disp">6.9</span></div>
+        <div class="cell quote wide" style="background:var(--pink); color:var(--bg);">
+          <div class="qmeta"><span>Boteco da Ana</span><span class="n disp">9.6</span></div>
+          <div class="qtext">"Chorei de tão bom, sem exagero nenhum."</div>
+        </div>
+        <div class="cell clickable" style="background:#5E3E6B;" onclick="openRestaurant()"><span class="n disp">9.6</span></div>
+      </div>
+    </div>
+
+    <div class="content-panel" id="panel-listas">
+      <div class="lists">
+        <div class="list-card">
+          <div class="list-collage"><span style="background:#C98A3F;"></span><span style="background:#8A3550;"></span><span style="background:#5A6B3A;"></span></div>
+          <div class="list-body"><div class="ltitle disp">Melhores pizzarias de SP</div><div class="lmeta">12 lugares · atualizada há 3 dias</div></div>
+        </div>
+        <div class="list-card">
+          <div class="list-collage"><span style="background:#3E5C78;"></span><span style="background:#7A5A3E;"></span><span style="background:#5E3E6B;"></span></div>
+          <div class="list-body"><div class="ltitle disp">Pra ir sozinho sem graça</div><div class="lmeta">7 lugares · atualizada há 1 semana</div></div>
+        </div>
+        <div class="list-card">
+          <div class="list-collage"><span style="background:#8A6B3E;"></span><span style="background:#3E6B5E;"></span><span style="background:#6B4A3E;"></span></div>
+          <div class="list-body"><div class="ltitle disp">Café bom de verdade</div><div class="lmeta">9 lugares · atualizada há 2 semanas</div></div>
+        </div>
+        <div class="list-card">
+          <div class="list-collage"><span style="background:#5A6B3A;"></span><span style="background:#C98A3F;"></span><span style="background:#8A3550;"></span></div>
+          <div class="list-body"><div class="ltitle disp">Levar visita de fora</div><div class="lmeta">15 lugares · atualizada ontem</div></div>
+        </div>
+      </div>
+    </div>
+    <footer class="legend">Favoritos (pôster → prateleira ao rolar). Abas: quero ir · diário · listas. Toque em qualquer card com foto/nota pra abrir a página do restaurante.</footer>
+  </div>
+
+  <!-- CRIAR AVALIAÇÃO -->
+  <div class="screen" id="screen-criar">
+    <div class="sub-header">
+      <button class="hbtn" onclick="goBackMain()">cancelar</button>
+      <div class="htitle disp">nova avaliação</div>
+      <button class="publish-btn disp" onclick="goBackMain()">tim!</button>
+    </div>
+
+    <div class="field">
+      <div class="label">onde você comeu</div>
+      <div class="place-picker">
+        <span>📍</span>
+        <div><div class="pname disp">Boteco da Ana</div><div class="paddr">Vila Madalena, São Paulo</div></div>
+        <span class="trocar" onclick="openBusca(true)">trocar</span>
+      </div>
+    </div>
+
+    <div class="note-field">
+      <div class="label" style="text-align:center;">nota</div>
+      <div class="note-value disp" id="noteValue">8.0</div>
+      <div class="note-scroll-wrap" id="noteScrollWrap">
+        <div class="note-center-mark"></div>
+        <div class="note-track" id="noteTrack"></div>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="label">foto (opcional)</div>
+      <div class="photo-upload">
+        <span class="cam">📷</span><span class="txt">adicionar foto</span><span class="sub">sem foto, vira um quote card</span>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="label">o que achou?</div>
+      <textarea class="caption-box" id="captionInput" placeholder="Como foi? Seja direto." oninput="updatePreview()">Pedi o mesmo prato três vezes só pra confirmar que não foi acidente.</textarea>
+    </div>
+
+    <div class="field">
+      <div class="label">flair (até 2)</div>
+      <div class="flair-row">
+        <button class="flair-opt on" onclick="toggleFlair(this)">volto sim</button>
+        <button class="flair-opt" onclick="toggleFlair(this)">prato pequeno</button>
+        <button class="flair-opt" onclick="toggleFlair(this)">fila vale a pena</button>
+        <button class="flair-opt" onclick="toggleFlair(this)">boa pra ir só</button>
+        <button class="flair-opt" onclick="toggleFlair(this)">achado</button>
+      </div>
+    </div>
+
+    <div class="field" style="padding-top:4px;"><div class="label">preview — como fica sem foto</div></div>
+    <div class="preview-wrap">
+      <div class="preview-card" id="previewCard">
+        <div class="pmeta"><span>Boteco da Ana</span><span class="disp" id="previewNote">8.0</span></div>
+        <div class="ptext" id="previewText">"Pedi o mesmo prato três vezes só pra confirmar que não foi acidente."</div>
+      </div>
+      <div class="preview-label">Esse é o quote card que aparece no feed e no grid do perfil se nenhuma foto for adicionada.</div>
+    </div>
+  </div>
+
+  <!-- MAPA -->
+  <div class="screen" id="screen-mapa">
+    <div class="section-title">perto de você</div>
+    <div class="map-wrap">
+      <div class="map-pin me"><div class="you-dot"></div></div>
+      <div class="map-pin" style="top:30%; left:28%;" onclick="openRestaurant()"><div class="dot" style="background:var(--mustard);"><span>9.1</span></div></div>
+      <div class="map-pin" style="top:55%; left:62%;" onclick="openRestaurant()"><div class="dot" style="background:var(--pickle);"><span>4.6</span></div></div>
+      <div class="map-pin" style="top:70%; left:35%;" onclick="openRestaurant()"><div class="dot" style="background:var(--pink);"><span>7.8</span></div></div>
+      <div class="map-pin" style="top:22%; left:68%;" onclick="openRestaurant()"><div class="dot" style="background:var(--mustard);"><span>8.9</span></div></div>
+    </div>
+    <div class="section-title">nessa área</div>
+    <div class="map-carousel">
+      <div class="map-card" onclick="openRestaurant()">
+        <div class="mc-photo" style="background:#C98A3F;"><span class="mc-note disp">9.1</span></div>
+        <div class="mc-name disp">Boteco da Ana</div><div class="mc-meta">Vila Madalena · 1.2km</div>
+      </div>
+      <div class="map-card" onclick="openRestaurant()">
+        <div class="mc-photo" style="background:#5A6B3A;"><span class="mc-note disp">4.6</span></div>
+        <div class="mc-name disp">Sushi Kaza</div><div class="mc-meta">Pinheiros · 2.1km</div>
+      </div>
+      <div class="map-card" onclick="openRestaurant()">
+        <div class="mc-photo" style="background:#8A3550;"><span class="mc-note disp">7.8</span></div>
+        <div class="mc-name disp">Empório Real</div><div class="mc-meta">Itaim Bibi · 0.8km</div>
+      </div>
+    </div>
+    <footer class="legend">Pin colorido = restaurante avaliado na comunidade (cor segue a paleta de nota). Ponto escuro no centro é "você". Protótipo visual — implementação real usaria SDK de mapa (Google Maps/Mapbox) por baixo.</footer>
+  </div>
+
+  <!-- BUSCA / EXPLORAR -->
+  <div class="screen" id="screen-busca">
+    <div class="search-header">
+      <button class="hbtn" onclick="backFromBusca()">‹</button>
+      <input class="search-input" type="text" placeholder="Buscar restaurante, bairro, tipo de comida...">
+    </div>
+    <div class="chips">
+      <button class="chip active">todos</button>
+      <button class="chip">perto de mim</button>
+      <button class="chip">mais bem avaliados</button>
+      <button class="chip">seguidos já foram</button>
+    </div>
+    <div class="section-title">resultados</div>
+    <div class="result-list">
+      <div class="result-item" onclick="handleResultClick('Boteco da Ana','Vila Madalena, São Paulo')">
+        <div class="result-thumb" style="background:#C98A3F;"></div>
+        <div class="result-body"><div class="rname disp">Boteco da Ana</div><div class="rmeta">Boteco · Vila Madalena · $$</div></div>
+        <div class="result-note disp">9.1</div>
+      </div>
+      <div class="result-item" onclick="handleResultClick('Sushi Kaza','Pinheiros, São Paulo')">
+        <div class="result-thumb" style="background:#5A6B3A;"></div>
+        <div class="result-body"><div class="rname disp">Sushi Kaza</div><div class="rmeta">Japonês · Pinheiros · $$$</div></div>
+        <div class="result-note disp">4.6</div>
+      </div>
+      <div class="result-item" onclick="handleResultClick('Empório Real','Itaim Bibi, São Paulo')">
+        <div class="result-thumb" style="background:#8A3550;"></div>
+        <div class="result-body"><div class="rname disp">Empório Real</div><div class="rmeta">Café & padaria · Itaim Bibi · $$</div></div>
+        <div class="result-note disp">7.8</div>
+      </div>
+      <div class="result-item" onclick="handleResultClick('Nonna Giulia','Pinheiros, São Paulo')">
+        <div class="result-thumb" style="background:#3E6B5E;"></div>
+        <div class="result-body"><div class="rname disp">Nonna Giulia</div><div class="rmeta">Italiano · Pinheiros · $$$</div></div>
+        <div class="result-note disp">8.9</div>
+      </div>
+      <div class="result-item" onclick="handleResultClick('Casa do Porco','Centro, São Paulo')">
+        <div class="result-thumb" style="background:#6B4A3E;"></div>
+        <div class="result-body"><div class="rname disp">Casa do Porco</div><div class="rmeta">Brasileiro · Centro · $$</div></div>
+        <div class="result-note disp">9.3</div>
+      </div>
+    </div>
+    <footer class="legend">Chegou daqui pela navbar: toque num resultado abre a página do restaurante. Chegou pelo "trocar" da avaliação: toque num resultado troca o restaurante selecionado e volta direto pra avaliação.</footer>
+  </div>
+
+  <!-- RESTAURANTE -->
+  <div class="screen" id="screen-restaurante">
+    <div class="topbar" style="position:relative; z-index:7;">
+      <button class="tbtn" onclick="goBackMain()">←</button>
+      <button class="tbtn">↗</button>
+    </div>
+    <div class="cover" style="background:linear-gradient(135deg,#C98A3F,#8A3550);"></div>
+    <div class="cover-note disp">9.1</div>
+
+    <div class="info-block">
+      <div class="r-name disp">Boteco da Ana</div>
+      <div class="r-sub">Boteco · Vila Madalena · $$ · a 1.2km de você</div>
+    </div>
+
+    <div class="stats r-stats">
+      <div class="stat"><div class="n disp">9.1</div><div class="l">nota média</div></div>
+      <div class="stat"><div class="n disp">214</div><div class="l">avaliações</div></div>
+      <div class="stat"><div class="n disp">38</div><div class="l">quero ir</div></div>
+    </div>
+
+    <div class="actions">
+      <button class="btn primary disp" onclick="showScreen('criar')">avaliar</button>
+      <button class="btn secondary disp" id="saveBtn" onclick="toggleSave()">☆ quero ir</button>
+    </div>
+    <div class="social-proof">12 pessoas que você segue já avaliaram aqui, incluindo <b>renatocritico</b> e <b>juu.talher</b>.</div>
+
+    <div class="section-title">o que a galera diz</div>
+    <div class="flair-summary">
+      <span class="flair-chip strong">volto sim · 61</span>
+      <span class="flair-chip">boa pra ir só · 24</span>
+      <span class="flair-chip">fila vale a pena · 19</span>
+      <span class="flair-chip">achado · 8</span>
+    </div>
+
+    <div class="section-title" style="padding-top:20px;">avaliações</div>
+    <div class="list" style="border-top:1px solid var(--line); margin-top:4px;">
+      <div class="row">
+        <div class="avatar" style="background:var(--pickle);"></div>
+        <div class="row-body">
+          <div class="uname disp">renatocritico</div>
+          <div class="caption">Atendimento rápido mesmo lotado, raro pra um lugar desse tamanho.</div>
+          <div class="row-meta"><span>▲ 42</span><span>💬 5</span><span>2 sem.</span></div>
+        </div>
+        <div class="row-note disp">8.8</div>
+      </div>
+    </div>
+    <div class="feed-quote" style="background:var(--mustard); color:var(--ink);">
+      <div class="feed-quote-top">
+        <div class="avatar" style="background:var(--pink);"></div>
+        <span class="uname disp">bea_come_tudo</span>
+        <span class="fq-note disp">9.1</span>
+      </div>
+      <div class="feed-quote-text">"Pedi o mesmo prato três vezes só pra confirmar que não foi acidente."</div>
+      <div class="feed-quote-meta"><span>há 2h</span><span>▲ 128 · 💬 14</span></div>
+    </div>
+    <div class="list">
+      <div class="row">
+        <div class="avatar" style="background:var(--mustard);"></div>
+        <div class="row-body">
+          <div class="uname disp">juu.talher</div>
+          <div class="caption">Voltei uma segunda vez só pra testar outro prato — não decepciona.</div>
+          <div class="row-meta"><span>▲ 19</span><span>💬 2</span><span>1 mês</span></div>
+        </div>
+        <div class="row-note disp">9.4</div>
+      </div>
+    </div>
+    <footer class="legend">Reaproveita os componentes do feed (quote card, lista) pra avaliações. "O que a galera diz" soma os flairs mais repetidos em vez de forçar ler tudo.</footer>
+  </div>
+
+  <!-- NAVBAR (sempre por último no DOM, pra ficar visualmente ao final do flex container) -->
+  <nav class="navbar" id="mainNavbar">
+    <button class="nav-item active" data-screen="feed" onclick="showScreen('feed')">
+      <svg class="ico-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 15a8 8 0 0 1 16 0"/><line x1="2" y1="15" x2="22" y2="15"/><line x1="12" y1="6" x2="12" y2="4"/><circle cx="12" cy="3" r="1" fill="currentColor" stroke="none"/>
+      </svg>feed
+    </button>
+    <button class="nav-item" data-screen="busca" onclick="openBusca(false)"><span class="ico">⌕</span>buscar</button>
+    <button class="nav-item add" onclick="showScreen('criar')"><span class="ico">+</span></button>
+    <button class="nav-item" data-screen="mapa" onclick="showScreen('mapa')"><span class="ico">📍</span>mapa</button>
+    <button class="nav-item" data-screen="perfil" onclick="showScreen('perfil')"><span class="ico">●</span>perfil</button>
+  </nav>
+
+</div>
+<script>
+  /* tema */
+  function toggleTheme(){
+    var cur = document.documentElement.getAttribute('data-theme');
+    var next = cur === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    document.getElementById('themeBtn').textContent = next === 'dark' ? '☀️' : '🌙';
+  }
+
+  /* navegação entre telas */
+  var lastMain = 'feed';
+  var pickerMode = false;
+  function showScreen(name){
+    document.querySelectorAll('.screen').forEach(function(s){ s.classList.toggle('active', s.id === 'screen-' + name); });
+    var isTopTab = (name === 'feed' || name === 'perfil' || name === 'mapa');
+    var showNavbar = (name !== 'criar'); // navbar continua visível em feed, perfil, mapa, restaurante e busca
+    if(isTopTab){ lastMain = name; }
+    document.getElementById('mainHeader').style.display = isTopTab ? 'flex' : 'none';
+    document.getElementById('mainNavbar').style.display = showNavbar ? 'flex' : 'none';
+    var highlightName = (name === 'restaurante' || name === 'criar') ? lastMain : name;
+    document.querySelectorAll('.nav-item[data-screen]').forEach(function(b){ b.classList.toggle('active', b.dataset.screen === highlightName); });
+    var CLOCHE_ICON = '<svg width="26" height="20" viewBox="0 0 26 20" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="13" cy="3" r="1.7" fill="var(--mustard)"/><path d="M2 17C2 8.5 7 3 13 3C19 3 24 8.5 24 17" stroke="var(--ink)" stroke-width="2" fill="none" stroke-linecap="round"/><line x1="1" y1="17" x2="25" y2="17" stroke="var(--ink)" stroke-width="2" stroke-linecap="round"/></svg>';
+    var titles = {feed:CLOCHE_ICON, perfil:'perfil', mapa:'mapa'};
+    document.getElementById('headerTitle').innerHTML = titles[name] || titles[lastMain] || 'perfil';
+    window.scrollTo(0,0);
+    updateFavBanner();
+  }
+  function goBackMain(){ showScreen(lastMain); }
+  function openRestaurant(){ showScreen('restaurante'); }
+  function openBusca(forPicker){ pickerMode = !!forPicker; showScreen('busca'); }
+  function backFromBusca(){ showScreen(pickerMode ? 'criar' : lastMain); }
+  function selectRestaurant(name, addr){
+    document.querySelectorAll('.place-picker .pname').forEach(function(el){ el.textContent = name; });
+    document.querySelectorAll('.place-picker .paddr').forEach(function(el){ el.textContent = addr; });
+    document.getElementById('previewCard').querySelector('.pmeta span').textContent = name;
+    showScreen('criar');
+  }
+  function handleResultClick(name, addr){
+    if(pickerMode){ selectRestaurant(name, addr); } else { openRestaurant(); }
+  }
+
+  /* favoritos: poster grande -> prateleira pequena ao rolar */
+  var FAV_BIG_H = 172, FAV_SMALL_H = 74, FAV_COLLAPSE_DIST = 130;
+  function updateFavBanner(){
+    var wrap = document.getElementById('favWrap');
+    if(!wrap || document.getElementById('screen-perfil').classList.contains('active') === false) return;
+    var big = document.getElementById('favBig'), small = document.getElementById('favSmall');
+    var progress = Math.max(0, Math.min(1, window.scrollY / FAV_COLLAPSE_DIST));
+    wrap.style.height = (FAV_BIG_H + (FAV_SMALL_H - FAV_BIG_H) * progress) + 'px';
+    big.style.opacity = 1 - progress;
+    small.style.opacity = progress;
+  }
+  window.addEventListener('scroll', function(){ requestAnimationFrame(updateFavBanner); }, {passive:true});
+
+  /* seguir */
+  function toggleFollow(){
+    var btn = document.getElementById('followBtn');
+    var isFollowing = btn.classList.toggle('following');
+    btn.textContent = isFollowing ? 'seguindo' : 'seguir';
+  }
+
+  /* abas do perfil */
+  function showPTab(tab){
+    document.querySelectorAll('.ctab').forEach(function(b){ b.classList.toggle('active', b.dataset.tab === tab); });
+    document.querySelectorAll('.content-panel').forEach(function(p){ p.classList.toggle('active', p.id === 'panel-' + tab); });
+  }
+
+  /* seletor de nota por scroll (tela criar) */
+  var ITEM_W = 34, STEPS = 20;
+  var noteWrap = document.getElementById('noteScrollWrap');
+  var noteTrack = document.getElementById('noteTrack');
+  var ticksHtml = '';
+  for(var i=0;i<=STEPS;i++){
+    var v = (i*0.5).toFixed(1);
+    var major = (i % 2 === 0);
+    ticksHtml += '<div class="tick' + (major?' major':'') + '" data-v="' + v + '">' +
+      '<span class="ticknum">' + (major ? parseInt(v,10) : '') + '</span><span class="tickline"></span></div>';
+  }
+  noteTrack.innerHTML = ticksHtml;
+  var noteTicks = noteTrack.querySelectorAll('.tick');
+  function layoutNoteTrack(){
+    var pad = Math.max(0, (noteWrap.clientWidth - ITEM_W) / 2);
+    noteTrack.style.paddingLeft = pad + 'px';
+    noteTrack.style.paddingRight = pad + 'px';
+  }
+  function setNoteFromIndex(idx, instant){
+    idx = Math.max(0, Math.min(STEPS, idx));
+    var v = (idx * 0.5).toFixed(1);
+    document.getElementById('noteValue').textContent = v;
+    document.getElementById('previewNote').textContent = v;
+    noteTicks.forEach(function(t,i){ t.classList.toggle('active', i === idx); });
+    if(instant){ noteWrap.scrollLeft = idx * ITEM_W; }
+  }
+  var noteScrollTicking = false;
+  noteWrap.addEventListener('scroll', function(){
+    if(noteScrollTicking) return;
+    noteScrollTicking = true;
+    requestAnimationFrame(function(){ setNoteFromIndex(Math.round(noteWrap.scrollLeft / ITEM_W), false); noteScrollTicking = false; });
+  }, {passive:true});
+  layoutNoteTrack();
+  setNoteFromIndex(16, true);
+
+  function updatePreview(){
+    var v = document.getElementById('captionInput').value || 'Como foi? Seja direto.';
+    document.getElementById('previewText').textContent = '"' + v + '"';
+  }
+  function toggleFlair(btn){
+    var selected = document.querySelectorAll('.flair-opt.on');
+    if(!btn.classList.contains('on') && selected.length >= 2){ selected[0].classList.remove('on'); }
+    btn.classList.toggle('on');
+  }
+
+  /* restaurante */
+  function toggleSave(){
+    var btn = document.getElementById('saveBtn');
+    var saved = btn.classList.toggle('saved');
+    btn.innerHTML = saved ? '★ salvo' : '☆ quero ir';
+  }
+
+  updateFavBanner();
+</script>
+</body>
+</html>

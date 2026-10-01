@@ -85,5 +85,7 @@ por `>>>` em rating/likes/createdAt/distância/bairro/preço/flairs.
   lugar, pin mostra a nota e abre o restaurante, card abre, rodapé.
 - `src/NotificationScreen.test.tsx`: botão voltar (camada).
 - `src/ProfileScreen.test.tsx`: sino só com callback.
+- `src/NoteSlider.test.tsx`: label centralizado, snap, valor ao vivo
+  (e não-redisparo na mesma página).
 
-Validação parcial: `npm test` (172 testes) e `npm run typecheck`.
+Validação: `npm test` (186 testes) e `npm run typecheck` limpos.
