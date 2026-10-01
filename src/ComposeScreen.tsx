@@ -29,11 +29,17 @@ export function ComposeScreen({
   initialCnpj,
   onCancel,
   onPosted,
+  onChangePlace,
+  pickedCnpj,
 }: {
   userId: string;
   initialCnpj?: string | null;
   onCancel: () => void;
   onPosted: () => void;
+  // docs/16: "trocar" abre a busca em modo picker; `pickedCnpj` é o
+  // resultado escolhido, devolvido pelo App.
+  onChangePlace?: () => void;
+  pickedCnpj?: string | null;
 }) {
   const t = useTheme();
   const [versao, setVersao] = useState<Versao>('v2');
@@ -72,6 +78,8 @@ export function ComposeScreen({
           initialCnpj={initialCnpj}
           onCancel={onCancel}
           onPosted={onPosted}
+          onChangePlace={onChangePlace}
+          pickedCnpj={pickedCnpj}
         />
       )}
     </ScrollView>

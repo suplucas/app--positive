@@ -2,6 +2,8 @@ import { describe, it, expect, vi } from 'vitest';
 import { act, create, ReactTestRenderer } from 'react-test-renderer';
 import { createElement } from 'react';
 import { SearchScreen } from './SearchScreen';
+import { searchWithFilter, SEARCH_FILTERS } from './searchFilters';
+import { restaurantFor } from './restaurantMock';
 
 function render(props: Partial<Parameters<typeof SearchScreen>[0]> = {}) {
   const onOpenRestaurant = props.onOpenRestaurant ?? vi.fn();
@@ -36,14 +38,21 @@ function input(r: ReactTestRenderer, value: string) {
   });
 }
 
-describe('SearchScreen (docs/08)', () => {
-  it('query vazia mostra 8 sugestões (1ª = início do mapa do seed)', () => {
+function tapChip(r: ReactTestRenderer, id: string) {
+  act(() => {
+    r.root.findByProps({ testID: `busca-chip-${id}` }).props.onPress();
+  });
+}
+
+describe('SearchScreen (docs/16)', () => {
+  it('query vazia: até 8 resultados + os 4 chips de filtro', () => {
     const { r } = render();
-    expect(hitCount(r)).toBe(8);
-    expect(
-      r.root.findByProps({ testID: 'busca-hit-60602022000153' }),
-    ).toBeTruthy();
-    expect(allText(r)).toContain('sugestões');
+    expect(hitCount(r)).toBeLessThanOrEqual(8);
+    expect(hitCount(r)).toBeGreaterThan(0);
+    for (const f of SEARCH_FILTERS) {
+      expect(r.root.findByProps({ testID: `busca-chip-${f.id}` })).toBeTruthy();
+    }
+    expect(allText(r)).toContain('resultados');
   });
 
   it('busca textual: "kyoto" encontra o Kyoto sushi bar', () => {
@@ -51,29 +60,9 @@ describe('SearchScreen (docs/08)', () => {
     input(r, 'kyoto');
     expect(hitCount(r)).toBe(1);
     expect(allText(r)).toContain('Kyoto sushi bar');
-    expect(allText(r)).toContain('resultados');
   });
 
-  it('toque no resultado abre a página do restaurante', () => {
-    const { r, onOpenRestaurant } = render();
-    input(r, 'kyoto');
-    act(() => {
-      r.root
-        .findByProps({ testID: 'busca-hit-33229301000140' })
-        .props.onPress();
-    });
-    expect(onOpenRestaurant).toHaveBeenCalledWith('33229301000140');
-  });
-
-  it('sem resultados: copy amigável e zero linhas', () => {
-    const { r } = render();
-    input(r, 'zzznotexist');
-    expect(hitCount(r)).toBe(0);
-    expect(allText(r)).toContain('Não encontramos');
-    expect(allText(r)).toContain('zzznotexist');
-  });
-
-  it('linha de resultado traz meta categoria · bairro · preço · distância', () => {
+  it('linha mostra meta (categoria · bairro · preço) e a nota', () => {
     const { r } = render();
     input(r, 'kyoto');
     const row = r.root.findByProps({ testID: 'busca-hit-33229301000140' });
@@ -86,6 +75,62 @@ describe('SearchScreen (docs/08)', () => {
       )
       .join(' ');
     expect(rowText).toContain('·');
-    expect(rowText).toContain('km');
+    expect(rowText).toContain(restaurantFor('33229301000140').notaMedia.toFixed(1));
+  });
+
+  it('toque no resultado abre a página do restaurante (modo navegar)', () => {
+    const { r, onOpenRestaurant } = render();
+    input(r, 'kyoto');
+    act(() => {
+      r.root
+        .findByProps({ testID: 'busca-hit-33229301000140' })
+        .props.onPress();
+    });
+    expect(onOpenRestaurant).toHaveBeenCalledWith('33229301000140');
+  });
+
+  it('modo picker: toque chama onPick (não abre a página)', () => {
+    const onPick = vi.fn();
+    const { r, onOpenRestaurant } = render({ onPick });
+    input(r, 'kyoto');
+    act(() => {
+      r.root
+        .findByProps({ testID: 'busca-hit-33229301000140' })
+        .props.onPress();
+    });
+    expect(onPick).toHaveBeenCalledWith({
+      cnpj: '33229301000140',
+      nome: 'Kyoto sushi bar',
+    });
+    expect(onOpenRestaurant).not.toHaveBeenCalled();
+  });
+
+  it('filtro "mais bem avaliados": 1º mostra a maior nota do resultado', () => {
+    const { r } = render();
+    tapChip(r, 'avaliados');
+    const esperado = searchWithFilter('', 'avaliados')[0]!;
+    const row = r.root.findByProps({ testID: `busca-hit-${esperado.cnpj}` });
+    const rowText = row
+      .findAll((n) => String(n.type) === 'Text')
+      .map((n) => String(n.props.children ?? ''))
+      .join(' ');
+    expect(rowText).toContain(restaurantFor(esperado.cnpj).notaMedia.toFixed(1));
+  });
+
+  it('sem resultados: copy amigável e zero linhas', () => {
+    const { r } = render();
+    input(r, 'zzznotexist');
+    expect(hitCount(r)).toBe(0);
+    expect(allText(r)).toContain('Não encontramos');
+    expect(allText(r)).toContain('zzznotexist');
+  });
+
+  it('com onBack: botão voltar', () => {
+    const onBack = vi.fn();
+    const { r } = render({ onBack });
+    act(() => {
+      r.root.findByProps({ testID: 'busca-voltar' }).props.onPress();
+    });
+    expect(onBack).toHaveBeenCalled();
   });
 });

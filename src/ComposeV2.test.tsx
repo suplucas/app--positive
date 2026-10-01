@@ -54,6 +54,23 @@ function pick(r: ReactTestRenderer, cnpj: string = cnpjExemplo) {
   });
 }
 
+describe('ComposeV2 (trocar via busca, docs/16)', () => {
+  it('"trocar" chama onChangePlace (abre o picker) quando disponível', () => {
+    const onChangePlace = vi.fn();
+    const r = render({ onChangePlace });
+    pick(r);
+    act(() => byID(r, 'trocar-restaurante').props.onPress());
+    expect(onChangePlace).toHaveBeenCalled();
+  });
+
+  it('pickedCnpj (resultado do picker) preenche o local', () => {
+    const r = render({ pickedCnpj: cnpjOutro });
+    const texto = JSON.stringify(r.toJSON());
+    expect(texto).toContain(restaurantNames[cnpjOutro]);
+    expect(r.root.findAllByProps({ testID: 'trocar-restaurante' })).toHaveLength(1);
+  });
+});
+
 describe('ComposeV2 (várias fotos, docs/15)', () => {
   it('adiciona até 4 fotos: miniaturas na fila, preview na 1ª', async () => {
     let n = 0;

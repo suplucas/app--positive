@@ -105,6 +105,10 @@ export default function App() {
   // Notificações (docs/09) saíram da navbar (o mock docs/16 pôs o mapa
   // no lugar): viram camada aberta pelo sino no perfil.
   const [notifOpen, setNotifOpen] = useState(false);
+  // Busca em modo picker (docs/16): "trocar" da avaliação abre a busca
+  // como camada; o resultado vira `composePickedCnpj`.
+  const [composePickerOpen, setComposePickerOpen] = useState(false);
+  const [composePickedCnpj, setComposePickedCnpj] = useState<string | null>(null);
   const toggleSaved = (cnpj: string) =>
     setSavedCnpjs((prev) =>
       prev.includes(cnpj) ? prev.filter((c) => c !== cnpj) : [...prev, cnpj],
@@ -232,7 +236,10 @@ export default function App() {
 
         <View style={styles.content}>
           {screen === 'busca' ? (
-            <SearchScreen onOpenRestaurant={(cnpj) => setRestaurantCnpj(cnpj)} />
+            <SearchScreen
+              onOpenRestaurant={(cnpj) => setRestaurantCnpj(cnpj)}
+              onBack={() => setScreen('feed')}
+            />
           ) : screen === 'mapa' ? (
             <MapScreen onOpenRestaurant={(cnpj) => setRestaurantCnpj(cnpj)} />
           ) : screen === 'perfil' ? (
@@ -318,16 +325,35 @@ export default function App() {
               <ComposeScreen
                 userId={userId}
                 initialCnpj={composeCnpj}
+                onChangePlace={() => setComposePickerOpen(true)}
+                pickedCnpj={composePickedCnpj}
                 onCancel={() => {
                   // Vem da página do restaurante? Ela continua viva lá embaixo.
                   setComposeCnpj(null);
+                  setComposePickedCnpj(null);
+                  setComposePickerOpen(false);
                   setScreen('feed');
                 }}
                 onPosted={() => {
                   setComposeCnpj(null);
+                  setComposePickedCnpj(null);
+                  setComposePickerOpen(false);
                   setScreen('feed');
                   void refresh();
                 }}
+              />
+            </LayerScreen>
+          ) : null}
+          {/* Busca em modo picker, por cima da avaliação (docs/16). */}
+          {composePickerOpen ? (
+            <LayerScreen>
+              <SearchScreen
+                onOpenRestaurant={() => {}}
+                onPick={(hit) => {
+                  setComposePickedCnpj(hit.cnpj);
+                  setComposePickerOpen(false);
+                }}
+                onBack={() => setComposePickerOpen(false)}
               />
             </LayerScreen>
           ) : null}
@@ -380,7 +406,7 @@ export default function App() {
           ) : null}
         </View>
 
-        {settingsOpen || savedOpen || commentReview || notifOpen || screen === 'compose' || restaurantCnpj ? null : (
+        {settingsOpen || savedOpen || commentReview || notifOpen || composePickerOpen || screen === 'compose' || restaurantCnpj ? null : (
           <Navbar
             active={screen}
             onNavigate={(s) => {

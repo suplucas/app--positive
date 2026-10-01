@@ -35,8 +35,36 @@ faixa, o que podia gerar valores **negativos** (ex.: `distanciaKm` =
 -2.2, mostrando "a -2.2km de você" na página do restaurante). Trocado
 por `>>>` em rating/likes/createdAt/distância/bairro/preço/flairs.
 
+## 4. Nova busca (rework da tela `docs/08`)
+
+- **`src/searchFilters.ts`**: `SEARCH_FILTERS` (os 4 chips do mock) +
+  `searchWithFilter(query, filter, limit=8)` — base textual do seed;
+  `perto` ordena por `distanciaKm`, `avaliados` por `notaMedia`,
+  `seguidos` é um subset determinístico (hash par). Trocar por
+  PostGIS/pg_trgm quando existir backend.
+- **`src/SearchScreen.tsx`** (novo layout):
+  - header com **voltar** (`busca-voltar`) + input (placeholder
+    "Buscar restaurante, bairro, tipo de comida…");
+  - **chips** `todos / perto de mim / mais bem avaliados / seguidos já
+    foram` (`busca-chip-{id}`, ativo = fundo ink);
+  - linhas com **miniatura** (cor da capa), nome, meta
+    `categoria · bairro · preço` e **nota** à direita
+    (`busca-hit-{cnpj}`);
+  - **modo picker**: com `onPick`, escolher devolve o hit (para a
+    avaliação) em vez de abrir a página.
+- **Fluxo "trocar" (docs/16)**: o "trocar" do compose v2 abre a busca
+  como **camada picker** (`onChangePlace` → `composePickedCnpj`);
+  escolher preenche o local e volta pra avaliação. O campo inline do
+  compose continua pro caso "nada selecionado".
+
 ## Testes
 
+- `src/searchFilters.test.ts`: 4 filtros, limite/textual, ordenação
+  (distância/nota) e subset determinístico.
+- `src/SearchScreen.test.tsx`: chips, textual, meta + nota, navegar,
+  **picker** (`onPick`), filtro "mais bem avaliados", vazio, voltar.
+- `src/ComposeV2.test.tsx`: "trocar" chama `onChangePlace`; `pickedCnpj`
+  preenche o local.
 - `src/mapMock.test.ts`: 4–6 lugares, determinístico, posições na
   moldura, cor da paleta.
 - `src/MapScreen.test.tsx`: seções + ponto "você", pin e card por

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Image,
   Pressable,
@@ -58,6 +58,8 @@ export function ComposeV2({
   onCancel,
   onPosted,
   onPickPhoto,
+  onChangePlace,
+  pickedCnpj,
 }: {
   userId: string;
   initialCnpj?: string | null;
@@ -66,6 +68,9 @@ export function ComposeV2({
   // docs/13: fonte da foto (default = galeria via expo-image-picker).
   // Seam p/ testes injetarem o resultado sem tocar no native.
   onPickPhoto?: () => Promise<ImageSourcePropType | null>;
+  // docs/16: "trocar" abre a busca (picker); `pickedCnpj` volta do App.
+  onChangePlace?: () => void;
+  pickedCnpj?: string | null;
 }) {
   const t = useTheme();
   const [query, setQuery] = useState('');
@@ -85,6 +90,17 @@ export function ComposeV2({
     () => (selected ? [] : searchRestaurants(query)),
     [query, selected],
   );
+
+  // Local escolhido no picker de busca (docs/16) que volta do App.
+  useEffect(() => {
+    if (pickedCnpj) {
+      setSelected({
+        cnpj: pickedCnpj,
+        nome: restaurantName(pickedCnpj) ?? pickedCnpj,
+      });
+      setQuery('');
+    }
+  }, [pickedCnpj]);
 
   const canSend = selected !== null && !sending;
 
@@ -141,8 +157,12 @@ export function ComposeV2({
         <Pressable
           testID="trocar-restaurante"
           onPress={() => {
-            setSelected(null);
-            setQuery('');
+            // Com picker disponível abre a busca; senão, volta ao campo.
+            if (onChangePlace) onChangePlace();
+            else {
+              setSelected(null);
+              setQuery('');
+            }
           }}
           style={[s.place, { backgroundColor: t.quietBg }]}
           accessibilityRole="button"
