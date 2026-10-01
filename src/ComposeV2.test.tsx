@@ -54,6 +54,63 @@ function pick(r: ReactTestRenderer, cnpj: string = cnpjExemplo) {
   });
 }
 
+describe('ComposeV2 (várias fotos, docs/15)', () => {
+  it('adiciona até 4 fotos: miniaturas na fila, preview na 1ª', async () => {
+    let n = 0;
+    const r = render({
+      onPickPhoto: async () => ({ uri: `file://f${n++}.jpg` }),
+    });
+    for (let i = 0; i < 3; i++) {
+      await act(async () => {
+        byID(r, 'foto-add').props.onPress();
+      });
+    }
+    expect(r.root.findAllByProps({ testID: 'foto-thumb-0' })).toHaveLength(1);
+    expect(r.root.findAllByProps({ testID: 'foto-thumb-2' })).toHaveLength(1);
+    expect(byID(r, 'foto-preview').props.source).toEqual({
+      uri: 'file://f0.jpg',
+    });
+  });
+
+  it('remover a 1ª foto: as demais sobem, preview vira a próxima', async () => {
+    let n = 0;
+    const r = render({
+      onPickPhoto: async () => ({ uri: `file://f${n++}.jpg` }),
+    });
+    await act(async () => byID(r, 'foto-add').props.onPress());
+    await act(async () => byID(r, 'foto-add').props.onPress());
+    act(() => {
+      byID(r, 'foto-tirar-0').props.onPress();
+    });
+    expect(r.root.findAllByProps({ testID: 'foto-thumb-0' })).toHaveLength(1);
+    expect(byID(r, 'foto-preview').props.source).toEqual({
+      uri: 'file://f1.jpg',
+    });
+  });
+
+  it('teto de 4: botão de adicionar some', async () => {
+    let n = 0;
+    const r = render({
+      onPickPhoto: async () => ({ uri: `file://g${n++}.jpg` }),
+    });
+    for (let i = 0; i < 4; i++) {
+      await act(async () => {
+        byID(r, 'foto-add').props.onPress();
+      });
+    }
+    expect(r.root.findAllByProps({ testID: 'foto-add' })).toHaveLength(0);
+    expect(r.root.findAllByProps({ testID: 'foto-thumb-3' })).toHaveLength(1);
+  });
+
+  it('cancelar o picker não altera a fila', async () => {
+    const r = render({ onPickPhoto: async () => null });
+    await act(async () => {
+      byID(r, 'foto-add').props.onPress();
+    });
+    expect(r.root.findAllByProps({ testID: 'foto-thumb-0' })).toHaveLength(0);
+  });
+});
+
 describe('ComposeV2 (foto real, docs/13)', () => {
   it('picker escolhido: preview usa a URI real do device', async () => {
     const r = render({
@@ -82,7 +139,7 @@ describe('ComposeV2 (foto real, docs/13)', () => {
     await act(async () => {
       byID(r, 'foto-add').props.onPress();
     });
-    expect(subtreeTexts(r, 'foto-add')).toContain('local');
+    expect(JSON.stringify(r.toJSON())).toContain('local');
   });
 });
 

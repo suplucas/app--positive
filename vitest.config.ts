@@ -14,6 +14,7 @@ export const RefreshControl = host('RefreshControl');
 export const SafeAreaView = host('SafeAreaView');
 export const Image = host('Image');
 export const StyleSheet = { create: (s) => s, hairlineWidth: 1 };
+export const useWindowDimensions = () => ({ width: 390, height: 844, scale: 2, fontScale: 1 });
 `;
 
 // React 19 test-renderer renders asynchronously; flush bare create() via act

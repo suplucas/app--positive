@@ -12,6 +12,8 @@ export type Review = {
   createdAt: string;
   // Índice da foto local (assets/posts) para feeds mock; a API não envia.
   photoIndex?: number | null;
+  // 2+ fotos locais (assets/posts) → carrossel no card de foto (docs/15).
+  photoIndexes?: number[] | null;
   // Layout fixo (feeds mock). Ausente → derivado (foto pela regra de
   // índice, quote para nota alta, senão linha).
   layout?: ReviewLayout | null;

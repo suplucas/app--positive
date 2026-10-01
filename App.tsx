@@ -35,7 +35,7 @@ import { FeedCard } from './src/FeedCard';
 import { FeedPhoto } from './src/FeedPhoto';
 import { FeedQuote } from './src/FeedQuote';
 import { MOCK_USER } from './src/mockFeed';
-import { MOCK_POST_PHOTOS, photoFor } from './src/postPhotos';
+import { MOCK_POST_PHOTOS, photoFor, photosFor } from './src/postPhotos';
 import { ComposeScreen } from './src/ComposeScreen';
 import { Navbar, type Screen } from './src/Navbar';
 import { Podium } from './src/Podium';
@@ -124,7 +124,7 @@ export default function App() {
       Review['id'],
       {
         layout: ReviewLayout;
-        photo?: ImageSourcePropType;
+        photos?: ImageSourcePropType[];
         tone?: 'mostarda' | 'lambeLambe';
       }
     >();
@@ -135,7 +135,12 @@ export default function App() {
       const layout: ReviewLayout =
         item.layout ?? (photo ? 'photo' : strong ? 'quote' : 'row');
       if (layout === 'photo') {
-        map.set(item.id, { layout, photo: photo ?? MOCK_POST_PHOTOS[0] });
+        // 2+ fotos (mock photoIndexes) → carrossel; senão, foto única.
+        const photos = photosFor(item, index);
+        map.set(item.id, {
+          layout,
+          photos: photos.length > 0 ? photos : [MOCK_POST_PHOTOS[0]],
+        });
       } else if (layout === 'quote') {
         map.set(item.id, {
           layout,
@@ -253,11 +258,11 @@ export default function App() {
                   }
                 };
                 const openComments = () => setCommentReview(item);
-                if (d?.layout === 'photo' && d.photo) {
+                if (d?.layout === 'photo' && d.photos) {
                   return (
                     <FeedPhoto
                       review={item}
-                      photo={d.photo}
+                      photos={d.photos}
                       variant={feedVersion}
                       onPress={openPlace}
                       onComments={openComments}

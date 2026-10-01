@@ -21,6 +21,9 @@ import {
 import { pickPhoto } from './pickPhoto';
 import { fonts, palette, spacing, useTheme } from './theme';
 
+// Teto de fotos por avaliação (docs/15).
+export const MAX_PHOTOS = 4;
+
 // Flairs disponíveis (docs_04): até 2 por avaliação, o primeiro
 // selecionado sai quando entra o terceiro (mesma regra do mock).
 export const FLAIRS = [
@@ -74,7 +77,7 @@ export function ComposeV2({
   const [note, setNote] = useState(8); // padrão do mock: 8.0
   const [caption, setCaption] = useState('');
   const [flairs, setFlairs] = useState<string[]>([]);
-  const [photo, setPhoto] = useState<ImageSourcePropType | null>(null);
+  const [photos, setPhotos] = useState<ImageSourcePropType[]>([]);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -95,9 +98,17 @@ export function ComposeV2({
 
   const addPhoto = () => {
     void (onPickPhoto ?? pickPhoto)().then((src) => {
-      if (src) setPhoto(src); // cancelado (null) → nada muda
+      if (src) {
+        // cancelado (null) → nada muda; teto = MAX_PHOTOS
+        setPhotos((prev) =>
+          prev.length >= MAX_PHOTOS ? prev : [...prev, src],
+        );
+      }
     });
   };
+
+  const removePhoto = (i: number) =>
+    setPhotos((prev) => prev.filter((_, j) => j !== i));
 
   const submit = async () => {
     if (!canSend || selected === null) return;
@@ -187,27 +198,12 @@ export function ComposeV2({
         <NoteSlider value={note} onChange={setNote} />
       </View>
 
-      <SectionTitle>foto (opcional)</SectionTitle>
-      {photo ? (
-        <Pressable
-          testID="foto-add"
-          onPress={() => setPhoto(null)}
-          style={[s.photoBox, { backgroundColor: t.quietBg }]}
-          accessibilityRole="button"
-          accessibilityLabel="remover foto"
-        >
-          <Image
-            testID="foto-preview"
-            source={photo}
-            style={s.photo}
-            resizeMode="cover"
-            accessibilityIgnoresInvertColors
-          />
-          <Text style={[s.photoLabel, { color: t.sub }]}>
-            sua foto (só fica local até existir endpoint) · toque p/ remover
-          </Text>
-        </Pressable>
-      ) : (
+      <SectionTitle>
+        {photos.length > 0
+          ? `fotos · ${photos.length}/${MAX_PHOTOS}`
+          : 'foto (opcional)'}
+      </SectionTitle>
+      {photos.length === 0 ? (
         <Pressable
           testID="foto-add"
           onPress={addPhoto}
@@ -218,9 +214,53 @@ export function ComposeV2({
           <Text style={s.cam}>📷</Text>
           <Text style={[s.photoText, { color: t.sub }]}>adicionar foto</Text>
           <Text style={[s.photoSub, { color: t.sub }]}>
-            da sua galeria · sem foto, vira um quote card
+            da sua galeria · até {MAX_PHOTOS} fotos · sem foto, vira um quote
+            card
           </Text>
         </Pressable>
+      ) : (
+        <>
+          <View style={s.shelf}>
+            {photos.map((src, i) => (
+              <View key={i} testID={`foto-thumb-${i}`} style={s.thumb}>
+                <Image
+                  testID={i === 0 ? 'foto-preview' : undefined}
+                  source={src}
+                  style={s.thumbImg}
+                  resizeMode="cover"
+                  accessibilityIgnoresInvertColors
+                />
+                <Pressable
+                  testID={`foto-tirar-${i}`}
+                  onPress={() => removePhoto(i)}
+                  style={s.thumbX}
+                  hitSlop={6}
+                  accessibilityRole="button"
+                  accessibilityLabel={`remover foto ${i + 1}`}
+                >
+                  <Text style={s.thumbXText}>×</Text>
+                </Pressable>
+              </View>
+            ))}
+            {photos.length < MAX_PHOTOS ? (
+              <Pressable
+                testID="foto-add"
+                onPress={addPhoto}
+                style={[s.addTile, { borderColor: t.line }]}
+                accessibilityRole="button"
+                accessibilityLabel="adicionar outra foto"
+              >
+                <Text style={s.cam}>📷</Text>
+                <Text style={[s.photoSub, { color: t.sub }]}>
+                  {`foto ${photos.length + 1}`}
+                </Text>
+              </Pressable>
+            ) : null}
+          </View>
+          <Text style={[s.photoHint, { color: t.sub }]}>
+            até {MAX_PHOTOS} fotos · só local até existir endpoint · × remove
+          </Text>
+        </>
       )}
 
       <SectionTitle>o que achou?</SectionTitle>
@@ -382,9 +422,50 @@ const s = StyleSheet.create({
     overflow: 'hidden',
   },
   cam: { fontSize: 22 },
-  photo: { width: '100%', height: 110 },
-  photoLabel: { fontSize: 11, paddingVertical: spacing.interno },
   photoText: { fontSize: 12.5, fontFamily: fonts.corpo600, fontWeight: '600', marginTop: 6 },
+  // Carrossel em compose (docs/15): fila de miniaturas + tile "foto N".
+  shelf: {
+    flexDirection: 'row',
+    gap: spacing.interno,
+    marginHorizontal: spacing.padrao,
+    marginBottom: spacing.micro,
+    alignItems: 'center',
+  },
+  thumb: {
+    position: 'relative',
+    width: 92,
+    height: 92,
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  thumbImg: { width: '100%', height: '100%' },
+  thumbX: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: 'rgba(36,26,34,0.7)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  thumbXText: { color: '#fff', fontSize: 13, lineHeight: 15 },
+  addTile: {
+    width: 92,
+    height: 92,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderStyle: 'dashed',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+  },
+  photoHint: {
+    fontSize: 11,
+    marginHorizontal: spacing.padrao,
+    marginBottom: spacing.interno,
+  },
   photoSub: { fontSize: 11, opacity: 0.8, marginTop: 2 },
   flairRow: {
     flexDirection: 'row',

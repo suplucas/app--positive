@@ -1,6 +1,14 @@
 import { useState } from 'react';
 import type { ImageSourcePropType } from 'react-native';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  Image,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 import { Avatar } from './Avatar';
 import { formatRelative, getNote, restaurantName } from './format';
 import { fonts, palette, spacing, useTheme } from './theme';
@@ -8,18 +16,21 @@ import type { Review } from './types';
 
 // Post com foto: mídia edge-to-edge (sangra na borda), nota sobre a
 // imagem. Mesmo peso visual de um post, sem moldura de card.
-// `onPress` (opcional) abre a página do restaurante. `variant` v2 é a
-// UI de teste: autor/restaurante/tempo vão para DENTRO da imagem (com
-// scrim no topo), a foto fica mais alta e a nota desce pro rodapé.
+// `photos` com 2+ itens vira **carrossel** (docs/15): paginação
+// nativa (ScrollView + paging) com dots e contador; 1 foto mantém o
+// comportamento atual (sem UI de carrossel). `onPress` (opcional) abre
+// a página do restaurante. `variant` v2 é a UI de teste: autor/
+// restaurante/tempo vão para DENTRO da imagem (com scrim no topo), a
+// foto fica mais alta e a nota desce pro rodapé.
 export function FeedPhoto({
   review,
-  photo,
+  photos,
   onPress,
   onComments,
   variant = 'v1',
 }: {
   review: Review;
-  photo: ImageSourcePropType;
+  photos: ImageSourcePropType[];
   onPress?: () => void;
   // docs/12: abre a thread de comentários (opcional, como `onPress`).
   onComments?: () => void;
@@ -27,8 +38,45 @@ export function FeedPhoto({
 }) {
   const t = useTheme();
   const [saved, setSaved] = useState(false);
+  const [page, setPage] = useState(0);
+  const { width: winW } = useWindowDimensions();
   const v2 = variant === 'v2';
+  const multi = photos.length > 1;
+  const photoH = v2 ? 480 : 420;
   const nome = restaurantName(review.restaurantCnpj);
+
+  const media = multi ? (
+    <ScrollView
+      testID={`carousel-${review.id}`}
+      horizontal
+      pagingEnabled
+      showsHorizontalScrollIndicator={false}
+      onMomentumScrollEnd={(e) => {
+        const x = e.nativeEvent?.contentOffset?.x ?? 0;
+        const p = Math.round(x / winW);
+        setPage(Math.min(Math.max(p, 0), photos.length - 1));
+      }}
+    >
+      {photos.map((src, i) => (
+        <Image
+          key={i}
+          source={src}
+          style={{ width: winW, height: photoH }}
+          resizeMode="cover"
+          accessibilityIgnoresInvertColors
+          accessibilityLabel={`foto ${i + 1} de ${photos.length}`}
+        />
+      ))}
+    </ScrollView>
+  ) : (
+    <Image
+      testID={`photo-${review.id}-img`}
+      source={photos[0]!}
+      style={[s.photo, { height: photoH }]}
+      resizeMode="cover"
+      accessibilityIgnoresInvertColors
+    />
+  );
 
   const meta = (
     <>
@@ -61,13 +109,7 @@ export function FeedPhoto({
       {v2 ? null : <View style={s.top}>{meta}</View>}
 
       <View style={s.photoWrap} testID={`photo-${review.id}-frame`}>
-        <Image
-          testID={`photo-${review.id}-img`}
-          source={photo}
-          style={[s.photo, { height: v2 ? 480 : 420 }]}
-          resizeMode="cover"
-          accessibilityIgnoresInvertColors
-        />
+        {media}
         {v2 ? <View testID={`photo-${review.id}-scrim`} style={s.scrim} /> : null}
         {v2 ? <View style={s.topOverlay}>{meta}</View> : null}
         <View
@@ -76,6 +118,26 @@ export function FeedPhoto({
         >
           <Text style={s.noteText}>{getNote(review.rating)}</Text>
         </View>
+        {multi ? (
+          <View
+            testID={`carousel-dots-${review.id}`}
+            style={s.dots}
+          >
+            {photos.map((_, i) => (
+              <View
+                key={i}
+                testID={`carousel-dot-${review.id}-${i}`}
+                style={i === page ? s.dotActive : s.dot}
+              />
+            ))}
+            <Text
+              testID={`carousel-count-${review.id}`}
+              style={s.count}
+            >
+              {`${page + 1}/${photos.length}`}
+            </Text>
+          </View>
+        ) : null}
       </View>
 
       {review.comment ? (
@@ -187,6 +249,36 @@ const s = StyleSheet.create({
     fontFamily: fonts.display800,
     fontSize: 14,
     color: palette.papel,
+  },
+  // Carrossel (docs/15): um único momento de movimento — o dot ativo é
+  // um pill lambe-lambe; o resto fica quieto sobre a foto.
+  dots: {
+    position: 'absolute',
+    bottom: 10,
+    left: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  dot: {
+    width: 5,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: 'rgba(242,240,239,0.55)',
+  },
+  dotActive: {
+    width: 14,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: palette.lambeLambe,
+  },
+  count: {
+    fontSize: 11,
+    fontFamily: fonts.display700,
+    color: palette.papel,
+    marginLeft: 3,
+    textShadowColor: 'rgba(36,26,34,0.6)',
+    textShadowRadius: 4,
   },
   caption: {
     fontSize: 13,

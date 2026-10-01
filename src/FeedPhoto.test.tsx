@@ -16,9 +16,18 @@ const baseReview: Review = {
 
 function render(props: Partial<Parameters<typeof FeedPhoto>[0]> = {}) {
   const r: ReactTestRenderer = create(
-    createElement(FeedPhoto, { review: baseReview, photo: 1, ...props }),
+    createElement(FeedPhoto, { review: baseReview, photos: [1], ...props }),
   );
   return { r, text: JSON.stringify(r.toJSON()) };
+}
+
+// Scroll da página de carrossel (width simulado = 390 no stub do RN).
+function scrollPage(r: ReactTestRenderer, page: number) {
+  act(() => {
+    r.root.findByProps({ testID: 'carousel-3' }).props.onMomentumScrollEnd({
+      nativeEvent: { contentOffset: { x: page * 390 } },
+    });
+  });
 }
 
 function textsOf(inst: ReturnType<ReactTestRenderer['root']['findByProps']>): string[] {
@@ -78,7 +87,7 @@ describe('FeedPhoto', () => {
   });
 
   it('passa a fonte de imagem recebida para o Image', () => {
-    const { r } = render({ photo: 42 });
+    const { r } = render({ photos: [42] });
     expect(r.root.findAllByProps({ source: 42 }).length).toBeGreaterThan(0);
   });
 
@@ -122,6 +131,47 @@ describe('FeedPhoto', () => {
       expect(
         styleOf(r, 'photo-3-note').some((s) => s.top !== undefined),
       ).toBe(true);
+    });
+  });
+
+  describe('carrossel (docs/15)', () => {
+    it('1 foto: sem UI de carrossel (comportamento atual)', () => {
+      const { r } = render();
+      expect(r.root.findAllByProps({ testID: 'carousel-3' })).toHaveLength(0);
+      expect(
+        r.root.findAllByProps({ testID: 'carousel-count-3' }),
+      ).toHaveLength(0);
+    });
+
+    it('2 fotos: contador 1/2, 2 dots e as 2 imagens na fila', () => {
+      const { r } = render({ photos: [1, 2] });
+      expect(
+        r.root.findAll((n) => String(n.type) === 'Image').length,
+      ).toBe(2);
+      expect(r.root.findByProps({ testID: 'carousel-count-3' })).toBeTruthy();
+      expect(
+        r.root.findAllByProps({ testID: 'carousel-dot-3-0' }).length +
+          r.root.findAllByProps({ testID: 'carousel-dot-3-1' }).length,
+      ).toBe(2);
+      // contador inicia na página 1
+      expect(JSON.stringify(r.toJSON())).toContain('1/2');
+    });
+
+    it('scroll para a página 2 atualiza o contador', () => {
+      const { r } = render({ photos: [1, 2] });
+      scrollPage(r, 1);
+      expect(JSON.stringify(r.toJSON())).toContain('2/2');
+    });
+
+    it('v2 + 2 fotos: scrim, linha no topo e nota seguem sobre a foto', () => {
+      const { r } = render({ photos: [1, 2], variant: 'v2' });
+      expect(r.root.findAllByProps({ testID: 'photo-3-scrim' })).toHaveLength(1);
+      const frame = r.root.findByProps({ testID: 'photo-3-frame' });
+      expect(textsOf(frame)).toContain('caio.garfo');
+      expect(r.root.findByProps({ testID: 'photo-3-note' })).toBeTruthy();
+      // carrossel continua funcional no v2
+      scrollPage(r, 1);
+      expect(JSON.stringify(r.toJSON())).toContain('2/2');
     });
   });
 

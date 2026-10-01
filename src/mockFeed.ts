@@ -54,7 +54,7 @@ export const MOCK_FEED: Review[] = [
     likes: 61,
     createdAt: hoursAgo(4),
     layout: "photo",
-    photoIndex: 0,
+    photoIndexes: [0, 1], // carrossel (docs/15)
   },
   {
     id: "mock-4",
@@ -86,6 +86,6 @@ export const MOCK_FEED: Review[] = [
     likes: 88,
     createdAt: hoursAgo(30),
     layout: "photo",
-    photoIndex: 1,
+    photoIndexes: [1, 3], // carrossel (docs/15)
   },
 ];
