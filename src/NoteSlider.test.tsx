@@ -50,6 +50,25 @@ describe('NoteSlider', () => {
     expect(onChange).toHaveBeenCalledWith(9.5);
   });
 
+  it('trilha de ticks usa layout em linha (flexDirection row) com os 21 ticks como filhos', () => {
+    const r = render();
+    const track = r.root.findByProps({ testID: 'nota-track' });
+    const style = track.props.style as
+      | object
+      | object[]
+      | undefined;
+    const flat = Array.isArray(style) ? style.flat() : style ? [style] : [];
+    expect(
+      flat.some((s) => (s as { flexDirection?: string })?.flexDirection === 'row'),
+    ).toBe(true);
+    const trackTicks = track.findAll(
+      (n) =>
+        typeof n.props.testID === 'string' &&
+        n.props.testID.startsWith('nota-tick-'),
+    );
+    expect(trackTicks).toHaveLength(21);
+  });
+
   it('fim do scroll resolve para o meio-passo mais próximo', () => {
     const onChange = vi.fn();
     const r = render({ onChange });

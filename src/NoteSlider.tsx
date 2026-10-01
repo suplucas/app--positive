@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { fonts, palette, useTheme } from './theme';
 
@@ -30,6 +30,20 @@ export function NoteSlider({
     onChange(clamp(idx * 0.5));
   };
 
+  // Centraliza o tick do valor inicial na marca rosa: só dá pra rolar depois
+  // que o padding (dependente do onLayout) for aplicado no conteúdo.
+  useEffect(() => {
+    if (pad === 0 || initRef.current) return;
+    initRef.current = true;
+    const x = pad + Math.round(clamp(value) * 2) * TICK_W;
+    const timer = setTimeout(
+      () => scroller.current?.scrollTo({ x, animated: false }),
+      0,
+    );
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pad]);
+
   return (
     <View>
       <Text testID="nota-valor" style={[s.value, { color: t.ink }]}>
@@ -37,16 +51,8 @@ export function NoteSlider({
       </Text>
       <View
         onLayout={(e) => {
-          const p = Math.max(0, (e.nativeEvent.layout.width - TICK_W) / 2);
-          setPad(p);
-          // Centraliza o tick do valor inicial na marca rosa (1ª layout).
-          if (!initRef.current) {
-            initRef.current = true;
-            scroller.current?.scrollTo({
-              x: p + Math.round(clamp(value) * 2) * TICK_W,
-              animated: false,
-            });
-          }
+          // Medição única: padding que centraliza o 1º tick sob a marca rosa.
+          setPad(Math.max(0, (e.nativeEvent.layout.width - TICK_W) / 2));
         }}
         style={s.wrap}
       >
@@ -58,7 +64,10 @@ export function NoteSlider({
           showsHorizontalScrollIndicator={false}
           onMomentumScrollEnd={onMomentumEnd}
         >
-          <View style={{ paddingLeft: pad, paddingRight: pad }}>
+          <View
+            testID="nota-track"
+            style={[s.track, { paddingLeft: pad, paddingRight: pad }]}
+          >
             {Array.from({ length: STEPS + 1 }, (_, i) => {
               const v = i * 0.5;
               const major = i % 2 === 0;
@@ -98,6 +107,9 @@ const s = StyleSheet.create({
     textAlign: 'center',
   },
   wrap: { position: 'relative', height: 52, marginTop: 10 },
+  // trilha em LINHA (default do RN é column — sem isso os ticks empilham e
+  // o scroll horizontal não tem largura p/ rolar).
+  track: { flexDirection: 'row', height: 52, alignItems: 'flex-end' },
   mark: {
     position: 'absolute',
     left: '50%',
