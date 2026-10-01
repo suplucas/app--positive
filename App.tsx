@@ -30,6 +30,7 @@ import {
 import { useFonts } from 'expo-font';
 import { StatusBar } from 'expo-status-bar';
 import { CommentThreadScreen } from './src/CommentThreadScreen';
+import { ErrorBoundary } from './src/ErrorBoundary';
 import { FeedCard } from './src/FeedCard';
 import { FeedPhoto } from './src/FeedPhoto';
 import { FeedQuote } from './src/FeedQuote';
@@ -161,6 +162,7 @@ export default function App() {
 
   return (
     <ThemeContext.Provider value={theme}>
+      <ErrorBoundary>
       <SafeAreaView style={[styles.root, { backgroundColor: theme.bg }]}>
         <StatusBar style={mode === 'dark' ? 'light' : 'dark'} />
         <View style={[styles.header, { borderBottomColor: theme.line }]}>
@@ -374,6 +376,7 @@ export default function App() {
           />
         )}
       </SafeAreaView>
+      </ErrorBoundary>
     </ThemeContext.Provider>
   );
 }

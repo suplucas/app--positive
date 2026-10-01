@@ -74,8 +74,13 @@ review nova só aparece lá quando existir endpoint real.
 - Backlog então pendente: busca, "quero ir", notificações — entregue
   nos pacotes docs/08 (busca), docs/10 ("quero ir") e docs/09
   (notificações); N5 (perfil × usuário ativo) no docs/11.
-- Backlog restante: thread de comentários (💬 dos cards), upload real
-  de foto, error boundary global (E3).
+- Backlog restante então: thread de comentários, upload real de foto,
+  error boundary (E3) — entregues em docs/12 (thread 💬), docs/13
+  (foto real via galeria) e docs/14 (error boundary). **Audit de
+  frontend encerrado.**
+- Pendências de backend (fora do escopo do frontend): sync de
+  comentários, upload de foto para a API, endpoints de restaurante e
+  de perfil.
 
 Validação (audit + pacotes): `npm test` (129 testes) e
 `npm run typecheck` limpos.
