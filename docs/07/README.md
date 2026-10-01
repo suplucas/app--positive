@@ -44,10 +44,23 @@ review nova só aparece lá quando existir endpoint real.
 - Banner de erro no feed ganhou **"· tentar de novo"** (chama
   `refresh()`), sem depender só do pull-to-refresh.
 
+## Suavidade (S1/S2/S3)
+
+- **Transição de sub-telas**: restaurante, avaliação e configurações
+  viram **camadas** (`LayerScreen`) sobre o conteúdo principal, com
+  fade + slide de 180ms na entrada. Dois efeitos colaterais bons: o
+  feed continua montado (posicao de scroll preservada ao voltar) e o
+  restaurante continua vivo sob a tela de avaliacao (acabamento do N2).
+  A saída é instantânea (revela a camada de baixo).
+- **Tick ativo no slider de nota**: o tick do valor atual fica opaco e
+  em escala 1; os demais, quietos (35%, escala 0.85) — como no mock
+  docs_04.
+- **Press feedback padronizado**: opacidade 0.85 em todos os cards de
+  feed (linha estava em 0.7).
+
 ## Próximos passos do audit (pendentes)
 
-- Suavidade: transição de tela + tick ativo no slider de nota (S1/S2).
 - Feed v2 (variante com avatar/texto sobre a foto + seletor v1/v2).
 - Backlog: tela de busca, lista "quero ir", notificações.
 
-Validação: `npm test` (102 testes) e `npm run typecheck` limpos.
+Validação: `npm test` (105 testes) e `npm run typecheck` limpos.

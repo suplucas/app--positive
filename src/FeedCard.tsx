@@ -49,7 +49,7 @@ export function FeedCard({
   const style = [s.row, { borderBottomColor: t.line }];
   return onPress ? (
     <Pressable
-      style={({ pressed }) => [...style, pressed && { opacity: 0.7 }]}
+      style={({ pressed }) => [...style, pressed && { opacity: 0.85 }]}
       testID={`card-${review.id}`}
       onPress={onPress}
       accessibilityRole="button"

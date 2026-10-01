@@ -50,6 +50,27 @@ describe('NoteSlider', () => {
     expect(onChange).toHaveBeenCalledWith(9.5);
   });
 
+  it('destaca o tick do valor atual (ativo opaco, demais 35% e menores)', () => {
+    const r = render({ value: 8 });
+    const styleOf = (id: string) =>
+      (r.root.findByProps({ testID: id }).props.style as unknown as object[])
+        .flat()
+        .filter((s) => s && typeof s === 'object') as Record<string, unknown>[];
+    const has = (styles: Record<string, unknown>[], fn: (s: Record<string, unknown>) => boolean) =>
+      styles.some(fn);
+    const ativo = styleOf('nota-tick-8.0');
+    const inativo = styleOf('nota-tick-7.5');
+    expect(has(ativo, (s) => s.opacity === 1)).toBe(true);
+    expect(has(inativo, (s) => s.opacity === 0.35)).toBe(true);
+    // ativo volta à escala 1; inativo fica em 0.85 (mock docs_04)
+    expect(
+      has(ativo, (s) => Array.isArray(s.transform) && (s.transform[0] as { scale?: number })?.scale === 1),
+    ).toBe(true);
+    expect(
+      has(inativo, (s) => Array.isArray(s.transform) && (s.transform[0] as { scale?: number })?.scale === 0.85),
+    ).toBe(true);
+  });
+
   it('trilha de ticks usa layout em linha (flexDirection row) com os 21 ticks como filhos', () => {
     const r = render();
     const track = r.root.findByProps({ testID: 'nota-track' });

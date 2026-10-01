@@ -1,5 +1,14 @@
-import { useCallback, useMemo, useState } from 'react';
 import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
+import {
+  Animated,
+  Easing,
   FlatList,
   Pressable,
   RefreshControl,
@@ -39,6 +48,7 @@ import {
   lightTheme,
   palette,
   spacing,
+  useTheme,
   type Theme,
 } from './src/theme';
 import { friendlyApiError } from './src/format';
@@ -169,75 +179,89 @@ export default function App() {
           ) : null}
         </View>
 
-        {settingsOpen ? (
-          <SettingsScreen
-            userId={userId}
-            onUserChange={(id) => setUserId(id)}
-            themeMode={themeMode}
-            onThemeChange={(m) => setThemeMode(m)}
-            onBack={() => setSettingsOpen(false)}
-          />
-        ) : screen === 'compose' ? (
-          <ComposeScreen
-            userId={userId}
-            initialCnpj={composeCnpj}
-            onCancel={() => {
-              // Vem da página do restaurante? O restaurante continua vivo.
-              setComposeCnpj(null);
-              setScreen('feed');
-            }}
-            onPosted={() => {
-              setComposeCnpj(null);
-              setScreen('feed');
-              void refresh();
-            }}
-          />
-        ) : restaurantCnpj ? (
-          <RestaurantScreen
-            cnpj={restaurantCnpj}
-            onBack={() => setRestaurantCnpj(null)}
-            onEvaluate={() => {
-              setComposeCnpj(restaurantCnpj);
-              setScreen('compose');
-            }}
-          />
-        ) : screen === 'feed' ? (
-          <FlatList<Review>
-            data={items}
-            keyExtractor={(item) => String(item.id)}
-            ListHeaderComponent={
-              <View>
-                {/* <Podium /> */}
-                <SectionTitle>reviews recentes</SectionTitle>
-              </View>
-            }
-            renderItem={({ item }) => {
-              const d = decorated.get(item.id);
-              const openPlace = () => {
-                if (item.restaurantCnpj) {
-                  setRestaurantCnpj(String(item.restaurantCnpj));
+        <View style={styles.content}>
+          {screen === 'perfil' ? (
+            <ProfileScreen onSettings={() => setSettingsOpen(true)} />
+          ) : (
+            <FlatList<Review>
+              data={items}
+              keyExtractor={(item) => String(item.id)}
+              ListHeaderComponent={
+                <View>
+                  {/* <Podium /> */}
+                  <SectionTitle>reviews recentes</SectionTitle>
+                </View>
+              }
+              renderItem={({ item }) => {
+                const d = decorated.get(item.id);
+                const openPlace = () => {
+                  if (item.restaurantCnpj) {
+                    setRestaurantCnpj(String(item.restaurantCnpj));
+                  }
+                };
+                if (d?.layout === 'photo' && d.photo) {
+                  return <FeedPhoto review={item} photo={d.photo} onPress={openPlace} />;
                 }
-              };
-              if (d?.layout === 'photo' && d.photo) {
-                return <FeedPhoto review={item} photo={d.photo} onPress={openPlace} />;
+                if (d?.layout === 'quote') {
+                  return <FeedQuote review={item} tone={d.tone} onPress={openPlace} />;
+                }
+                return <FeedCard review={item} onPress={openPlace} />;
+              }}
+              onEndReachedThreshold={0.4}
+              onEndReached={onEndReached}
+              refreshControl={
+                <RefreshControl
+                  refreshing={status === 'loading'}
+                  onRefresh={() => void refresh()}
+                />
               }
-              if (d?.layout === 'quote') {
-                return <FeedQuote review={item} tone={d.tone} onPress={openPlace} />;
-              }
-              return <FeedCard review={item} onPress={openPlace} />;
-            }}
-            onEndReachedThreshold={0.4}
-            onEndReached={onEndReached}
-            refreshControl={
-              <RefreshControl
-                refreshing={status === 'loading'}
-                onRefresh={() => void refresh()}
+            />
+          )}
+
+          {/* Sub-telas como camadas: o conteúdo principal fica montado
+              (feed preserva o scroll) e cada camada anima a entrada. */}
+          {restaurantCnpj ? (
+            <LayerScreen>
+              <RestaurantScreen
+                cnpj={restaurantCnpj}
+                onBack={() => setRestaurantCnpj(null)}
+                onEvaluate={() => {
+                  setComposeCnpj(restaurantCnpj);
+                  setScreen('compose');
+                }}
               />
-            }
-          />
-        ) : (
-          <ProfileScreen onSettings={() => setSettingsOpen(true)} />
-        )}
+            </LayerScreen>
+          ) : null}
+          {screen === 'compose' ? (
+            <LayerScreen>
+              <ComposeScreen
+                userId={userId}
+                initialCnpj={composeCnpj}
+                onCancel={() => {
+                  // Vem da página do restaurante? Ela continua viva lá embaixo.
+                  setComposeCnpj(null);
+                  setScreen('feed');
+                }}
+                onPosted={() => {
+                  setComposeCnpj(null);
+                  setScreen('feed');
+                  void refresh();
+                }}
+              />
+            </LayerScreen>
+          ) : null}
+          {settingsOpen ? (
+            <LayerScreen>
+              <SettingsScreen
+                userId={userId}
+                onUserChange={(id) => setUserId(id)}
+                themeMode={themeMode}
+                onThemeChange={(m) => setThemeMode(m)}
+                onBack={() => setSettingsOpen(false)}
+              />
+            </LayerScreen>
+          ) : null}
+        </View>
 
         {settingsOpen || screen === 'compose' || restaurantCnpj ? null : (
           <Navbar
@@ -260,6 +284,14 @@ export default function App() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
+  content: { flex: 1 },
+  layer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
   header: {
     paddingTop: spacing.padrao,
     paddingHorizontal: spacing.padrao,
@@ -279,3 +311,40 @@ const styles = StyleSheet.create({
   bannerText: { fontSize: 12 },
   retryText: { fontSize: 12, fontFamily: fonts.corpo600, fontWeight: '600' },
 });
+
+// Camada de sub-tela: absoluto sobre o conteúdo principal, com fade +
+// slide de 180ms na entrada (useNativeDriver). A saída é instantânea —
+// a camada unmounta e revela o que estava embaixo.
+function LayerScreen({ children }: { children: ReactNode }) {
+  const t = useTheme();
+  const anim = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.timing(anim, {
+      toValue: 1,
+      duration: 180,
+      easing: Easing.out(Easing.quad),
+      useNativeDriver: true,
+    }).start();
+  }, [anim]);
+  return (
+    <Animated.View
+      style={[
+        styles.layer,
+        {
+          backgroundColor: t.bg,
+          opacity: anim,
+          transform: [
+            {
+              translateY: anim.interpolate({
+                inputRange: [0, 1],
+                outputRange: [12, 0],
+              }),
+            },
+          ],
+        },
+      ]}
+    >
+      {children}
+    </Animated.View>
+  );
+}

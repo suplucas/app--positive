@@ -71,12 +71,13 @@ export function NoteSlider({
             {Array.from({ length: STEPS + 1 }, (_, i) => {
               const v = i * 0.5;
               const major = i % 2 === 0;
+              const active = Math.round(value * 2) === i;
               return (
                 <Pressable
                   key={i}
                   testID={`nota-tick-${v.toFixed(1)}`}
                   onPress={() => onChange(v)}
-                  style={[s.tick, major && s.tickMajor]}
+                  style={[s.tick, active && s.tickActive]}
                   accessibilityRole="button"
                   accessibilityLabel={`nota ${v.toFixed(1)}`}
                 >
@@ -119,12 +120,16 @@ const s = StyleSheet.create({
     marginLeft: -1,
     pointerEvents: 'none',
   },
+  // Ticks inativos ficam "quietos" (35%, escala 0.85) e o tick do valor
+  // atual ganha destaque — mesmo tratamento do mock docs_04.
   tick: {
     width: TICK_W,
     alignItems: 'center',
     justifyContent: 'flex-end',
+    opacity: 0.35,
+    transform: [{ scale: 0.85 }],
   },
-  tickMajor: { opacity: 0.9 },
+  tickActive: { opacity: 1, transform: [{ scale: 1 }] },
   numSlot: { height: 14, alignItems: 'center', justifyContent: 'flex-end' },
   num: { fontFamily: fonts.display700, fontSize: 11 },
   line: { width: 2, height: 14, borderRadius: 1 },
