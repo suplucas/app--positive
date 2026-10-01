@@ -77,18 +77,20 @@ export function restaurantFor(cnpj: string): RestaurantData {
   const pick = <T>(arr: T[], i: number): T =>
     arr[((i % arr.length) + arr.length) % arr.length]!;
 
-  const users = [pick(USERS, h), pick(USERS, (h >> 5) % 16)];
+  const users = [pick(USERS, h), pick(USERS, (h >>> 5) % 16)];
   if (users[1] === users[0]) users[1] = pick(USERS, h + 1);
 
   const reviews: Review[] = Array.from({ length: 5 }, (_, i) => ({
     id: `${cnpj}-r${i}`,
     userId: pick(USERS, h + i),
     restaurantCnpj: cnpj,
-    rating: 2.5 + ((h >> (i * 3)) % 25) / 10, // 2.5–4.9 (escala API 0-5)
-    comment: pick(COMMENTS, (h >> (i * 4)) + i),
-    likes: (h >> i) % 120,
+    // `>>>` (não `>>`): shift com sinal pode dar negativo e jogar a
+    // nota/likes/distância pra fora da faixa.
+    rating: 2.5 + ((h >>> (i * 3)) % 25) / 10, // 2.5–4.9 (escala API 0-5)
+    comment: pick(COMMENTS, (h >>> (i * 4)) + i),
+    likes: (h >>> i) % 120,
     createdAt: new Date(
-      Date.now() - (1 + ((h >> i) % 55)) * 86_400_000,
+      Date.now() - (1 + ((h >>> i) % 55)) * 86_400_000,
     ).toISOString(),
   }));
 
@@ -96,16 +98,16 @@ export function restaurantFor(cnpj: string): RestaurantData {
     cnpj,
     nome: restaurantNames[cnpj] ?? cnpj,
     categoria: pick(CATEGORIAS, h),
-    bairro: pick(BAIRROS, h >> 2),
-    preco: pick(PRECOS, h >> 4),
-    distanciaKm: 0.3 + ((h >> 8) % 40) / 10,
+    bairro: pick(BAIRROS, h >>> 2),
+    preco: pick(PRECOS, h >>> 4),
+    distanciaKm: 0.3 + ((h >>> 8) % 40) / 10,
     capa: pick(CAPAS, h),
     notaMedia: 6.5 + (h % 35) / 10, // 6.5–9.9
     totalAvaliacoes: 37 + (h % 400),
     queroIr: 3 + (h % 80),
     flairs: FLAIR_LABELS.map((label, i) => ({
       label,
-      count: 4 + (((h >> (i * 2)) & 0xffff) % 70),
+      count: 4 + (((h >>> (i * 2)) & 0xffff) % 70),
     })),
     seguemAvaliaram: users,
     reviews,
