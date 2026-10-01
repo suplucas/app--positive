@@ -71,6 +71,11 @@ review nova só aparece lá quando existir endpoint real.
   padrão v1. Só o card de foto muda — quote/linha continuam iguais.
 - Testes: `src/FeedPhoto.test.tsx` (linha dentro do frame, scrim, altura
   480, nota no rodapé / comportamento v1 preservado).
-- Backlog: tela de busca, lista "quero ir", notificações.
+- Backlog então pendente: busca, "quero ir", notificações — entregue
+  nos pacotes docs/08 (busca), docs/10 ("quero ir") e docs/09
+  (notificações); N5 (perfil × usuário ativo) no docs/11.
+- Backlog restante: thread de comentários (💬 dos cards), upload real
+  de foto, error boundary global (E3).
 
-Validação: `npm test` (106 testes) e `npm run typecheck` limpos.
+Validação (audit + pacotes): `npm test` (129 testes) e
+`npm run typecheck` limpos.

@@ -225,6 +225,7 @@ export default function App() {
             />
           ) : screen === 'perfil' ? (
             <ProfileScreen
+              userId={userId}
               onSettings={() => setSettingsOpen(true)}
               savedCount={savedCnpjs.length}
               onSavedList={() => setSavedOpen(true)}

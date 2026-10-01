@@ -25,6 +25,39 @@ export type DiaryCell =
 // Item da estante de favoritos: cor sólida ou foto real (photoIndex).
 export type FavoriteItem = { cor: string; nota: string; photoIndex?: number };
 
+// Identidade de usuário ativo no perfil (N5): nome exibível por
+// handle conhecido; desconhecidos ganham nome derivado
+// deterministicamente (sempre legível, nunca vazio).
+const NOME_POR_USUARIO: Record<string, string> = {
+  bea_come_tudo: "Bea Ferraz",
+  renatocritico: "Renato Crítico",
+  "caio.garfo": "Caio Garfo",
+  "isa.mastiga": "Isa Mastiga",
+  "juu.talher": "Juu Talher",
+  bruce: "Bruce",
+  mogli: "Mogli",
+  dosso: "Dosso",
+  lucas: "Lucas",
+  mock: "Mock",
+};
+
+export function displayName(userId: string): string {
+  if (NOME_POR_USUARIO[userId]) return NOME_POR_USUARIO[userId]!;
+  // "user_1" -> "User 1", "caio.x" -> "Caio X"
+  return userId
+    .replace(/[._]+/g, " ")
+    .split(" ")
+    .filter(Boolean)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+}
+
+export function bioFor(userId: string): string {
+  return userId === "bea_come_tudo"
+    ? PERFIL.bio
+    : "Comendo a cidade, um post de cada vez.";
+}
+
 export const PERFIL = {
   userId: "bea_come_tudo",
   nome: "Bea Ferraz",

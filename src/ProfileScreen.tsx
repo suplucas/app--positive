@@ -10,7 +10,7 @@ import {
 import type { ImageSourcePropType } from 'react-native';
 import { Avatar } from './Avatar';
 import { NoteBadge } from './NoteBadge';
-import { PERFIL } from './mockData';
+import { PERFIL, bioFor, displayName } from './mockData';
 import { SectionTitle } from './SectionTitle';
 import { MOCK_POST_PHOTOS } from './postPhotos';
 import { fonts, palette, spacing, useTheme } from './theme';
@@ -32,13 +32,19 @@ export function ProfileScreen({
   onSettings,
   savedCount,
   onSavedList,
+  userId: propsUserId,
 }: {
   onSettings?: () => void;
   // Lista "quero ir" (docs/10): estado vive no App; o chip é só a porta
   // de entrada (escondido quando não há callback).
   savedCount?: number;
   onSavedList?: () => void;
+  // N5: o perfil reflete o usuário ativo (identidade — avatar, nome,
+  // handle e bio). Conteúdo (stats, favoritos, diário, listas) segue o
+  // mock até existir endpoint de perfil.
+  userId?: string;
 }) {
+  const userId = propsUserId ?? 'bea_come_tudo';
   const t = useTheme();
   const [versao, setVersao] = useState<Versao>('v2');
 
@@ -87,22 +93,28 @@ export function ProfileScreen({
         ) : null}
       </View>
 
-      {versao === 'v1' ? <PerfilV1 /> : <PerfilV2 />}
+      {versao === 'v1' ? (
+        <PerfilV1 userId={userId} />
+      ) : (
+        <PerfilV2 userId={userId} />
+      )}
     </ScrollView>
   );
 }
 
 // ---- v1: layout simples (sem seguir/abas/listas) ------------------------
-function PerfilV1() {
+function PerfilV1({ userId }: { userId: string }) {
   const t = useTheme();
   return (
     <>
       <View style={s.bioBlock}>
-        <Avatar userId={PERFIL.userId} size={72} />
+        <Avatar userId={userId} size={72} />
         <View style={{ flex: 1, minWidth: 0 }}>
-          <Text style={[s.name, { color: t.ink }]}>{PERFIL.nome}</Text>
-          <Text style={[s.handle, { color: t.sub }]}>{PERFIL.handle}</Text>
-          <Text style={[s.bioV1, { color: t.ink }]}>{PERFIL.bio}</Text>
+          <Text style={[s.name, { color: t.ink }]}>{displayName(userId)}</Text>
+          <Text style={[s.handle, { color: t.sub }]}>
+            {`@${userId} · São Paulo`}
+          </Text>
+          <Text style={[s.bioV1, { color: t.ink }]}>{bioFor(userId)}</Text>
         </View>
       </View>
 
@@ -118,7 +130,7 @@ function PerfilV1() {
 }
 
 // ---- v2: mock docs/04 (seguir + abas diário/listas) ---------------------
-function PerfilV2() {
+function PerfilV2({ userId }: { userId: string }) {
   const t = useTheme();
   const [following, setFollowing] = useState(false);
   const [tab, setTab] = useState<Tab>('diario');
@@ -126,10 +138,10 @@ function PerfilV2() {
   return (
     <>
       <View style={s.bioBlock}>
-        <Avatar userId={PERFIL.userId} size={72} />
+        <Avatar userId={userId} size={72} />
         <View style={s.who}>
           <View style={s.nameRow}>
-            <Text style={[s.name, { color: t.ink }]}>{PERFIL.nome}</Text>
+            <Text style={[s.name, { color: t.ink }]}>{displayName(userId)}</Text>
             <Pressable
               testID="seguir"
               onPress={() => setFollowing((v) => !v)}
@@ -150,11 +162,13 @@ function PerfilV2() {
               </Text>
             </Pressable>
           </View>
-          <Text style={[s.handle, { color: t.sub }]}>{PERFIL.handle}</Text>
+          <Text style={[s.handle, { color: t.sub }]}>
+            {`@${userId} · São Paulo`}
+          </Text>
         </View>
       </View>
 
-      <Text style={[s.bio, { color: t.ink }]}>{PERFIL.bio}</Text>
+      <Text style={[s.bio, { color: t.ink }]}>{bioFor(userId)}</Text>
 
       <Stats />
 

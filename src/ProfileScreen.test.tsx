@@ -97,6 +97,28 @@ describe('ProfileScreen (lista "quero ir")', () => {
   });
 });
 
+describe('ProfileScreen (usuário ativo, N5)', () => {
+  it('reflete o usuário demo (mogli) em nome e handle', () => {
+    const { text } = render({ userId: 'mogli' });
+    expect(text()).toContain('Mogli');
+    expect(text()).toContain('@mogli');
+    // Bea some da identidade
+    expect(text()).not.toContain('Bea Ferraz');
+  });
+
+  it('usuário desconhecido (user_1): nome derivado, nunca vazio', () => {
+    const { text } = render({ userId: 'user_1' });
+    expect(text()).toContain('User 1');
+    expect(text()).toContain('@user_1');
+  });
+
+  it('padrão continua sendo a Bea', () => {
+    const { text } = render();
+    expect(text()).toContain('Bea Ferraz');
+    expect(text()).toContain('@bea_come_tudo');
+  });
+});
+
 describe('ProfileScreen (configurações)', () => {
   it('botão de configurações chama onSettings', () => {
     const onSettings = vi.fn();
