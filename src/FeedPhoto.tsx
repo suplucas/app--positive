@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { ImageSourcePropType } from 'react-native';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Avatar } from './Avatar';
@@ -18,6 +19,7 @@ export function FeedPhoto({
   onPress?: () => void;
 }) {
   const t = useTheme();
+  const [saved, setSaved] = useState(false);
   const nome = restaurantName(review.restaurantCnpj);
   const body = (
     <>
@@ -52,7 +54,18 @@ export function FeedPhoto({
 
       <View style={s.actions}>
         <Text style={[s.action, { color: t.sub }]}>▲ {review.likes}</Text>
-        <Text style={[s.action, { color: t.sub }]}>salvar</Text>
+        <Pressable
+          testID={`salvar-${review.id}`}
+          onPress={() => setSaved((v) => !v)}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel={saved ? 'remover dos salvos' : 'salvar post'}
+          accessibilityState={{ selected: saved }}
+        >
+          <Text style={[s.action, { color: saved ? t.ink : t.sub }]}>
+            {saved ? 'salvo' : 'salvar'}
+          </Text>
+        </Pressable>
       </View>
     </>
   );

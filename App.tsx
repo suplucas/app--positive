@@ -116,6 +116,8 @@ export default function App() {
     return map;
   }, [items]);
 
+  // Só estados que pedem atenção; paginação (fim de feed / carregando
+  // mais) não aparece mais — o próprio fim da lista comunica.
   const banner =
     status === 'loading' && items.length === 0
       ? 'Carregando feed…'
@@ -123,11 +125,7 @@ export default function App() {
         ? `Erro: ${error ?? 'desconhecido'}`
         : status === 'empty'
           ? 'Feed vazio para este usuário'
-          : status === 'loading-more'
-            ? 'Carregando mais…'
-            : !hasMore && items.length > 0
-              ? 'Fim do feed'
-              : null;
+          : null;
 
   return (
     <ThemeContext.Provider value={theme}>
@@ -146,7 +144,7 @@ export default function App() {
               'avaliar'
             )}
           </Text>
-          {screen === 'feed' && banner ? (
+          {screen === 'feed' && !restaurantCnpj && !settingsOpen && banner ? (
             <View style={[styles.banner, { backgroundColor: theme.quietBg }]}>
               <Text style={[styles.bannerText, { color: theme.sub }]}>{banner}</Text>
             </View>
@@ -161,13 +159,27 @@ export default function App() {
             onThemeChange={(m) => setThemeMode(m)}
             onBack={() => setSettingsOpen(false)}
           />
+        ) : screen === 'compose' ? (
+          <ComposeScreen
+            userId={userId}
+            initialCnpj={composeCnpj}
+            onCancel={() => {
+              // Vem da página do restaurante? O restaurante continua vivo.
+              setComposeCnpj(null);
+              setScreen('feed');
+            }}
+            onPosted={() => {
+              setComposeCnpj(null);
+              setScreen('feed');
+              void refresh();
+            }}
+          />
         ) : restaurantCnpj ? (
           <RestaurantScreen
             cnpj={restaurantCnpj}
             onBack={() => setRestaurantCnpj(null)}
             onEvaluate={() => {
               setComposeCnpj(restaurantCnpj);
-              setRestaurantCnpj(null);
               setScreen('compose');
             }}
           />
@@ -205,25 +217,18 @@ export default function App() {
               />
             }
           />
-        ) : screen === 'perfil' ? (
-          <ProfileScreen onSettings={() => setSettingsOpen(true)} />
         ) : (
-          <ComposeScreen
-            userId={userId}
-            initialCnpj={composeCnpj}
-            onCancel={() => setScreen('feed')}
-            onPosted={() => {
-              setComposeCnpj(null);
-              setScreen('feed');
-              void refresh();
-            }}
-          />
+          <ProfileScreen onSettings={() => setSettingsOpen(true)} />
         )}
 
-        {settingsOpen || restaurantCnpj ? null : (
+        {settingsOpen || screen === 'compose' || restaurantCnpj ? null : (
           <Navbar
             active={screen}
-            onNavigate={setScreen}
+            onNavigate={(s) => {
+              // Navegação pela navbar fecha sub-telas (ex.: restaurante).
+              setRestaurantCnpj(null);
+              setScreen(s);
+            }}
             onCompose={() => {
               setComposeCnpj(null);
               setScreen('compose');

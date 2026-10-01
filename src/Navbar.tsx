@@ -3,7 +3,8 @@ import { fonts, spacing, useTheme } from './theme';
 
 export type Screen = 'feed' | 'perfil' | 'compose';
 
-// Navbar: ativo com cor plena + peso 600; inativo com opacidade 50%
+// Navbar: ativo com cor plena + peso 600; inativo com opacidade 50%;
+// ainda não implementado com opacidade 30% e sem resposta a toque
 // (identidade §07). Alvo mínimo 44×44 (§09).
 export function Navbar({
   active,
@@ -18,7 +19,7 @@ export function Navbar({
   return (
     <View style={[s.bar, { backgroundColor: t.bg, borderTopColor: t.line }]}>
       <NavItem label="feed" icon="⌂" active={active === 'feed'} onPress={() => onNavigate('feed')} />
-      <NavItem label="buscar" icon="⌕" active={false} onPress={() => {}} />
+      <NavItem label="buscar" icon="⌕" active={false} disabled onPress={() => {}} />
       <Pressable
         style={s.addHit}
         onPress={onCompose}
@@ -29,7 +30,7 @@ export function Navbar({
           <Text style={s.addIcon}>+</Text>
         </View>
       </Pressable>
-      <NavItem label="notif." icon="♡" active={false} onPress={() => {}} />
+      <NavItem label="notif." icon="♡" active={false} disabled onPress={() => {}} />
       <NavItem label="perfil" icon="●" active={active === 'perfil'} onPress={() => onNavigate('perfil')} />
     </View>
   );
@@ -39,26 +40,30 @@ function NavItem({
   label,
   icon,
   active,
+  disabled = false,
   onPress,
 }: {
   label: string;
   icon: string;
   active: boolean;
+  disabled?: boolean;
   onPress: () => void;
 }) {
   const t = useTheme();
+  const opacity = disabled ? 0.3 : active ? 1 : 0.5;
   return (
     <Pressable
       style={s.item}
+      disabled={disabled}
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityState={{ selected: active }}
+      accessibilityState={{ selected: active, disabled }}
     >
-      <Text style={[s.itemIcon, { color: t.ink, opacity: active ? 1 : 0.5 }]}>{icon}</Text>
+      <Text style={[s.itemIcon, { color: t.ink, opacity }]}>{icon}</Text>
       <Text
         style={[
           s.itemLabel,
-          { color: t.ink, opacity: active ? 1 : 0.5, fontWeight: active ? '600' : '400' },
+          { color: t.ink, opacity, fontWeight: active ? '600' : '400' },
         ]}
       >
         {label}

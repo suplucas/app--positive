@@ -52,4 +52,17 @@ describe('FeedPhoto', () => {
     });
     expect(onPress).toHaveBeenCalled();
   });
+
+  it('salvar alterna para salvo (estado local do card)', () => {
+    const { r } = render();
+    const btn = r.root.findByProps({ testID: 'salvar-3' });
+    expect(btn.props.accessibilityState.selected).toBe(false);
+    act(() => btn.props.onPress());
+    expect(r.root.findByProps({ testID: 'salvar-3' }).props.accessibilityState.selected).toBe(true);
+    expect(JSON.stringify(r.toJSON())).toContain('salvo');
+    act(() => {
+      r.root.findByProps({ testID: 'salvar-3' }).props.onPress();
+    });
+    expect(r.root.findByProps({ testID: 'salvar-3' }).props.accessibilityState.selected).toBe(false);
+  });
 });
