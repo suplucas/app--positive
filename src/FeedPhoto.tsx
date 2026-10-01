@@ -8,42 +8,69 @@ import type { Review } from './types';
 
 // Post com foto: mídia edge-to-edge (sangra na borda), nota sobre a
 // imagem. Mesmo peso visual de um post, sem moldura de card.
-// `onPress` (opcional) abre a página do restaurante.
+// `onPress` (opcional) abre a página do restaurante. `variant` v2 é a
+// UI de teste: autor/restaurante/tempo vão para DENTRO da imagem (com
+// scrim no topo), a foto fica mais alta e a nota desce pro rodapé.
 export function FeedPhoto({
   review,
   photo,
   onPress,
+  variant = 'v1',
 }: {
   review: Review;
   photo: ImageSourcePropType;
   onPress?: () => void;
+  variant?: 'v1' | 'v2';
 }) {
   const t = useTheme();
   const [saved, setSaved] = useState(false);
+  const v2 = variant === 'v2';
   const nome = restaurantName(review.restaurantCnpj);
+
+  const meta = (
+    <>
+      <Avatar userId={review.userId} size={30} />
+      <Text style={[s.uname, { color: v2 ? palette.papel : t.ink }]}>
+        {review.userId}
+      </Text>
+      {nome ? (
+        <Text
+          style={[s.place, { color: v2 ? 'rgba(242,240,239,0.75)' : t.sub }]}
+          numberOfLines={1}
+        >
+          em{' '}
+          <Text
+            style={[s.placeName, { color: v2 ? palette.papel : t.ink }]}
+          >
+            {nome}
+          </Text>
+        </Text>
+      ) : null}
+      <Text style={[s.time, { color: v2 ? 'rgba(242,240,239,0.75)' : t.sub }]}>
+        {formatRelative(review.createdAt)}
+      </Text>
+    </>
+  );
+
   const body = (
     <>
-      <View style={s.top}>
-        <Avatar userId={review.userId} size={30} />
-        <Text style={[s.uname, { color: t.ink }]}>{review.userId}</Text>
-        {nome ? (
-          <Text style={[s.place, { color: t.sub }]} numberOfLines={1}>
-            em <Text style={[s.placeName, { color: t.ink }]}>{nome}</Text>
-          </Text>
-        ) : null}
-        <Text style={[s.time, { color: t.sub }]}>
-          {formatRelative(review.createdAt)}
-        </Text>
-      </View>
+      {/* v1: linha acima da foto. v2: ela vai para dentro (topOverlay). */}
+      {v2 ? null : <View style={s.top}>{meta}</View>}
 
-      <View style={s.photoWrap}>
+      <View style={s.photoWrap} testID={`photo-${review.id}-frame`}>
         <Image
+          testID={`photo-${review.id}-img`}
           source={photo}
-          style={s.photo}
+          style={[s.photo, { height: v2 ? 480 : 420 }]}
           resizeMode="cover"
           accessibilityIgnoresInvertColors
         />
-        <View style={s.note}>
+        {v2 ? <View testID={`photo-${review.id}-scrim`} style={s.scrim} /> : null}
+        {v2 ? <View style={s.topOverlay}>{meta}</View> : null}
+        <View
+          testID={`photo-${review.id}-note`}
+          style={v2 ? s.noteBottom : s.note}
+        >
           <Text style={s.noteText}>{getNote(review.rating)}</Text>
         </View>
       </View>
@@ -104,10 +131,38 @@ const s = StyleSheet.create({
   placeName: { fontFamily: fonts.corpo600, fontWeight: '600' },
   time: { marginLeft: 'auto', fontSize: 12 },
   photoWrap: { position: 'relative' },
-  photo: { width: '100%', height: 420 },
+  photo: { width: '100%' },
+  // v2: leve escuro no topo da foto p/ a linha de texto ter contraste
+  // (sem lib de gradiente nos deps).
+  scrim: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 64,
+    backgroundColor: 'rgba(36,26,34,0.45)',
+  },
+  topOverlay: {
+    position: 'absolute',
+    top: 10,
+    left: 12,
+    right: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 9,
+  },
   note: {
     position: 'absolute',
     top: 10,
+    right: 12,
+    backgroundColor: 'rgba(36,26,34,0.82)',
+    borderRadius: 8,
+    paddingHorizontal: 9,
+    paddingVertical: 3,
+  },
+  noteBottom: {
+    position: 'absolute',
+    bottom: 10,
     right: 12,
     backgroundColor: 'rgba(36,26,34,0.82)',
     borderRadius: 8,

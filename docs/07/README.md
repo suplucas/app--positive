@@ -58,9 +58,19 @@ review nova só aparece lá quando existir endpoint real.
 - **Press feedback padronizado**: opacidade 0.85 em todos os cards de
   feed (linha estava em 0.7).
 
-## Próximos passos do audit (pendentes)
+## Feed v2 — variante de UI do card de foto
 
-- Feed v2 (variante com avatar/texto sobre a foto + seletor v1/v2).
+- `FeedPhoto` ganhou `variant` (`v1` padrão | `v2` teste):
+  - v2: **autor + "em {restaurante}" + tempo ficam dentro da imagem**
+    (topo, texto claro sobre um scrim `rgba(36,26,34,0.45)` — sem lib de
+    gradiente nos deps), imagem **420 → 480** e selo de nota no
+    **rodapé** direito;
+  - v1 segue como antes (linha acima, nota no topo).
+- **Seletor `feed v1 / feed v2 · teste`** no header do feed (onde o
+  seletor de usuário existia), só visível quando o feed está visível;
+  padrão v1. Só o card de foto muda — quote/linha continuam iguais.
+- Testes: `src/FeedPhoto.test.tsx` (linha dentro do frame, scrim, altura
+  480, nota no rodapé / comportamento v1 preservado).
 - Backlog: tela de busca, lista "quero ir", notificações.
 
-Validação: `npm test` (105 testes) e `npm run typecheck` limpos.
+Validação: `npm test` (106 testes) e `npm run typecheck` limpos.
