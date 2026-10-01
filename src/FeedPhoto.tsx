@@ -15,11 +15,14 @@ export function FeedPhoto({
   review,
   photo,
   onPress,
+  onComments,
   variant = 'v1',
 }: {
   review: Review;
   photo: ImageSourcePropType;
   onPress?: () => void;
+  // docs/12: abre a thread de comentários (opcional, como `onPress`).
+  onComments?: () => void;
   variant?: 'v1' | 'v2';
 }) {
   const t = useTheme();
@@ -81,6 +84,17 @@ export function FeedPhoto({
 
       <View style={s.actions}>
         <Text style={[s.action, { color: t.sub }]}>▲ {review.likes}</Text>
+        {onComments ? (
+          <Pressable
+            testID={`comentar-photo-${review.id}`}
+            onPress={onComments}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel="abrir comentários"
+          >
+            <Text style={[s.action, { color: t.sub }]}>💬</Text>
+          </Pressable>
+        ) : null}
         <Pressable
           testID={`salvar-${review.id}`}
           onPress={() => setSaved((v) => !v)}

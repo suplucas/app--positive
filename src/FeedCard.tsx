@@ -13,10 +13,14 @@ export function FeedCard({
   review,
   strong = false,
   onPress,
+  onComments,
 }: {
   review: Review;
   strong?: boolean;
   onPress?: () => void;
+  // docs/12: abre a thread de comentários (só quando o App passa o
+  // callback — ex.: cards da página do restaurante não têm thread).
+  onComments?: () => void;
 }) {
   const t = useTheme();
   const nome = restaurantName(review.restaurantCnpj);
@@ -40,6 +44,17 @@ export function FeedCard({
           <Text style={[s.metaText, { color: t.sub }]}>
             {formatRelative(review.createdAt)}
           </Text>
+          {onComments ? (
+            <Pressable
+              testID={`comentar-card-${review.id}`}
+              onPress={onComments}
+              hitSlop={6}
+              accessibilityRole="button"
+              accessibilityLabel="abrir comentários"
+            >
+              <Text style={[s.metaText, { color: t.sub }]}>💬</Text>
+            </Pressable>
+          ) : null}
           <Flair strong={strong} />
         </View>
       </View>

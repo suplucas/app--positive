@@ -29,6 +29,7 @@ import {
 } from '@expo-google-fonts/instrument-sans';
 import { useFonts } from 'expo-font';
 import { StatusBar } from 'expo-status-bar';
+import { CommentThreadScreen } from './src/CommentThreadScreen';
 import { FeedCard } from './src/FeedCard';
 import { FeedPhoto } from './src/FeedPhoto';
 import { FeedQuote } from './src/FeedQuote';
@@ -97,6 +98,8 @@ export default function App() {
   // o toggle da página do restaurante.
   const [savedCnpjs, setSavedCnpjs] = useState<string[]>([]);
   const [savedOpen, setSavedOpen] = useState(false);
+  // Thread de comentários (docs/12): review aberta pelo 💬 de um card.
+  const [commentReview, setCommentReview] = useState<Review | null>(null);
   const toggleSaved = (cnpj: string) =>
     setSavedCnpjs((prev) =>
       prev.includes(cnpj) ? prev.filter((c) => c !== cnpj) : [...prev, cnpj],
@@ -247,6 +250,7 @@ export default function App() {
                     setRestaurantCnpj(String(item.restaurantCnpj));
                   }
                 };
+                const openComments = () => setCommentReview(item);
                 if (d?.layout === 'photo' && d.photo) {
                   return (
                     <FeedPhoto
@@ -254,13 +258,23 @@ export default function App() {
                       photo={d.photo}
                       variant={feedVersion}
                       onPress={openPlace}
+                      onComments={openComments}
                     />
                   );
                 }
                 if (d?.layout === 'quote') {
-                  return <FeedQuote review={item} tone={d.tone} onPress={openPlace} />;
+                  return (
+                    <FeedQuote
+                      review={item}
+                      tone={d.tone}
+                      onPress={openPlace}
+                      onComments={openComments}
+                    />
+                  );
                 }
-                return <FeedCard review={item} onPress={openPlace} />;
+                return (
+                  <FeedCard review={item} onPress={openPlace} onComments={openComments} />
+                );
               }}
               onEndReachedThreshold={0.4}
               onEndReached={onEndReached}
@@ -334,9 +348,18 @@ export default function App() {
               />
             </LayerScreen>
           ) : null}
+          {commentReview ? (
+            <LayerScreen>
+              <CommentThreadScreen
+                review={commentReview}
+                authorId={userId}
+                onBack={() => setCommentReview(null)}
+              />
+            </LayerScreen>
+          ) : null}
         </View>
 
-        {settingsOpen || savedOpen || screen === 'compose' || restaurantCnpj ? null : (
+        {settingsOpen || savedOpen || commentReview || screen === 'compose' || restaurantCnpj ? null : (
           <Navbar
             active={screen}
             onNavigate={(s) => {

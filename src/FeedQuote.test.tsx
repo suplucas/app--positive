@@ -21,6 +21,22 @@ function render(props: Partial<Parameters<typeof FeedQuote>[0]> = {}) {
   return { r, text: JSON.stringify(r.toJSON()) };
 }
 
+describe('FeedQuote (comentários, docs/12)', () => {
+  it('com onComments: botão 💬 abre a thread', () => {
+    const onComments = vi.fn();
+    const { r } = render({ onComments });
+    act(() => {
+      r.root.findByProps({ testID: 'comentar-quote-7' }).props.onPress();
+    });
+    expect(onComments).toHaveBeenCalled();
+  });
+
+  it('sem onComments: sem botão de comentário', () => {
+    const { r } = render();
+    expect(r.root.findAllByProps({ testID: 'comentar-quote-7' })).toHaveLength(0);
+  });
+});
+
 describe('FeedQuote', () => {
   it('renderiza autor, comentário entre aspas e restaurante', () => {
     const { text } = render();

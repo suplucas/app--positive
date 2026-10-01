@@ -12,10 +12,13 @@ export function FeedQuote({
   review,
   tone = 'mostarda',
   onPress,
+  onComments,
 }: {
   review: Review;
   tone?: 'mostarda' | 'lambeLambe';
   onPress?: () => void;
+  // docs/12: abre a thread de comentários (opcional, como `onPress`).
+  onComments?: () => void;
 }) {
   const nome = restaurantName(review.restaurantCnpj);
   const bg = tone === 'lambeLambe' ? palette.lambeLambe : palette.mostarda;
@@ -34,9 +37,22 @@ export function FeedQuote({
         <Text style={[s.place, { color: ink }]} numberOfLines={1}>
           {nome ?? ''}
         </Text>
-        <Text style={[s.actions, { color: ink }]}>
-          ▲ {review.likes} · {formatRelative(review.createdAt)}
-        </Text>
+        <View style={s.metaRight}>
+          <Text style={[s.actions, { color: ink }]}>
+            ▲ {review.likes} · {formatRelative(review.createdAt)}
+          </Text>
+          {onComments ? (
+            <Pressable
+              testID={`comentar-quote-${review.id}`}
+              onPress={onComments}
+              hitSlop={6}
+              accessibilityRole="button"
+              accessibilityLabel="abrir comentários"
+            >
+              <Text style={[s.actions, { color: ink }]}>💬</Text>
+            </Pressable>
+          ) : null}
+        </View>
       </View>
     </>
   );
@@ -88,5 +104,6 @@ const s = StyleSheet.create({
     gap: spacing.interno,
   },
   place: { fontSize: 11.5, fontFamily: fonts.corpo600, fontWeight: '600', flexShrink: 1 },
+  metaRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   actions: { fontSize: 11.5, fontFamily: fonts.corpo600, fontWeight: '600', opacity: 0.85 },
 });

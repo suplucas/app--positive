@@ -31,6 +31,22 @@ function textsOf(inst: ReturnType<ReactTestRenderer['root']['findByProps']>): st
     );
 }
 
+describe('FeedPhoto (comentários, docs/12)', () => {
+  it('com onComments: botão 💬 abre a thread', () => {
+    const onComments = vi.fn();
+    const { r } = render({ onComments });
+    act(() => {
+      r.root.findByProps({ testID: 'comentar-photo-3' }).props.onPress();
+    });
+    expect(onComments).toHaveBeenCalled();
+  });
+
+  it('sem onComments: sem botão de comentário', () => {
+    const { r } = render();
+    expect(r.root.findAllByProps({ testID: 'comentar-photo-3' })).toHaveLength(0);
+  });
+});
+
 function styleOf(r: ReactTestRenderer, testID: string): Record<string, unknown>[] {
   const p = r.root.findByProps({ testID }).props.style as
     | object

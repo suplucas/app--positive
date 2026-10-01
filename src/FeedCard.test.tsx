@@ -21,6 +21,22 @@ function render(props: Partial<Parameters<typeof FeedCard>[0]> = {}) {
   return { r, text: JSON.stringify(r.toJSON()) };
 }
 
+describe('FeedCard (comentários, docs/12)', () => {
+  it('com onComments: botão 💬 abre a thread', () => {
+    const onComments = vi.fn();
+    const { r } = render({ onComments });
+    act(() => {
+      r.root.findByProps({ testID: 'comentar-card-1' }).props.onPress();
+    });
+    expect(onComments).toHaveBeenCalled();
+  });
+
+  it('sem onComments: sem botão de comentário', () => {
+    const { r } = render();
+    expect(r.root.findAllByProps({ testID: 'comentar-card-1' })).toHaveLength(0);
+  });
+});
+
 describe('FeedCard', () => {
   it('renderiza campos do review', () => {
     const { text } = render();
