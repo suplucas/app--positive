@@ -178,6 +178,9 @@ export default function App() {
       <ErrorBoundary>
       <SafeAreaView style={[styles.root, { backgroundColor: theme.bg }]}>
         <StatusBar style={mode === 'dark' ? 'light' : 'dark'} />
+        {/* docs/16: a avaliação tem sub-cabeçalho próprio (cancelar /
+            nova avaliação / tim!) — o wordmark do app não aparece nela. */}
+        {screen === 'compose' ? null : (
         <View style={[styles.header, { borderBottomColor: theme.line }]}>
           <Text style={[styles.word, { color: theme.ink }]}>
             {screen === 'feed' ? (
@@ -233,6 +236,7 @@ export default function App() {
             </View>
           ) : null}
         </View>
+        )}
 
         <View style={styles.content}>
           {screen === 'busca' ? (

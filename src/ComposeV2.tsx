@@ -147,11 +147,38 @@ export function ComposeV2({
     caption.trim() === '' ? 'Como foi? Seja direto.' : caption.trim();
 
   return (
-    <ScrollView
-      style={{ backgroundColor: t.bg }}
-      contentContainerStyle={s.scroll}
-      keyboardShouldPersistTaps="handled"
-    >
+    <View style={{ flex: 1, backgroundColor: t.bg }}>
+      {/* Sub-cabeçalho do mock docs/16: cancelar · nova avaliação · tim! */}
+      <View style={[s.subHeader, { borderBottomColor: t.line }]}>
+        <Pressable
+          testID="cancelar-v2"
+          onPress={onCancel}
+          hitSlop={6}
+          accessibilityRole="button"
+        >
+          <Text style={[s.hbtn, { color: t.sub }]}>cancelar</Text>
+        </Pressable>
+        <Text style={[s.htitle, { color: t.ink }]}>nova avaliação</Text>
+        <Pressable
+          testID="publicar-v2"
+          onPress={() => void submit()}
+          disabled={!canSend}
+          style={[
+            s.publishBtn,
+            { backgroundColor: palette.lambeLambe, opacity: canSend ? 1 : 0.4 },
+          ]}
+          accessibilityRole="button"
+          accessibilityState={{ disabled: !canSend, busy: sending }}
+        >
+          <Text style={s.publishBtnText}>{sending ? 'tim…' : 'tim!'}</Text>
+        </Pressable>
+      </View>
+
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={s.scroll}
+        keyboardShouldPersistTaps="handled"
+      >
       <SectionTitle>onde você comeu</SectionTitle>
       {selected ? (
         <Pressable
@@ -350,34 +377,37 @@ export function ComposeV2({
         </View>
       ) : null}
 
-      <Pressable
-        testID="publicar-v2"
-        onPress={() => void submit()}
-        disabled={!canSend}
-        style={[
-          s.publish,
-          { backgroundColor: palette.lambeLambe, opacity: canSend ? 1 : 0.4 },
-        ]}
-        accessibilityRole="button"
-        accessibilityState={{ disabled: !canSend, busy: sending }}
-      >
-        <Text style={s.publishText}>{sending ? 'publicando…' : 'publicar'}</Text>
-      </Pressable>
-
-      <Pressable
-        testID="cancelar-v2"
-        onPress={onCancel}
-        style={s.cancel}
-        accessibilityRole="button"
-      >
-        <Text style={[s.cancelText, { color: t.sub }]}>cancelar</Text>
-      </Pressable>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 
 const s = StyleSheet.create({
   scroll: { paddingBottom: spacing.bloco },
+  // Sub-cabeçalho (docs/16).
+  subHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.padrao,
+    paddingVertical: spacing.padrao - 2,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  hbtn: { fontSize: 13, fontFamily: fonts.corpo600, fontWeight: '600' },
+  htitle: { fontFamily: fonts.display800, fontSize: 14 },
+  publishBtn: {
+    borderRadius: 16,
+    paddingHorizontal: spacing.padrao,
+    paddingVertical: 7,
+    minHeight: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  publishBtnText: {
+    color: palette.papel,
+    fontFamily: fonts.display700,
+    fontSize: 13,
+  },
   input: {
     borderRadius: 6,
     paddingHorizontal: spacing.padrao,
@@ -531,25 +561,4 @@ const s = StyleSheet.create({
     padding: spacing.interno,
   },
   errorText: { fontSize: 12 },
-  publish: {
-    marginHorizontal: spacing.padrao,
-    minHeight: 44,
-    borderRadius: 6,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: spacing.interno,
-  },
-  publishText: {
-    color: palette.papel,
-    fontFamily: fonts.corpo600,
-    fontWeight: '600',
-    fontSize: 15,
-  },
-  cancel: {
-    minHeight: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: spacing.micro,
-  },
-  cancelText: { fontSize: 14 },
 });

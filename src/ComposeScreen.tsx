@@ -45,11 +45,7 @@ export function ComposeScreen({
   const [versao, setVersao] = useState<Versao>('v2');
 
   return (
-    <ScrollView
-      style={{ backgroundColor: t.bg }}
-      contentContainerStyle={s.scroll}
-      keyboardShouldPersistTaps="handled"
-    >
+    <View style={{ flex: 1, backgroundColor: t.bg }}>
       <View style={s.versaoRow}>
         <VersaoChip
           label="avaliar v1"
@@ -82,7 +78,7 @@ export function ComposeScreen({
           pickedCnpj={pickedCnpj}
         />
       )}
-    </ScrollView>
+    </View>
   );
 }
 
@@ -135,7 +131,11 @@ function ComposeV1({
   };
 
   return (
-    <>
+    <ScrollView
+      style={{ backgroundColor: t.bg }}
+      contentContainerStyle={s.scroll}
+      keyboardShouldPersistTaps="handled"
+    >
       <SectionTitle>restaurante</SectionTitle>
       {selected ? (
         <View style={[s.selected, { backgroundColor: t.quietBg }]}>
@@ -271,7 +271,7 @@ function ComposeV1({
       >
         <Text style={[s.cancelText, { color: t.sub }]}>cancelar</Text>
       </Pressable>
-    </>
+    </ScrollView>
   );
 }
 

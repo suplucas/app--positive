@@ -54,6 +54,20 @@ function pick(r: ReactTestRenderer, cnpj: string = cnpjExemplo) {
   });
 }
 
+describe('ComposeV2 (cabeçalho, docs/16)', () => {
+  it('cabeçalho "nova avaliação" com cancelar e tim!', () => {
+    const r = render();
+    expect(JSON.stringify(r.toJSON())).toContain('nova avaliação');
+    expect(r.root.findAllByProps({ testID: 'cancelar-v2' })).toHaveLength(1);
+    expect(r.root.findAllByProps({ testID: 'publicar-v2' })).toHaveLength(1);
+    // botão tim! desabilitado sem restaurante selecionado
+    expect(
+      r.root.findByProps({ testID: 'publicar-v2' }).props.accessibilityState
+        .disabled,
+    ).toBe(true);
+  });
+});
+
 describe('ComposeV2 (trocar via busca, docs/16)', () => {
   it('"trocar" chama onChangePlace (abre o picker) quando disponível', () => {
     const onChangePlace = vi.fn();
