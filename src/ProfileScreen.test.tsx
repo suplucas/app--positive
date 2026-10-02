@@ -82,18 +82,29 @@ describe('ProfileScreen (v2)', () => {
   });
 });
 
-describe('ProfileScreen (lista "quero ir")', () => {
-  it('chip "quero ir · N" só aparece com onSavedList e toca o callback', () => {
-    expect(
-      render().r.root.findAllByProps({ testID: 'abrir-quero-ir' }).length,
-    ).toBe(0);
-    const onSavedList = vi.fn();
-    const { r, text } = render({ onSavedList, savedCount: 2 });
-    expect(text()).toContain('quero ir · 2');
+describe('ProfileScreen (aba quero ir, docs/16)', () => {
+  const CJNPJ = '09597505000150';
+
+  it('aba "quero ir · N" mostra a lista e abre a página do restaurante', () => {
+    const onOpenRestaurant = vi.fn();
+    const { r, text } = render({ savedCnpjs: [CJNPJ], onOpenRestaurant });
+    expect(text()).toContain('quero ir · 1');
     act(() => {
-      r.root.findByProps({ testID: 'abrir-quero-ir' }).props.onPress();
+      r.root.findByProps({ testID: 'tab-quero-ir' }).props.onPress();
     });
-    expect(onSavedList).toHaveBeenCalled();
+    expect(r.root.findByProps({ testID: `salvo-linha-${CJNPJ}` })).toBeTruthy();
+    act(() => {
+      r.root.findByProps({ testID: `salvo-linha-${CJNPJ}` }).props.onPress();
+    });
+    expect(onOpenRestaurant).toHaveBeenCalledWith(CJNPJ);
+  });
+
+  it('aba vazia explica como salvar', () => {
+    const { r } = render();
+    act(() => {
+      r.root.findByProps({ testID: 'tab-quero-ir' }).props.onPress();
+    });
+    expect(r.root.findByProps({ testID: 'salvo-vazio' })).toBeTruthy();
   });
 });
 

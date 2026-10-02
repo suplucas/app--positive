@@ -44,7 +44,6 @@ import { RestaurantScreen } from './src/RestaurantScreen';
 import { SectionTitle } from './src/SectionTitle';
 import { MapScreen } from './src/MapScreen';
 import { NotificationScreen } from './src/NotificationScreen';
-import { SavedScreen } from './src/SavedScreen';
 import { SearchScreen } from './src/SearchScreen';
 import { SettingsScreen, type ThemeMode } from './src/SettingsScreen';
 import {
@@ -99,7 +98,6 @@ export default function App() {
   // Lista "quero ir" (docs/10): fonte única de saves, compartilhada com
   // o toggle da página do restaurante.
   const [savedCnpjs, setSavedCnpjs] = useState<string[]>([]);
-  const [savedOpen, setSavedOpen] = useState(false);
   // Thread de comentários (docs/12): review aberta pelo 💬 de um card.
   const [commentReview, setCommentReview] = useState<Review | null>(null);
   // Notificações (docs/09) saíram da navbar (o mock docs/16 pôs o mapa
@@ -251,8 +249,11 @@ export default function App() {
               userId={userId}
               onSettings={() => setSettingsOpen(true)}
               onNotifications={() => setNotifOpen(true)}
-              savedCount={savedCnpjs.length}
-              onSavedList={() => setSavedOpen(true)}
+              savedCnpjs={savedCnpjs}
+              onRemoveSaved={(cnpj) =>
+                setSavedCnpjs((prev) => prev.filter((c) => c !== cnpj))
+              }
+              onOpenRestaurant={(cnpj) => setRestaurantCnpj(cnpj)}
             />
           ) : (
             <FlatList<Review>
@@ -372,22 +373,6 @@ export default function App() {
               />
             </LayerScreen>
           ) : null}
-          {savedOpen ? (
-            <LayerScreen>
-              <SavedScreen
-                cnpjs={savedCnpjs}
-                onRemove={(cnpj) =>
-                  setSavedCnpjs((prev) => prev.filter((c) => c !== cnpj))
-                }
-                onOpenRestaurant={(cnpj) => {
-                  // Fecha a lista e revela a página do restaurante.
-                  setSavedOpen(false);
-                  setRestaurantCnpj(cnpj);
-                }}
-                onBack={() => setSavedOpen(false)}
-              />
-            </LayerScreen>
-          ) : null}
           {commentReview ? (
             <LayerScreen>
               <CommentThreadScreen
@@ -410,7 +395,7 @@ export default function App() {
           ) : null}
         </View>
 
-        {settingsOpen || savedOpen || commentReview || notifOpen || composePickerOpen || screen === 'compose' || restaurantCnpj ? null : (
+        {settingsOpen || commentReview || notifOpen || composePickerOpen || screen === 'compose' || restaurantCnpj ? null : (
           <Navbar
             active={screen}
             onNavigate={(s) => {

@@ -11,11 +11,12 @@ import type { ImageSourcePropType } from 'react-native';
 import { Avatar } from './Avatar';
 import { NoteBadge } from './NoteBadge';
 import { PERFIL, bioFor, displayName } from './mockData';
+import { SavedList } from './SavedList';
 import { SectionTitle } from './SectionTitle';
 import { MOCK_POST_PHOTOS } from './postPhotos';
 import { fonts, palette, spacing, useTheme } from './theme';
 
-type Tab = 'diario' | 'listas';
+type Tab = 'queroir' | 'diario' | 'listas';
 type Versao = 'v1' | 'v2';
 
 // Foto local por índice (assets/posts) para as células/favoritos mock.
@@ -31,17 +32,19 @@ function photoAt(index: number): ImageSourcePropType {
 export function ProfileScreen({
   onSettings,
   onNotifications,
-  savedCount,
-  onSavedList,
+  savedCnpjs = [],
+  onRemoveSaved,
+  onOpenRestaurant,
   userId: propsUserId,
 }: {
   onSettings?: () => void;
   // docs/16: notificações saíram da navbar e ganharam atalho (sino) aqui.
   onNotifications?: () => void;
-  // Lista "quero ir" (docs/10): estado vive no App; o chip é só a porta
-  // de entrada (escondido quando não há callback).
-  savedCount?: number;
-  onSavedList?: () => void;
+  // Lista "quero ir" (docs/16): o estado vive no App; a aba do perfil
+  // (v2) só renderiza. Fonte: `savedCnpjs`.
+  savedCnpjs?: string[];
+  onRemoveSaved?: (cnpj: string) => void;
+  onOpenRestaurant?: (cnpj: string) => void;
   // N5: o perfil reflete o usuário ativo (identidade — avatar, nome,
   // handle e bio). Conteúdo (stats, favoritos, diário, listas) segue o
   // mock até existir endpoint de perfil.
@@ -69,19 +72,6 @@ export function ProfileScreen({
           onPress={() => setVersao('v2')}
           testID="perfil-v2"
         />
-        {onSavedList ? (
-          <Pressable
-            testID="abrir-quero-ir"
-            onPress={onSavedList}
-            style={[s.vchip, { backgroundColor: t.quietBg }]}
-            accessibilityRole="button"
-            accessibilityLabel="abrir lista quero ir"
-          >
-            <Text style={[s.vchipText, { color: t.sub }]}>
-              {`☆ quero ir · ${savedCount ?? 0}`}
-            </Text>
-          </Pressable>
-        ) : null}
         {onNotifications ? (
           <Pressable
             testID="abrir-notificacoes"
@@ -111,7 +101,12 @@ export function ProfileScreen({
       {versao === 'v1' ? (
         <PerfilV1 userId={userId} />
       ) : (
-        <PerfilV2 userId={userId} />
+        <PerfilV2
+          userId={userId}
+          savedCnpjs={savedCnpjs}
+          onRemoveSaved={onRemoveSaved}
+          onOpenRestaurant={onOpenRestaurant}
+        />
       )}
     </ScrollView>
   );
@@ -145,7 +140,17 @@ function PerfilV1({ userId }: { userId: string }) {
 }
 
 // ---- v2: mock docs/04 (seguir + abas diário/listas) ---------------------
-function PerfilV2({ userId }: { userId: string }) {
+function PerfilV2({
+  userId,
+  savedCnpjs = [],
+  onRemoveSaved,
+  onOpenRestaurant,
+}: {
+  userId: string;
+  savedCnpjs?: string[];
+  onRemoveSaved?: (cnpj: string) => void;
+  onOpenRestaurant?: (cnpj: string) => void;
+}) {
   const t = useTheme();
   const [following, setFollowing] = useState(false);
   const [tab, setTab] = useState<Tab>('diario');
@@ -192,6 +197,14 @@ function PerfilV2({ userId }: { userId: string }) {
 
       <View style={[s.contentTabs, { borderBottomColor: t.line }]}>
         <TabButton
+          label={`quero ir · ${savedCnpjs.length}`}
+          active={tab === 'queroir'}
+          onPress={() => setTab('queroir')}
+          color={t.sub}
+          activeColor={t.ink}
+          testID="tab-quero-ir"
+        />
+        <TabButton
           label="diário"
           active={tab === 'diario'}
           onPress={() => setTab('diario')}
@@ -209,7 +222,17 @@ function PerfilV2({ userId }: { userId: string }) {
         />
       </View>
 
-      {tab === 'diario' ? <Diary /> : <Lists />}
+      {tab === 'queroir' ? (
+        <SavedList
+          cnpjs={savedCnpjs}
+          onRemove={onRemoveSaved ?? (() => {})}
+          onOpenRestaurant={onOpenRestaurant ?? (() => {})}
+        />
+      ) : tab === 'diario' ? (
+        <Diary />
+      ) : (
+        <Lists />
+      )}
 
       <Text style={[s.legend, { color: t.sub }]}>
         Botão de seguir ao lado do nome (toque para alternar seguir/seguindo).

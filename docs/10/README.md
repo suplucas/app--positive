@@ -1,5 +1,11 @@
 # docs/10 — Lista "quero ir" (saves compartilhados)
 
+> **Revisão docs/16:** o mock `app completo (2)` moveu a lista para
+> dentro do perfil, como **aba `quero ir · N`** (com diário/listas).
+> O chip `☆ quero ir` e a tela `SavedScreen` (camada) foram **removidos**;
+> a renderização virou o `SavedList` reutilizável. A fonte de estado
+> segue a mesma (`savedCnpjs` no App). Ver `docs/16`.
+
 Item do backlog do audit (docs/07). Liga o toggle "quero ir" da página
 do restaurante e o "salvar" a uma lista gerenciável (docs/01 §01/§04:
 "Lista Quero Ir").

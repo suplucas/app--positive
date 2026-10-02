@@ -71,8 +71,28 @@ por `>>>` em rating/likes/createdAt/distância/bairro/preço/flairs.
 - **`src/ComposeV2.tsx`**: removeu o `SectionTitle` "nota" (o rótulo
   centralizado veio pro slider).
 
+## 6. Perfil com abas (quero ir · diário · listas)
+
+- **`src/SavedList.tsx`** (novo, extraído): linhas da lista "quero ir"
+  (miniatura da capa + nome + `bairro · km` + **★ remover**;
+  `salvo-linha-{cnpj}` / `salvo-tirar-{cnpj}`) + estado vazio. Sem
+  ScrollView próprio (mora no perfil).
+- **`src/ProfileScreen.tsx`** (v2): abas **`quero ir · N`**
+  (`tab-quero-ir`) · `diário` · `listas · N`. A aba "quero ir" renderiza
+  o `SavedList` (fonte: `savedCnpjs` do App). O **chip `☆ quero ir`** do
+  topo foi removido.
+  - Default continua **diário** (o mock abre em quero ir porque tem 6
+    saves; com lista vazia, abrir no diário é melhor).
+- **Removido**: `src/SavedScreen.tsx` (+ teste) e a camada no App —
+  substituídos pela aba (ver revisão em `docs/10`).
+- **`App.tsx`**: `savedCnpjs` → `ProfileScreen` com
+  `onRemoveSaved`/`onOpenRestaurant`.
+
 ## Testes
 
+- `src/SavedList.test.tsx`: linhas, abrir, remover, vazio.
+- `src/ProfileScreen.test.tsx`: aba quero ir mostra a lista e abre o
+  restaurante; aba vazia explica como salvar.
 - `src/searchFilters.test.ts`: 4 filtros, limite/textual, ordenação
   (distância/nota) e subset determinístico.
 - `src/SearchScreen.test.tsx`: chips, textual, meta + nota, navegar,
