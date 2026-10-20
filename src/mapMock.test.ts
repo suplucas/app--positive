@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { mapPlaces } from "./mapMock";
+import { BAIRRO_CENTERS, mapPlaces } from "./mapMock";
 import { palette } from "./theme";
 
 describe("mapPlaces (docs/16, mapa mock)", () => {
@@ -30,8 +30,26 @@ describe("mapPlaces (docs/16, mapa mock)", () => {
     }
   });
 
+  it("coordenadas geográficas determinísticas ao redor do centro (mock)", () => {
+    for (const p of mapPlaces()) {
+      expect(p.lat).toBeGreaterThan(-23.62);
+      expect(p.lat).toBeLessThan(-23.5);
+      expect(p.lng).toBeGreaterThan(-46.72);
+      expect(p.lng).toBeLessThan(-46.58);
+    }
+  });
+
   it("cor vem da paleta de marca", () => {
     const ok = [palette.mostarda, palette.lambeLambe, palette.picles];
     for (const p of mapPlaces()) expect(ok).toContain(p.cor);
+  });
+
+  it("cada pin fica perto do centro do seu bairro", () => {
+    for (const p of mapPlaces()) {
+      const centro = BAIRRO_CENTERS[p.bairro];
+      expect(centro).toBeTruthy();
+      expect(Math.abs(p.lat - centro!.lat)).toBeLessThanOrEqual(0.02);
+      expect(Math.abs(p.lng - centro!.lng)).toBeLessThanOrEqual(0.02);
+    }
   });
 });

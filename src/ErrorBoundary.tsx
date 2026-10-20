@@ -24,7 +24,11 @@ export class ErrorBoundary extends Component<
 
   render() {
     if (!this.state.failed) {
-      return <View key={this.state.resetKey}>{this.props.children}</View>;
+      return (
+        <View key={this.state.resetKey} style={s.pass}>
+          {this.props.children}
+        </View>
+      );
     }
     return (
       <View
@@ -55,6 +59,11 @@ export class ErrorBoundary extends Component<
 }
 
 const s = StyleSheet.create({
+  // Passthrough sem erro: precisa ocupar a tela toda, senão o filho
+  // flex:1 (SafeAreaView do App) colapsa e header/navbar sobem pro topo.
+  pass: {
+    flex: 1,
+  },
   wrap: {
     flex: 1,
     alignItems: 'center',

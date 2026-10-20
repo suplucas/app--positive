@@ -46,6 +46,11 @@ const testStubs: Plugin = {
     // (testes injetam o resultado via a seam `onPickPhoto`).
     if (path.includes("/expo-image-picker/"))
       return `export const launchImageLibraryAsync = async () => ({ canceled: true, assets: [] });`;
+    // WebView é nativo: stub de host que preserva props p/ testar source
+    // (HTML do mapa) e onMessage (ponte pin → restaurante).
+    if (path.includes("/react-native-webview/"))
+      return `import { createElement } from 'react';
+export const WebView = (props) => createElement('WebView', props, props.children);`;
   },
 };
 

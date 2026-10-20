@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { act, create, ReactTestRenderer } from 'react-test-renderer';
 import { createElement, type ReactNode } from 'react';
+import { View } from 'react-native';
 import { ErrorBoundary } from './ErrorBoundary';
 
 function Throwing(): ReactNode {
@@ -18,6 +19,18 @@ describe('ErrorBoundary (docs/14, E3)', () => {
     );
     expect(textOf(r)).toContain('tudo bem');
     expect(textOf(r)).not.toContain('algo quebrou');
+  });
+
+  it('passthrough ocupa a tela toda (regressão: navbar no topo/tela branca)', () => {
+    const r = create(
+      createElement(
+        ErrorBoundary,
+        null,
+        createElement(View, { style: { flex: 1 } }),
+      ),
+    );
+    const wrapper = r.root.findAllByType(View)[0];
+    expect(wrapper?.props.style).toMatchObject({ flex: 1 });
   });
 
   it('erro permanente no mount: fallback de produto, sem estourar o app', () => {

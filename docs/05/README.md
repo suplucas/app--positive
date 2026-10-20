@@ -29,7 +29,8 @@ Implementação no app dos mocks `tim — nova avaliação (docs_04).html` e
 | Tela v2 (slider, flairs, foto, preview) | `src/ComposeV2.tsx` |
 | Slider de nota 0–10 (21 ticks) | `src/NoteSlider.tsx` |
 | Mock da página do restaurante (determinístico por CNPJ) | `src/restaurantMock.ts` |
-| Tela do restaurante | `src/RestaurantScreen.tsx` |
+| Template de apresentação do perfil (dados + callbacks) | `src/RestaurantProfileTemplate.tsx` |
+| Container da tela do restaurante (resolve dados / injeção) | `src/RestaurantScreen.tsx` |
 | `onPress` opcional nos cards de feed | `src/FeedCard.tsx`, `src/FeedQuote.tsx`, `src/FeedPhoto.tsx` |
 | Roteamento (restaurante ↔ avaliar) | `App.tsx` (`restaurantCnpj` / `composeCnpj`) |
 | Testes | `src/NoteSlider.test.tsx`, `src/ComposeV2.test.tsx`, `src/RestaurantScreen.test.tsx`, `src/restaurantMock.test.ts`, `src/ComposeScreen.test.tsx` (atualizado), testes dos cards (onPress) |

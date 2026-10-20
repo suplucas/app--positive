@@ -5,21 +5,32 @@ Entregue em três commits: **mapa**, **nova busca**, **seletor de nota**.
 
 ## 1. Mapa (nova aba)
 
+- **`src/mapHtml.ts`**: gera o HTML do Leaflet usado no `WebView` —
+  tiles OSM via **MapTiler** (`backdrop-v4`/`backdrop-v4-dark`, key em
+  `EXPO_PUBLIC_MAP_TILES_KEY`); sem key, cai no OSM padrão **só para
+  dev**. Filtro sépia no claro, pins lambe-lambe com a nota e atribuição
+  visível. Toque no pin → `postMessage({type:'open-restaurant', cnpj})`.
 - **`src/mapMock.ts`**: `mapPlaces()` gera 5 lugares determinísticos
   (hash do CNPJ) a partir do seed — nome, nota (0–10), bairro,
-  distância, **posição fracionária** (`x` 0.14–0.85, `y` 0.18–0.72) e
-  **cor pela faixa de nota** (`>=8.5` mostarda · `>=6.5` lambe-lambe ·
-  senão picles). Sem SDK de mapa.
-- **`src/MapScreen.tsx`**:
-  - `perto de você` → moldura estilizada (`mapa-moldura`): manchas de
-    bairro translúcidas (sem lib de gradiente), **ponto "você"** escuro
-    (`mapa-voce`) e **pins** gota coloridos com a nota
-    (`mapa-pin-{cnpj}`).
-  - `nessa área` → carrossel horizontal de cards (cor + nota, nome,
-    `bairro · km`, `mapa-card-{cnpj}`).
-  - Pin e card → `onOpenRestaurant(cnpj)` (página do restaurante em
-    camada).
-  - Rodapé: protótipo visual; mapa real usaria Google Maps/Mapbox.
+  distância, **posição fracionária** (`x`/`y`) e **lat/lng mock** perto
+  do centro do bairro (`BAIRRO_CENTERS`). Quando a API expuser endereço,
+  basta trocar por coordenadas reais.
+- **`src/MapScreen.tsx`**: mapa **full-bleed** (sem margem, ocupa todo
+  o espaço entre header e navbar), pan/zoom livres, **sem filtro nem
+  cluster** + chip flutuante “perto de você” + **bottom sheet** “nessa
+  área” com o carrossel de cards (`mapa-card-{cnpj}`). Pin e card →
+  `onOpenRestaurant(cnpj)`.
+- **Por que WebView e não mapa nativo?** `react-native-maps` está no
+  Expo Go, mas no SDK 57/Android a chave do Google Maps embutida no
+  Expo Go está expirada (mapa em branco). `react-native-webview` é
+  suportado no Expo Go nos dois sistemas e permite manter a identidade
+  visual. Mapa nativo (`expo-maps`) fica para um dev build.
+- **Nota**: os pins são geográficos, mas as coordenadas ainda são mock;
+  o mapa declara “posições aproximadas”. Tiles exigem rede; sem
+  Leaflet, o HTML mostra um fallback “mapa indisponível”.
+- **Nota**: os pins são geográficos, mas as coordenadas ainda são mock;
+  o mapa declara “posições aproximadas”. Tiles exigem rede; sem
+  Leaflet, o HTML mostra um fallback “mapa indisponível”.
 
 ## 2. Navbar: `mapa` no lugar de `notif.`
 
