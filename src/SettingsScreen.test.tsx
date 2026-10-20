@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { create, ReactTestRenderer, act } from 'react-test-renderer';
 import { createElement } from 'react';
 import { SettingsScreen } from './SettingsScreen';
-import { DEMO_USERS } from './mockFeed';
+import { DEMO_USERS } from './demoUsers';
 
 type ThemeMode = Parameters<typeof SettingsScreen>[0]['themeMode'];
 

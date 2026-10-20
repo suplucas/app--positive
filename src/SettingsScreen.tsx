@@ -1,5 +1,5 @@
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { DEMO_USERS } from './mockFeed';
+import { DEMO_USERS } from './demoUsers';
 import { fonts, spacing, useTheme } from './theme';
 
 // Tela de configurações (acessada pelo perfil): trocar o usuário de

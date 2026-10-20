@@ -34,7 +34,6 @@ import { ErrorBoundary } from './src/ErrorBoundary';
 import { FeedCard } from './src/FeedCard';
 import { FeedPhoto } from './src/FeedPhoto';
 import { FeedQuote } from './src/FeedQuote';
-import { MOCK_USER } from './src/mockFeed';
 import { MOCK_POST_PHOTOS, photoFor, photosFor } from './src/postPhotos';
 import { ComposeScreen } from './src/ComposeScreen';
 import { Navbar, type Screen } from './src/Navbar';

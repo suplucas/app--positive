@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { act, create, ReactTestRenderer } from "react-test-renderer";
 import { createElement } from "react";
 import { useFeed } from "./useFeed";
-import { MOCK_USER } from "./mockFeed";
 import { getFeed, likeReview } from "./api";
 import type { FeedResponse } from "./types";
 
@@ -257,9 +256,9 @@ describe("useFeed", () => {
 
   it("usuário mock não é mais especial: busca no backend", async () => {
     getFeedMock.mockResolvedValue(page20(1));
-    const h = renderHook(MOCK_USER);
+    const h = renderHook("mock");
     await act(async () => {});
-    expect(getFeedMock).toHaveBeenCalledWith(MOCK_USER, 1, 20);
+    expect(getFeedMock).toHaveBeenCalledWith("mock", 1, 20);
     expect(h.get().items).toHaveLength(20);
   });
 });
