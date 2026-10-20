@@ -38,6 +38,7 @@ import { MOCK_USER } from './src/mockFeed';
 import { MOCK_POST_PHOTOS, photoFor, photosFor } from './src/postPhotos';
 import { ComposeScreen } from './src/ComposeScreen';
 import { Navbar, type Screen } from './src/Navbar';
+import { PageTitle } from './src/PageTitle';
 import { Podium } from './src/Podium';
 import { ProfileScreen } from './src/ProfileScreen';
 import { RestaurantScreen } from './src/RestaurantScreen';
@@ -176,7 +177,7 @@ export default function App() {
             nova avaliação / tim!) — o wordmark do app não aparece nela. */}
         {screen === 'compose' ? null : (
         <View style={[styles.header, { borderBottomColor: theme.line }]}>
-          <Text style={[styles.word, { color: theme.ink }]}>
+          <PageTitle>
             {screen === 'feed' ? (
               <>
                 t
@@ -191,7 +192,7 @@ export default function App() {
             ) : (
               'avaliar'
             )}
-          </Text>
+          </PageTitle>
           {feedVisible && banner ? (
             <View
               style={[styles.banner, { backgroundColor: theme.quietBg }]}
@@ -411,7 +412,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     gap: spacing.interno,
   },
-  word: { fontFamily: fonts.display800, fontSize: 18 },
   banner: {
     borderRadius: 5,
     paddingHorizontal: spacing.interno,
