@@ -17,7 +17,6 @@ import { MOCK_POST_PHOTOS } from './postPhotos';
 import { fonts, palette, spacing, useTheme } from './theme';
 
 type Tab = 'queroir' | 'diario' | 'listas';
-type Versao = 'v1' | 'v2';
 
 // Foto local por índice (assets/posts) para as células/favoritos mock.
 function photoAt(index: number): ImageSourcePropType {
@@ -52,7 +51,6 @@ export function ProfileScreen({
 }) {
   const userId = propsUserId ?? 'bea_come_tudo';
   const t = useTheme();
-  const [versao, setVersao] = useState<Versao>('v2');
 
   return (
     <ScrollView
@@ -60,18 +58,6 @@ export function ProfileScreen({
       contentContainerStyle={s.scroll}
     >
       <View style={s.versaoRow}>
-        <VersaoChip
-          label="perfil v1"
-          active={versao === 'v1'}
-          onPress={() => setVersao('v1')}
-          testID="perfil-v1"
-        />
-        <VersaoChip
-          label="perfil v2"
-          active={versao === 'v2'}
-          onPress={() => setVersao('v2')}
-          testID="perfil-v2"
-        />
         {onNotifications ? (
           <Pressable
             testID="abrir-notificacoes"
@@ -98,48 +84,17 @@ export function ProfileScreen({
         ) : null}
       </View>
 
-      {versao === 'v1' ? (
-        <PerfilV1 userId={userId} />
-      ) : (
-        <PerfilV2
-          userId={userId}
-          savedCnpjs={savedCnpjs}
-          onRemoveSaved={onRemoveSaved}
-          onOpenRestaurant={onOpenRestaurant}
-        />
-      )}
+      <PerfilV2
+        userId={userId}
+        savedCnpjs={savedCnpjs}
+        onRemoveSaved={onRemoveSaved}
+        onOpenRestaurant={onOpenRestaurant}
+      />
     </ScrollView>
   );
 }
 
-// ---- v1: layout simples (sem seguir/abas/listas) ------------------------
-function PerfilV1({ userId }: { userId: string }) {
-  const t = useTheme();
-  return (
-    <>
-      <View style={s.bioBlock}>
-        <Avatar userId={userId} size={72} />
-        <View style={{ flex: 1, minWidth: 0 }}>
-          <Text style={[s.name, { color: t.ink }]}>{displayName(userId)}</Text>
-          <Text style={[s.handle, { color: t.sub }]}>
-            {`@${userId} · São Paulo`}
-          </Text>
-          <Text style={[s.bioV1, { color: t.ink }]}>{bioFor(userId)}</Text>
-        </View>
-      </View>
-
-      <Stats />
-
-      <SectionTitle>favoritos</SectionTitle>
-      <Shelf />
-
-      <SectionTitle>diário</SectionTitle>
-      <Diary />
-    </>
-  );
-}
-
-// ---- v2: mock docs/04 (seguir + abas diário/listas) ---------------------
+// ---- perfil final (seguir + abas diário/quero ir/listas) ----------------
 function PerfilV2({
   userId,
   savedCnpjs = [],
@@ -159,7 +114,7 @@ function PerfilV2({
     <>
       <View style={s.bioBlock}>
         <Avatar userId={userId} size={72} />
-        <View style={s.who}>
+        <View style={s.who} testID="perfil-identidade">
           <View style={s.nameRow}>
             <Text style={[s.name, { color: t.ink }]}>{displayName(userId)}</Text>
             <Pressable
@@ -185,10 +140,9 @@ function PerfilV2({
           <Text style={[s.handle, { color: t.sub }]}>
             {`@${userId} · São Paulo`}
           </Text>
+          <Text style={[s.bio, { color: t.ink }]}>{bioFor(userId)}</Text>
         </View>
       </View>
-
-      <Text style={[s.bio, { color: t.ink }]}>{bioFor(userId)}</Text>
 
       <Stats />
 
@@ -343,43 +297,6 @@ function Lists() {
   );
 }
 
-function VersaoChip({
-  label,
-  active,
-  onPress,
-  testID,
-}: {
-  label: string;
-  active: boolean;
-  onPress: () => void;
-  testID: string;
-}) {
-  const t = useTheme();
-  return (
-    <Pressable
-      testID={testID}
-      onPress={onPress}
-      style={[
-        s.vchip,
-        { backgroundColor: t.quietBg },
-        active && { backgroundColor: t.chipActiveBg },
-      ]}
-      accessibilityRole="button"
-      accessibilityState={{ selected: active }}
-    >
-      <Text
-        style={[
-          s.vchipText,
-          { color: active ? t.chipActiveInk : t.sub },
-          active && s.vchipTextActive,
-        ]}
-      >
-        {label}
-      </Text>
-    </Pressable>
-  );
-}
-
 function TabButton({
   label,
   active,
@@ -445,15 +362,6 @@ const s = StyleSheet.create({
     paddingHorizontal: spacing.padrao,
     paddingTop: spacing.padrao,
   },
-  vchip: {
-    minHeight: 36,
-    paddingHorizontal: spacing.padrao - 2,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  vchipText: { fontSize: 12.5, fontFamily: fonts.corpo500 },
-  vchipTextActive: { fontWeight: '600' },
   settingsBtn: {
     width: 30,
     height: 30,
@@ -486,12 +394,10 @@ const s = StyleSheet.create({
   },
   followText: { fontFamily: fonts.display700, fontSize: 12 },
   handle: { fontSize: 12.5, marginTop: 1 },
-  bioV1: { fontSize: 13, marginTop: spacing.interno, lineHeight: 19 },
   bio: {
     fontSize: 13,
     marginTop: spacing.interno,
     lineHeight: 19,
-    paddingHorizontal: spacing.padrao,
   },
   stats: {
     flexDirection: 'row',

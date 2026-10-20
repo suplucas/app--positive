@@ -13,6 +13,18 @@ function followLabel(r: ReactTestRenderer): string {
   return String(r.root.findByProps({ testID: 'seguir-label' }).props.children);
 }
 
+function textsOf(r: ReactTestRenderer, testID: string): string {
+  return r.root
+    .findByProps({ testID })
+    .findAll((n) => String(n.type) === 'Text')
+    .map((n) =>
+      Array.isArray(n.props.children)
+        ? n.props.children.join('')
+        : String(n.props.children ?? ''),
+    )
+    .join(' ');
+}
+
 describe('ProfileScreen (v2)', () => {
   it('mostra nome, handle, bio e stats', () => {
     const { text } = render();
@@ -60,25 +72,22 @@ describe('ProfileScreen (v2)', () => {
     expect(text()).not.toContain('Empório Real');
   });
 
-  it('seletor troca entre perfil v1 e v2', () => {
+  it('não tem seletor de versão e mantém seguir/abas', () => {
     const { r } = render();
-    // v2 por padrão: botão seguir + aba listas
+    expect(r.root.findAllByProps({ testID: 'perfil-v1' })).toHaveLength(0);
+    expect(r.root.findAllByProps({ testID: 'perfil-v2' })).toHaveLength(0);
     expect(r.root.findAllByProps({ testID: 'seguir' }).length).toBeGreaterThan(0);
     expect(
       r.root.findAllByProps({ testID: 'tab-listas' }).length,
     ).toBeGreaterThan(0);
-    // v1: some seguir e abas, continua mostrando os blocos
-    act(() => {
-      r.root.findByProps({ testID: 'perfil-v1' }).props.onPress();
-    });
-    expect(r.root.findAllByProps({ testID: 'seguir' }).length).toBe(0);
-    expect(r.root.findAllByProps({ testID: 'tab-listas' }).length).toBe(0);
-    expect(r.root.findAllByProps({ testID: 'favorito-foto-1' }).length).toBeGreaterThan(0);
-    // volta para v2
-    act(() => {
-      r.root.findByProps({ testID: 'perfil-v2' }).props.onPress();
-    });
-    expect(r.root.findAllByProps({ testID: 'seguir' }).length).toBeGreaterThan(0);
+  });
+
+  it('bio fica dentro do bloco do username, abaixo do handle', () => {
+    const { r } = render();
+    const identidade = textsOf(r, 'perfil-identidade');
+    expect(identidade).toContain('Bea Ferraz');
+    expect(identidade).toContain('@bea_come_tudo');
+    expect(identidade).toContain('Crítica de fim de semana');
   });
 });
 
