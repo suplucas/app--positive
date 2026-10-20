@@ -1,3 +1,4 @@
+import { useCallback, useMemo } from 'react';
 import {
   Pressable,
   ScrollView,
@@ -5,173 +6,268 @@ import {
   Text,
   View,
 } from 'react-native';
-import { mapPlaces } from './mapMock';
-import { SectionTitle } from './SectionTitle';
-import { palette, spacing, fonts, useTheme } from './theme';
+import { WebView, type WebViewMessageEvent } from 'react-native-webview';
+import { buildMapHtml } from './mapHtml';
+import { pinColor, type MapPlace } from './mapMock';
+import { fonts, palette, spacing, useTheme } from './theme';
+import { usePlaces } from './usePlaces';
 
-// Aba Mapa (mock docs/16). Sem SDK: "perto de você" é uma moldura
-// estilizada com manchas de bairro, o ponto escuro central é "você" e
-// cada pin colorido é um restaurante (cor pela faixa de nota). "Nessa
-// área" é um carrossel de cards. Tocar em pin/card abre a página do
-// restaurante. Mapa real usaria Google Maps/Mapbox por baixo.
+// Aba Mapa (docs/16): mapa real OSM/CARTO via WebView + Leaflet,
+// full-bleed (sem margem) entre o header e a navbar. O HTML e os pins
+// vivem em `mapHtml.ts` (função pura); toque em pin vira postMessage e
+// chega aqui em `onMessage`. O bottom sheet "nessa área" flutua sobre o
+// mapa e é o caminho acessível (os pins do WebView não são lidos por
+// leitores de tela).
+type MapMessage = { type?: unknown; cnpj?: unknown };
+
+function isExternal(url: string): boolean {
+  return /^https?:\/\//i.test(url);
+}
+
 export function MapScreen({
   onOpenRestaurant,
 }: {
   onOpenRestaurant: (cnpj: string) => void;
 }) {
   const t = useTheme();
-  const places = mapPlaces();
+  const { pins, status, refresh } = usePlaces();
+  const places = useMemo<MapPlace[]>(
+    () =>
+      pins.map((pin) => ({
+        cnpj: pin.id,
+        nome: pin.nome,
+        nota: pin.nota ?? 0,
+        bairro: pin.bairro ?? '',
+        distanciaKm: 0,
+        x: 0,
+        y: 0,
+        lat: pin.lat,
+        lng: pin.lng,
+        cor: pinColor(pin.nota ?? 0),
+      })),
+    [pins],
+  );
+  const html = useMemo(
+    () =>
+      buildMapHtml({
+        places,
+        mode: t.mode,
+        tileKey: process.env.EXPO_PUBLIC_MAP_TILES_KEY,
+      }),
+    [places, t.mode],
+  );
+
+  const onMessage = useCallback(
+    (event: WebViewMessageEvent) => {
+      try {
+        const data = JSON.parse(event.nativeEvent.data) as MapMessage;
+        if (data.type === 'open-restaurant' && typeof data.cnpj === 'string') {
+          onOpenRestaurant(data.cnpj);
+        }
+      } catch {
+        // Mensagem de terceiros/HTML inválido: não derruba o mapa.
+      }
+    },
+    [onOpenRestaurant],
+  );
+
+  // Links de atribuição (OSM/CARTO) não devem substituir o mapa dentro
+  // do WebView; o conteúdo inicial (about:blank/data:) é permitido.
+  const shouldLoad = useCallback(
+    (request: { url: string }) => !isExternal(request.url),
+    [],
+  );
 
   return (
-    <ScrollView
-      style={{ backgroundColor: t.bg }}
-      contentContainerStyle={s.scroll}
-    >
-      <SectionTitle>perto de você</SectionTitle>
+    <View testID="mapa-tela" style={[s.root, { backgroundColor: t.bg }]}>
+      <WebView
+        testID="mapa-webview"
+        style={s.map}
+        source={{ html }}
+        originWhitelist={['*']}
+        javaScriptEnabled
+        domStorageEnabled
+        scrollEnabled={false}
+        bounces={false}
+        overScrollMode="never"
+        setSupportMultipleWindows={false}
+        onMessage={onMessage}
+        onShouldStartLoadWithRequest={shouldLoad}
+        accessibilityLabel="mapa de restaurantes por perto"
+      />
 
-      <View
-        testID="mapa-moldura"
-        style={[s.map, { backgroundColor: t.quietBg, borderColor: t.line }]}
-      >
-        {/* manchas de bairro (sem lib de gradiente) */}
-        <View style={[s.blob, s.blobA, { backgroundColor: 'rgba(122,154,61,0.18)' }]} />
-        <View style={[s.blob, s.blobB, { backgroundColor: 'rgba(242,169,59,0.16)' }]} />
-
-        {/* você */}
+      <View pointerEvents="none" style={s.chipWrap}>
         <View
-          testID="mapa-voce"
-          style={[s.you, { backgroundColor: t.ink, borderColor: t.bg }]}
-        />
-
-        {places.map((p) => (
-          <Pressable
-            key={p.cnpj}
-            testID={`mapa-pin-${p.cnpj}`}
-            onPress={() => onOpenRestaurant(p.cnpj)}
-            style={[
-              s.pin,
-              { left: `${p.x * 100}%`, top: `${p.y * 100}%` },
-            ]}
-            accessibilityRole="button"
-            accessibilityLabel={`${p.nome}, nota ${p.nota.toFixed(1)}`}
-          >
-            <View style={[s.pinDot, { backgroundColor: p.cor }]}>
-              <Text style={s.pinNote}>{p.nota.toFixed(1)}</Text>
-            </View>
-          </Pressable>
-        ))}
+          style={[s.chip, { backgroundColor: t.bg, borderColor: t.line }]}
+        >
+          <Text style={[s.chipText, { color: t.sub }]}>perto de você</Text>
+        </View>
       </View>
 
-      <SectionTitle>nessa área</SectionTitle>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={s.carousel}
+      <View
+        testID="mapa-sheet"
+        style={[
+          s.sheet,
+          { backgroundColor: t.bg, borderTopColor: t.line },
+        ]}
       >
-        {places.map((p) => (
-          <Pressable
-            key={p.cnpj}
-            testID={`mapa-card-${p.cnpj}`}
-            onPress={() => onOpenRestaurant(p.cnpj)}
-            style={({ pressed }) => [s.card, pressed && { opacity: 0.85 }]}
-            accessibilityRole="button"
-            accessibilityLabel={`abrir ${p.nome}`}
-          >
-            <View style={[s.cardPhoto, { backgroundColor: p.cor }]}>
-              <View style={s.cardNote}>
-                <Text style={s.cardNoteText}>{p.nota.toFixed(1)}</Text>
-              </View>
-            </View>
-            <Text style={[s.cardName, { color: t.ink }]} numberOfLines={1}>
-              {p.nome}
+        <View style={[s.handle, { backgroundColor: t.line }]} />
+        <View style={s.sheetHead}>
+          <Text style={[s.sheetTitle, { color: t.ink }]}>nessa área</Text>
+          {status === "error" ? (
+            <Pressable
+              testID="mapa-retry"
+              onPress={() => void refresh()}
+              hitSlop={8}
+              accessibilityRole="button"
+            >
+              <Text style={[s.sheetMeta, { color: palette.lambeLambe }]}>
+                tentar de novo
+              </Text>
+            </Pressable>
+          ) : (
+            <Text style={[s.sheetMeta, { color: t.sub }]}>
+              {status === "loading" ? "carregando…" : "posições aproximadas"}
             </Text>
-            <Text style={[s.cardMeta, { color: t.sub }]} numberOfLines={1}>
-              {p.bairro} · {p.distanciaKm.toFixed(1)}km
-            </Text>
-          </Pressable>
-        ))}
-      </ScrollView>
+          )}
+        </View>
 
-      <Text style={[s.legend, { color: t.sub }]}>
-        Pin colorido = restaurante avaliado na comunidade (cor pela faixa de
-        nota). O ponto escuro no centro é “você”. Protótipo visual — o mapa
-        real usaria um SDK (Google Maps/Mapbox) por baixo.
-      </Text>
-    </ScrollView>
+        {places.length === 0 && status === "idle" ? (
+          <Text style={[s.empty, { color: t.sub }]}>
+            nenhum restaurante com review nesta área.
+          </Text>
+        ) : (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={s.rail}
+          >
+            {places.map((p) => (
+              <Pressable
+                key={p.cnpj}
+                testID={`mapa-card-${p.cnpj}`}
+                onPress={() => onOpenRestaurant(p.cnpj)}
+                style={({ pressed }) => [s.card, pressed && { opacity: 0.85 }]}
+                accessibilityRole="button"
+                accessibilityLabel={`abrir ${p.nome}`}
+              >
+                <View style={[s.cardPhoto, { backgroundColor: p.cor }]}>
+                  <View style={s.cardNote}>
+                    <Text style={s.cardNoteText}>
+                      {p.nota > 0 ? p.nota.toFixed(1) : "—"}
+                    </Text>
+                  </View>
+                </View>
+                <Text
+                  style={[s.cardName, { color: t.ink }]}
+                  numberOfLines={1}
+                >
+                  {p.nome}
+                </Text>
+                <Text
+                  style={[s.cardMeta, { color: t.sub }]}
+                  numberOfLines={1}
+                >
+                  {p.bairro || "região"}
+                </Text>
+              </Pressable>
+            ))}
+          </ScrollView>
+        )}
+      </View>
+    </View>
   );
 }
 
 const s = StyleSheet.create({
-  scroll: { paddingBottom: spacing.bloco },
+  root: { flex: 1, overflow: 'hidden' },
+  // Full-bleed: encosta nas quatro bordas da área entre header/navbar.
   map: {
-    height: 340,
-    marginHorizontal: spacing.padrao,
-    borderRadius: 16,
-    borderWidth: 1,
-    overflow: 'hidden',
-    position: 'relative',
-  },
-  blob: { position: 'absolute', borderRadius: 999 },
-  blobA: { width: 190, height: 190, top: -30, left: -40 },
-  blobB: { width: 220, height: 220, bottom: -60, right: -50 },
-  you: {
     position: 'absolute',
-    left: '50%',
-    top: '50%',
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-    borderWidth: 3,
-    marginLeft: -7,
-    marginTop: -7,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
-  // Pin gota: quadrado rotacionado; o número volta a -45º para ficar reto.
-  pin: {
+  chipWrap: {
     position: 'absolute',
-    width: 30,
-    height: 30,
-    marginLeft: -15,
-    marginTop: -30,
+    top: spacing.interno + 2,
+    left: spacing.padrao,
   },
-  pinDot: {
-    width: 30,
-    height: 30,
-    borderTopLeftRadius: 15,
-    borderTopRightRadius: 15,
-    borderBottomRightRadius: 15,
-    borderBottomLeftRadius: 0,
-    transform: [{ rotate: '-45deg' }],
-    alignItems: 'center',
-    justifyContent: 'center',
+  chip: {
+    borderRadius: 999,
+    borderWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    shadowColor: palette.berinjela,
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
   },
-  pinNote: {
-    transform: [{ rotate: '45deg' }],
-    fontFamily: fonts.display800,
-    fontSize: 10,
-    color: '#fff',
+  chipText: {
+    fontFamily: fonts.corpo600,
+    fontWeight: '600',
+    fontSize: 11.5,
   },
-  carousel: {
+  sheet: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    paddingTop: spacing.interno,
+    paddingBottom: spacing.padrao,
+    shadowColor: palette.berinjela,
+    shadowOpacity: 0.18,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: -6 },
+    elevation: 12,
+  },
+  handle: {
+    alignSelf: 'center',
+    width: 36,
+    height: 4,
+    borderRadius: 2,
+    marginBottom: spacing.interno,
+  },
+  sheetHead: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.padrao,
+    marginBottom: spacing.interno + 2,
+  },
+  sheetTitle: { fontFamily: fonts.display700, fontSize: 15 },
+  sheetMeta: { fontSize: 10.5 },
+  empty: {
+    fontSize: 12,
+    paddingHorizontal: spacing.padrao,
+    paddingBottom: spacing.padrao,
+  },
+  rail: {
     gap: spacing.interno,
     paddingHorizontal: spacing.padrao,
-    paddingBottom: spacing.interno,
   },
   card: { width: 150 },
   cardPhoto: {
     width: '100%',
-    height: 90,
+    height: 92,
     borderRadius: 12,
     justifyContent: 'flex-end',
     alignItems: 'flex-end',
     padding: 5,
   },
   cardNote: {
-    backgroundColor: 'rgba(0,0,0,0.55)',
+    backgroundColor: 'rgba(36,26,34,0.82)',
     borderRadius: 5,
     paddingHorizontal: 5,
     paddingVertical: 1,
   },
   cardNoteText: {
-    color: '#fff',
+    color: palette.papel,
     fontFamily: fonts.display800,
     fontSize: 10.5,
   },
@@ -181,10 +277,4 @@ const s = StyleSheet.create({
     marginTop: 6,
   },
   cardMeta: { fontSize: 11, marginTop: 1 },
-  legend: {
-    fontSize: 12,
-    lineHeight: 18,
-    paddingHorizontal: spacing.padrao,
-    paddingTop: spacing.padrao,
-  },
 });
