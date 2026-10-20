@@ -12,8 +12,11 @@ import { Avatar } from './Avatar';
 import { NoteBadge } from './NoteBadge';
 import { PERFIL, bioFor, displayName } from './mockData';
 import { SavedList } from './SavedList';
+import type { SavedRestaurant } from './api/user';
+import type { UserProfile } from './api/types';
 import { SectionTitle } from './SectionTitle';
 import { MOCK_POST_PHOTOS } from './postPhotos';
+import { useProfile } from './useProfile';
 import { fonts, palette, spacing, useTheme } from './theme';
 
 type Tab = 'queroir' | 'diario' | 'listas';
@@ -32,25 +35,50 @@ export function ProfileScreen({
   onSettings,
   onNotifications,
   savedCnpjs = [],
+  savedItems,
   onRemoveSaved,
   onOpenRestaurant,
+  onFollowToggle,
+  profile,
   userId: propsUserId,
 }: {
   onSettings?: () => void;
   // docs/16: notificações saíram da navbar e ganharam atalho (sino) aqui.
   onNotifications?: () => void;
   // Lista "quero ir" (docs/16): o estado vive no App; a aba do perfil
-  // (v2) só renderiza. Fonte: `savedCnpjs`.
+  // (v2) só renderiza. Fonte: `savedCnpjs`/`savedItems`.
   savedCnpjs?: string[];
+  savedItems?: SavedRestaurant[];
   onRemoveSaved?: (cnpj: string) => void;
   onOpenRestaurant?: (cnpj: string) => void;
-  // N5: o perfil reflete o usuário ativo (identidade — avatar, nome,
-  // handle e bio). Conteúdo (stats, favoritos, diário, listas) segue o
-  // mock até existir endpoint de perfil.
+  onFollowToggle?: () => void;
+  // Perfil injetado (API/testes); sem ele, busca em /users/:id.
+  profile?: UserProfile;
+  // N5: o perfil reflete o usuário ativo.
   userId?: string;
 }) {
   const userId = propsUserId ?? 'bea_come_tudo';
   const t = useTheme();
+  const remote = useProfile(userId, !profile);
+  const active = profile ?? remote.profile;
+
+  if (!profile && remote.status === 'loading') {
+    return (
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+        <Text style={{ color: t.sub }}>carregando…</Text>
+      </View>
+    );
+  }
+
+  if (!active) {
+    return (
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+        <Text style={{ color: t.ink }}>
+          Não consegui carregar o perfil.
+        </Text>
+      </View>
+    );
+  }
 
   return (
     <ScrollView
@@ -86,9 +114,12 @@ export function ProfileScreen({
 
       <PerfilV2
         userId={userId}
+        profile={active}
         savedCnpjs={savedCnpjs}
+        savedItems={savedItems}
         onRemoveSaved={onRemoveSaved}
         onOpenRestaurant={onOpenRestaurant}
+        onFollowToggle={onFollowToggle}
       />
     </ScrollView>
   );
@@ -97,18 +128,27 @@ export function ProfileScreen({
 // ---- perfil final (seguir + abas diário/quero ir/listas) ----------------
 function PerfilV2({
   userId,
+  profile,
   savedCnpjs = [],
+  savedItems,
   onRemoveSaved,
   onOpenRestaurant,
+  onFollowToggle,
 }: {
   userId: string;
+  profile: UserProfile;
   savedCnpjs?: string[];
+  savedItems?: SavedRestaurant[];
   onRemoveSaved?: (cnpj: string) => void;
   onOpenRestaurant?: (cnpj: string) => void;
+  onFollowToggle?: () => void;
 }) {
   const t = useTheme();
   const [following, setFollowing] = useState(false);
   const [tab, setTab] = useState<Tab>('diario');
+  const nome = profile.name || displayName(userId);
+  const handle = profile.handle ?? userId;
+  const bio = profile.bio ?? bioFor(userId);
 
   return (
     <>
@@ -116,10 +156,13 @@ function PerfilV2({
         <Avatar userId={userId} size={72} />
         <View style={s.who} testID="perfil-identidade">
           <View style={s.nameRow}>
-            <Text style={[s.name, { color: t.ink }]}>{displayName(userId)}</Text>
+            <Text style={[s.name, { color: t.ink }]}>{nome}</Text>
             <Pressable
               testID="seguir"
-              onPress={() => setFollowing((v) => !v)}
+              onPress={() => {
+                setFollowing((v) => !v);
+                onFollowToggle?.();
+              }}
               hitSlop={6}
               style={[
                 s.followBtn,
@@ -138,13 +181,13 @@ function PerfilV2({
             </Pressable>
           </View>
           <Text style={[s.handle, { color: t.sub }]}>
-            {`@${userId} · São Paulo`}
+            {`@${handle} · São Paulo`}
           </Text>
-          <Text style={[s.bio, { color: t.ink }]}>{bioFor(userId)}</Text>
+          <Text style={[s.bio, { color: t.ink }]}>{bio}</Text>
         </View>
       </View>
 
-      <Stats />
+      <Stats stats={profile.stats} />
 
       <SectionTitle>favoritos</SectionTitle>
       <Shelf />
@@ -179,6 +222,7 @@ function PerfilV2({
       {tab === 'queroir' ? (
         <SavedList
           cnpjs={savedCnpjs}
+          items={savedItems}
           onRemove={onRemoveSaved ?? (() => {})}
           onOpenRestaurant={onOpenRestaurant ?? (() => {})}
         />
@@ -198,11 +242,24 @@ function PerfilV2({
 }
 
 // ---- blocos compartilhados ---------------------------------------------
-function Stats() {
+function Stats({
+  stats,
+}: {
+  stats: UserProfile['stats'];
+}) {
   const t = useTheme();
+  const items = [
+    { n: String(stats.reviews), l: 'avaliações' },
+    { n: String(stats.followers), l: 'seguidores' },
+    { n: String(stats.following), l: 'seguindo' },
+    {
+      n: stats.notaMedia == null ? '—' : stats.notaMedia.toFixed(1),
+      l: 'média',
+    },
+  ];
   return (
     <View style={[s.stats, { borderBottomColor: t.line }]}>
-      {PERFIL.stats.map((st) => (
+      {items.map((st) => (
         <View key={st.l} style={s.stat}>
           <Text style={[s.statN, { color: t.ink }]}>{st.n}</Text>
           <Text style={[s.statL, { color: t.sub }]}>{st.l}</Text>

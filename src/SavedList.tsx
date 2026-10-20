@@ -1,4 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import type { SavedRestaurant } from './api/user';
+import { avatarColor } from './format';
 import { restaurantFor } from './restaurantMock';
 import { fonts, spacing, useTheme } from './theme';
 
@@ -7,10 +9,12 @@ import { fonts, spacing, useTheme } from './theme';
 // meta + ★ remover). Sem ScrollView próprio (mora dentro do perfil).
 export function SavedList({
   cnpjs,
+  items,
   onRemove,
   onOpenRestaurant,
 }: {
   cnpjs: string[];
+  items?: SavedRestaurant[];
   onRemove: (cnpj: string) => void;
   onOpenRestaurant: (cnpj: string) => void;
 }) {
@@ -32,22 +36,29 @@ export function SavedList({
   return (
     <>
       {cnpjs.map((cnpj) => {
+        const saved = items?.find((item) => item.id === cnpj);
         const d = restaurantFor(cnpj);
+        const nome = saved?.nome ?? d.nome;
+        const meta = saved
+          ? [saved.bairro, saved.nota != null ? `nota ${saved.nota.toFixed(1)}` : null]
+              .filter(Boolean)
+              .join(' · ')
+          : `${d.bairro} · a ${d.distanciaKm.toFixed(1)}km`;
         return (
           <View key={cnpj} style={[s.row, { borderBottomColor: t.line }]}>
-            <View style={[s.thumb, { backgroundColor: d.capa }]} />
+            <View style={[s.thumb, { backgroundColor: avatarColor(cnpj) }]} />
             <Pressable
               testID={`salvo-linha-${cnpj}`}
               onPress={() => onOpenRestaurant(cnpj)}
               style={({ pressed }) => [s.rowBody, pressed && { opacity: 0.85 }]}
               accessibilityRole="button"
-              accessibilityLabel={`abrir ${d.nome}`}
+              accessibilityLabel={`abrir ${nome}`}
             >
               <Text style={[s.name, { color: t.ink }]} numberOfLines={1}>
-                {d.nome}
+                {nome}
               </Text>
               <Text style={[s.meta, { color: t.sub }]} numberOfLines={1}>
-                {d.bairro} · a {d.distanciaKm.toFixed(1)}km
+                {meta}
               </Text>
             </Pressable>
             <Pressable
@@ -56,7 +67,7 @@ export function SavedList({
               style={[s.remove, { borderColor: t.line }]}
               hitSlop={6}
               accessibilityRole="button"
-              accessibilityLabel={`remover ${d.nome} da lista`}
+              accessibilityLabel={`remover ${nome} da lista`}
             >
               <Text style={[s.removeText, { color: t.sub }]}>★</Text>
             </Pressable>

@@ -3,9 +3,25 @@ import { act, create, ReactTestRenderer } from 'react-test-renderer';
 import { createElement } from 'react';
 import { ProfileScreen } from './ProfileScreen';
 import { MOCK_POST_PHOTOS } from './postPhotos';
+import { PERFIL, bioFor, displayName } from './mockData';
 
 function render(props: Partial<Parameters<typeof ProfileScreen>[0]> = {}) {
-  const r: ReactTestRenderer = create(createElement(ProfileScreen, props));
+  const userId = props.userId ?? 'bea_come_tudo';
+  const profile = props.profile ?? {
+    id: userId,
+    name: displayName(userId),
+    handle: userId,
+    bio: bioFor(userId),
+    stats: {
+      reviews: 184,
+      followers: 92,
+      following: 76,
+      notaMedia: 9.1,
+    },
+  };
+  const r: ReactTestRenderer = create(
+    createElement(ProfileScreen, { userId, profile, ...props }),
+  );
   return { r, text: () => JSON.stringify(r.toJSON()) };
 }
 

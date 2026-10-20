@@ -58,8 +58,9 @@ import {
   useTheme,
   type Theme,
 } from './src/theme';
-import { friendlyApiError, resolvePhotoUrl } from './src/format';
+import { friendlyApiError, resolvePhotoUrl, restaurantName } from './src/format';
 import { useFeed } from './src/useFeed';
+import { useSaves } from './src/useSaves';
 import type { Review, ReviewLayout } from './src/types';
 import type { ImageSourcePropType } from 'react-native';
 
@@ -94,9 +95,10 @@ export default function App() {
   const [restaurantCnpj, setRestaurantCnpj] = useState<string | null>(null);
   const [osmPlace, setOsmPlace] = useState<PlaceHit | null>(null);
   const [composeCnpj, setComposeCnpj] = useState<string | null>(null);
-  // Lista "quero ir" (docs/10): fonte única de saves, compartilhada com
+  // Lista "quero ir" (docs/10): persistida na API e compartilhada com
   // o toggle da página do restaurante.
-  const [savedCnpjs, setSavedCnpjs] = useState<string[]>([]);
+  const saves = useSaves(userId);
+  const savedCnpjs = saves.ids;
   // Thread de comentários (docs/12): review aberta pelo 💬 de um card.
   const [commentReview, setCommentReview] = useState<Review | null>(null);
   // Notificações (docs/09) saíram da navbar (o mock docs/16 pôs o mapa
@@ -106,10 +108,13 @@ export default function App() {
   // como camada; o resultado vira `composePickedCnpj`.
   const [composePickerOpen, setComposePickerOpen] = useState(false);
   const [composePickedCnpj, setComposePickedCnpj] = useState<string | null>(null);
-  const toggleSaved = (cnpj: string) =>
-    setSavedCnpjs((prev) =>
-      prev.includes(cnpj) ? prev.filter((c) => c !== cnpj) : [...prev, cnpj],
+  const toggleSaved = (cnpj: string) => {
+    void saves.toggle(
+      cnpj,
+      restaurantName(cnpj) ?? cnpj,
+      savedCnpjs.includes(cnpj),
     );
+  };
   const feedVisible =
     screen === 'feed' && !restaurantCnpj && !settingsOpen;
   const { items, status, error, hasMore, refresh, loadMore, like } =
@@ -244,9 +249,14 @@ export default function App() {
               onSettings={() => setSettingsOpen(true)}
               onNotifications={() => setNotifOpen(true)}
               savedCnpjs={savedCnpjs}
-              onRemoveSaved={(cnpj) =>
-                setSavedCnpjs((prev) => prev.filter((c) => c !== cnpj))
-              }
+              savedItems={saves.items}
+              onRemoveSaved={(cnpj) => {
+                void saves.toggle(
+                  cnpj,
+                  restaurantName(cnpj) ?? cnpj,
+                  true,
+                );
+              }}
               onOpenRestaurant={(cnpj) => setRestaurantCnpj(cnpj)}
             />
           ) : (
