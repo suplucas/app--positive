@@ -1,5 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Avatar } from './Avatar';
+import { ExpandableText } from './ExpandableText';
 import { formatRelative, getNote, restaurantName } from './format';
 import { fonts, palette, spacing } from './theme';
 import type { Review } from './types';
@@ -31,7 +32,12 @@ export function FeedQuote({
         <Text style={[s.note, { color: ink }]}>{getNote(review.rating)}</Text>
       </View>
       {review.comment ? (
-        <Text style={[s.text, { color: ink }]}>“{review.comment}”</Text>
+        <ExpandableText
+          id={`quote-${review.id}`}
+          text={`“${review.comment}”`}
+          style={[s.text, { color: ink }]}
+          color={ink}
+        />
       ) : null}
       <View style={s.meta}>
         <Text style={[s.place, { color: ink }]} numberOfLines={1}>

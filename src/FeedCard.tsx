@@ -1,5 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Avatar } from './Avatar';
+import { ExpandableText } from './ExpandableText';
 import { Flair } from './Flair';
 import { NoteBadge } from './NoteBadge';
 import { formatRelative, getNote, restaurantName } from './format';
@@ -37,7 +38,12 @@ export function FeedCard({
           ) : null}
         </View>
         {review.comment ? (
-          <Text style={[s.caption, { color: t.ink }]}>{review.comment}</Text>
+          <ExpandableText
+            id={`card-${review.id}`}
+            text={review.comment}
+            style={[s.caption, { color: t.ink }]}
+            color={t.sub}
+          />
         ) : null}
         <View style={s.meta}>
           <Text style={[s.metaText, { color: t.sub }]}>▲ {review.likes}</Text>

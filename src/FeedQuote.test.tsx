@@ -38,6 +38,25 @@ describe('FeedQuote (comentários, docs/12)', () => {
 });
 
 describe('FeedQuote', () => {
+  it('texto longo ganha "continuar lendo" e expande/recolhe', () => {
+    const longReview: Review = {
+      ...baseReview,
+      comment: 'a'.repeat(200),
+    };
+    const r: ReactTestRenderer = create(
+      createElement(FeedQuote, { review: longReview }),
+    );
+    expect(JSON.stringify(r.toJSON())).toContain('continuar lendo');
+    act(() => {
+      r.root.findByProps({ testID: 'expand-quote-7' }).props.onPress();
+    });
+    expect(JSON.stringify(r.toJSON())).toContain('ver menos');
+    act(() => {
+      r.root.findByProps({ testID: 'expand-quote-7' }).props.onPress();
+    });
+    expect(JSON.stringify(r.toJSON())).toContain('continuar lendo');
+  });
+
   it('renderiza autor, comentário entre aspas e restaurante', () => {
     const { text } = render();
     expect(text).toContain('bea_come_tudo');

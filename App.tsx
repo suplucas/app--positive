@@ -91,10 +91,6 @@ export default function App() {
   // e local pré-selecionado na composição (botão "avaliar" do restaurante).
   const [restaurantCnpj, setRestaurantCnpj] = useState<string | null>(null);
   const [composeCnpj, setComposeCnpj] = useState<string | null>(null);
-  // Variante de UI do feed (mesmo padrão do seletor de versão do perfil):
-  // v2 é a UI de teste em que o card de foto leva a linha de texto p/
-  // dentro da imagem (docs do audit).
-  const [feedVersion, setFeedVersion] = useState<'v1' | 'v2'>('v1');
   // Lista "quero ir" (docs/10): fonte única de saves, compartilhada com
   // o toggle da página do restaurante.
   const [savedCnpjs, setSavedCnpjs] = useState<string[]>([]);
@@ -196,22 +192,6 @@ export default function App() {
               'avaliar'
             )}
           </Text>
-          {feedVisible ? (
-            <View style={styles.feedChips}>
-              <FeedVersionChip
-                label="feed v1"
-                active={feedVersion === 'v1'}
-                onPress={() => setFeedVersion('v1')}
-                testID="feed-v1"
-              />
-              <FeedVersionChip
-                label="feed v2 · teste"
-                active={feedVersion === 'v2'}
-                onPress={() => setFeedVersion('v2')}
-                testID="feed-v2"
-              />
-            </View>
-          ) : null}
           {feedVisible && banner ? (
             <View
               style={[styles.banner, { backgroundColor: theme.quietBg }]}
@@ -278,7 +258,6 @@ export default function App() {
                     <FeedPhoto
                       review={item}
                       photos={d.photos}
-                      variant={feedVersion}
                       onPress={openPlace}
                       onComments={openComments}
                     />
@@ -443,58 +422,7 @@ const styles = StyleSheet.create({
   },
   bannerText: { fontSize: 12 },
   retryText: { fontSize: 12, fontFamily: fonts.corpo600, fontWeight: '600' },
-  feedChips: {
-    flexDirection: 'row',
-    gap: spacing.interno,
-    paddingRight: spacing.padrao,
-  },
-  feedChip: {
-    minHeight: 36,
-    paddingHorizontal: spacing.padrao - 2,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  feedChipText: { fontSize: 12.5, fontFamily: fonts.corpo500 },
-  feedChipTextActive: { fontWeight: '600' },
 });
-
-function FeedVersionChip({
-  label,
-  active,
-  onPress,
-  testID,
-}: {
-  label: string;
-  active: boolean;
-  onPress: () => void;
-  testID: string;
-}) {
-  const t = useTheme();
-  return (
-    <Pressable
-      testID={testID}
-      onPress={onPress}
-      style={[
-        styles.feedChip,
-        { backgroundColor: t.quietBg },
-        active && { backgroundColor: t.chipActiveBg },
-      ]}
-      accessibilityRole="button"
-      accessibilityState={{ selected: active }}
-    >
-      <Text
-        style={[
-          styles.feedChipText,
-          { color: active ? t.chipActiveInk : t.sub },
-          active && styles.feedChipTextActive,
-        ]}
-      >
-        {label}
-      </Text>
-    </Pressable>
-  );
-}
 
 // Camada de sub-tela: absoluto sobre o conteúdo principal, com fade +
 // slide de 180ms na entrada (useNativeDriver). A saída é instantânea —

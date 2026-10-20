@@ -38,6 +38,21 @@ describe('FeedCard (comentários, docs/12)', () => {
 });
 
 describe('FeedCard', () => {
+  it('texto longo ganha "continuar lendo" e expande/recolhe', () => {
+    const longReview: Review = {
+      ...baseReview,
+      comment: 'b'.repeat(200),
+    };
+    const r: ReactTestRenderer = create(
+      createElement(FeedCard, { review: longReview }),
+    );
+    expect(JSON.stringify(r.toJSON())).toContain('continuar lendo');
+    act(() => {
+      r.root.findByProps({ testID: 'expand-card-1' }).props.onPress();
+    });
+    expect(JSON.stringify(r.toJSON())).toContain('ver menos');
+  });
+
   it('renderiza campos do review', () => {
     const { text } = render();
     expect(text).toContain('user_1');

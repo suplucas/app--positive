@@ -100,9 +100,9 @@ describe('FeedPhoto', () => {
     expect(onPress).toHaveBeenCalled();
   });
 
-  describe('variante v2 (teste: linha e nota sobre a imagem)', () => {
+  describe('layout final (linha e nota sobre a imagem)', () => {
     it('autor, restaurante e tempo ficam dentro da imagem (frame)', () => {
-      const { r } = render({ variant: 'v2' });
+      const { r } = render();
       const frame = r.root.findByProps({ testID: 'photo-3-frame' });
       const texts = textsOf(frame);
       expect(texts).toContain('caio.garfo');
@@ -111,25 +111,12 @@ describe('FeedPhoto', () => {
     });
 
     it('imagem fica mais alta (480) e a nota vai para o rodapé', () => {
-      const { r } = render({ variant: 'v2' });
+      const { r } = render();
       expect(
         styleOf(r, 'photo-3-img').some((s) => s.height === 480),
       ).toBe(true);
       expect(
         styleOf(r, 'photo-3-note').some((s) => s.bottom !== undefined),
-      ).toBe(true);
-    });
-  });
-
-  describe('variante v1 (padrão)', () => {
-    it('linha fica acima da imagem (fora do frame) e nota no topo', () => {
-      const { r } = render();
-      const frame = r.root.findByProps({ testID: 'photo-3-frame' });
-      expect(textsOf(frame)).not.toContain('caio.garfo');
-      expect(r.root.findAllByProps({ testID: 'photo-3-scrim' })).toHaveLength(0);
-      expect(styleOf(r, 'photo-3-img').some((s) => s.height === 420)).toBe(true);
-      expect(
-        styleOf(r, 'photo-3-note').some((s) => s.top !== undefined),
       ).toBe(true);
     });
   });
@@ -163,8 +150,8 @@ describe('FeedPhoto', () => {
       expect(JSON.stringify(r.toJSON())).toContain('2/2');
     });
 
-    it('v2 + 2 fotos: scrim, linha no topo e nota seguem sobre a foto', () => {
-      const { r } = render({ photos: [1, 2], variant: 'v2' });
+    it('2 fotos: scrim, linha no topo e nota seguem sobre a foto', () => {
+      const { r } = render({ photos: [1, 2] });
       expect(r.root.findAllByProps({ testID: 'photo-3-scrim' })).toHaveLength(1);
       const frame = r.root.findByProps({ testID: 'photo-3-frame' });
       expect(textsOf(frame)).toContain('caio.garfo');
