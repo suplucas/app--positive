@@ -1,9 +1,17 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { act, create, ReactTestRenderer } from 'react-test-renderer';
 import { createElement } from 'react';
 import { SearchScreen } from './SearchScreen';
 import { searchWithFilter, SEARCH_FILTERS } from './searchFilters';
 import { restaurantFor } from './restaurantMock';
+import { searchPlaces } from './api/place';
+
+vi.mock('./api/place.js', () => ({ searchPlaces: vi.fn() }));
+
+beforeEach(() => {
+  vi.mocked(searchPlaces).mockReset();
+  vi.mocked(searchPlaces).mockResolvedValue([]);
+});
 
 function render(props: Partial<Parameters<typeof SearchScreen>[0]> = {}) {
   const onOpenRestaurant = props.onOpenRestaurant ?? vi.fn();
@@ -132,5 +140,36 @@ describe('SearchScreen (docs/16)', () => {
       r.root.findByProps({ testID: 'busca-voltar' }).props.onPress();
     });
     expect(onBack).toHaveBeenCalled();
+  });
+
+  it('sem resultado local: cai no OSM e abre o resultado', async () => {
+    vi.mocked(searchPlaces).mockResolvedValue([
+      {
+        id: 'osm:node/1',
+        source: 'osm',
+        nome: 'Pizza do OSM',
+        endereco: 'Rua OSM, São Paulo',
+        categoria: 'restaurant',
+        lat: -23.55,
+        lng: -46.63,
+        nota: 8.2,
+        bairro: 'Pinheiros',
+      },
+    ]);
+    const { r, onOpenRestaurant } = render();
+    await act(async () => {
+      input(r, 'pizza do osm');
+    });
+    await act(async () => {});
+    expect(searchPlaces).toHaveBeenCalledWith('pizza do osm');
+    const row = r.root.findByProps({ testID: 'busca-hit-osm:node/1' });
+    expect(
+      row
+        .findAll((n) => String(n.type) === 'Text')
+        .map((n) => String(n.props.children ?? ''))
+        .join(' '),
+    ).toContain('Pizza do OSM');
+    act(() => row.props.onPress());
+    expect(onOpenRestaurant).toHaveBeenCalledWith('osm:node/1');
   });
 });

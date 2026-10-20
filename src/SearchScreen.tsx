@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Pressable,
   ScrollView,
@@ -7,10 +7,12 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { searchPlaces } from './api/place';
+import type { PlaceHit } from './api/types';
 import type { RestaurantHit } from './format';
 import { restaurantFor } from './restaurantMock';
 import { SEARCH_FILTERS, searchWithFilter, type SearchFilter } from './searchFilters';
-import { fonts, spacing, useTheme } from './theme';
+import { fonts, palette, spacing, useTheme } from './theme';
 
 // Tela de busca/explorar (mock docs/16). Header com voltar + campo +
 // chips de filtro; resultados com miniatura (cor da capa), nome, meta e
@@ -29,11 +31,55 @@ export function SearchScreen({
   const t = useTheme();
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<SearchFilter>('todos');
-  const hits = searchWithFilter(query, filter);
+  const [osmHits, setOsmHits] = useState<PlaceHit[]>([]);
+  const localHits = searchWithFilter(query, filter);
 
-  const choose = (hit: RestaurantHit) => {
-    if (onPick) onPick(hit);
-    else onOpenRestaurant(hit.cnpj);
+  // Fallback OSM: só quando a busca local não encontra nada. A API
+  // responde com resultados `local` (cadastro) ou `osm` (Nominatim).
+  useEffect(() => {
+    const q = query.trim();
+    if (q.length < 2 || localHits.length > 0) {
+      setOsmHits([]);
+      return;
+    }
+    let active = true;
+    searchPlaces(q)
+      .then((hits) => {
+        if (active) setOsmHits(hits);
+      })
+      .catch(() => {
+        if (active) setOsmHits([]);
+      });
+    return () => {
+      active = false;
+    };
+  }, [query, localHits.length]);
+
+  const display =
+    localHits.length > 0
+      ? localHits.map((hit) => {
+          const d = restaurantFor(hit.cnpj);
+          return {
+            id: hit.cnpj,
+            nome: hit.nome,
+            meta: [d.categoria, d.bairro, d.preco].filter(Boolean).join(' · '),
+            nota: d.notaMedia.toFixed(1),
+            capa: d.capa,
+            isOsm: false,
+          };
+        })
+      : osmHits.map((hit) => ({
+          id: hit.id,
+          nome: hit.nome,
+          meta: [hit.categoria, hit.bairro].filter(Boolean).join(' · '),
+          nota: hit.nota == null ? null : hit.nota.toFixed(1),
+          capa: palette.picles,
+          isOsm: true,
+        }));
+
+  const choose = (id: string, nome: string) => {
+    if (onPick) onPick({ cnpj: id, nome });
+    else onOpenRestaurant(id);
   };
 
   return (
@@ -96,41 +142,39 @@ export function SearchScreen({
 
       <Text style={[s.title, { color: t.sub }]}>resultados</Text>
 
-      {hits.length === 0 ? (
+      {display.length === 0 ? (
         <Text testID="busca-vazio" style={[s.empty, { color: t.sub }]}>
           Não encontramos “{query}” por aqui. Tente outro nome ou bairro.
         </Text>
       ) : (
-        hits.map((hit) => {
-          const d = restaurantFor(hit.cnpj);
-          return (
-            <Pressable
-              key={hit.cnpj}
-              testID={`busca-hit-${hit.cnpj}`}
-              onPress={() => choose(hit)}
-              style={({ pressed }) => [
-                s.row,
-                { borderBottomColor: t.line },
-                pressed && { opacity: 0.85 },
-              ]}
-              accessibilityRole="button"
-              accessibilityLabel={`abrir ${hit.nome}`}
-            >
-              <View style={[s.thumb, { backgroundColor: d.capa }]} />
-              <View style={s.rowBody}>
-                <Text style={[s.name, { color: t.ink }]} numberOfLines={1}>
-                  {hit.nome}
-                </Text>
-                <Text style={[s.meta, { color: t.sub }]} numberOfLines={1}>
-                  {d.categoria} · {d.bairro} · {d.preco}
-                </Text>
-              </View>
-              <Text style={[s.note, { color: t.ink }]}>
-                {d.notaMedia.toFixed(1)}
+        display.map((hit) => (
+          <Pressable
+            key={hit.id}
+            testID={`busca-hit-${hit.id}`}
+            onPress={() => choose(hit.id, hit.nome)}
+            style={({ pressed }) => [
+              s.row,
+              { borderBottomColor: t.line },
+              pressed && { opacity: 0.85 },
+            ]}
+            accessibilityRole="button"
+            accessibilityLabel={`abrir ${hit.nome}`}
+          >
+            <View style={[s.thumb, { backgroundColor: hit.capa }]} />
+            <View style={s.rowBody}>
+              <Text style={[s.name, { color: t.ink }]} numberOfLines={1}>
+                {hit.nome}
               </Text>
-            </Pressable>
-          );
-        })
+              <Text style={[s.meta, { color: t.sub }]} numberOfLines={1}>
+                {hit.meta}
+                {hit.isOsm ? ' · osm' : ''}
+              </Text>
+            </View>
+            {hit.nota ? (
+              <Text style={[s.note, { color: t.ink }]}>{hit.nota}</Text>
+            ) : null}
+          </Pressable>
+        ))
       )}
     </ScrollView>
   );
