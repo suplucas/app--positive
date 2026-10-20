@@ -1,9 +1,15 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { create, ReactTestRenderer, act } from 'react-test-renderer';
 import { createElement } from 'react';
 import { RestaurantScreen } from './RestaurantScreen';
 import { restaurantFor } from './restaurantMock';
 import { restaurantNames } from './restaurantNames';
+import { getRestaurant, getRestaurantReviews } from './api/restaurant';
+
+vi.mock('./api/restaurant.js', () => ({
+  getRestaurant: vi.fn(),
+  getRestaurantReviews: vi.fn(),
+}));
 
 const [cnpjExemplo] = Object.entries(restaurantNames)[0];
 const data = restaurantFor(cnpjExemplo);
@@ -12,6 +18,7 @@ function render(props: Partial<Parameters<typeof RestaurantScreen>[0]> = {}) {
   const r = create(
     createElement(RestaurantScreen, {
       cnpj: cnpjExemplo,
+      data,
       onBack: vi.fn(),
       onEvaluate: vi.fn(),
       ...props,
@@ -19,6 +26,11 @@ function render(props: Partial<Parameters<typeof RestaurantScreen>[0]> = {}) {
   );
   return r as ReactTestRenderer;
 }
+
+beforeEach(() => {
+  vi.mocked(getRestaurant).mockReset();
+  vi.mocked(getRestaurantReviews).mockReset();
+});
 
 function byID(r: ReactTestRenderer, id: string) {
   return r.root.findByProps({ testID: id });
@@ -108,5 +120,48 @@ describe('RestaurantScreen (docs_05)', () => {
     const text = JSON.stringify(render().toJSON());
     expect(text).toContain('pessoas que você segue já avaliaram aqui');
     expect(text).toContain(data.seguemAvaliaram[0]!);
+  });
+
+  it('aceita dados injetados (API/mapa) sem cair no mock', () => {
+    const injetado = { ...data, nome: 'Restaurante Injetado', notaMedia: 8.8 };
+    const text = JSON.stringify(render({ data: injetado }).toJSON());
+    expect(text).toContain('Restaurante Injetado');
+    expect(text).toContain('8.8');
+  });
+
+  it('sem data injetada, busca perfil + reviews na API', async () => {
+    vi.mocked(getRestaurant).mockResolvedValue({
+      cnpj: cnpjExemplo,
+      nome: 'Restaurante da API',
+      categoria: 'massa',
+      bairro: null,
+      municipio: 'São Paulo',
+      preco: null,
+      endereco: 'Rua A',
+      lat: null,
+      lng: null,
+      notaMedia: 8.5,
+      totalAvaliacoes: 1,
+      queroIr: 0,
+      flairs: [{ label: 'volto sim', count: 1 }],
+      seguemAvaliaram: [],
+    });
+    vi.mocked(getRestaurantReviews).mockResolvedValue({
+      page: 1,
+      limit: 20,
+      total: 0,
+      results: [],
+    });
+
+    const r = create(
+      createElement(RestaurantScreen, {
+        cnpj: cnpjExemplo,
+        onBack: vi.fn(),
+        onEvaluate: vi.fn(),
+      }),
+    );
+    await act(async () => {});
+    expect(JSON.stringify(r.toJSON())).toContain('Restaurante da API');
+    expect(getRestaurant).toHaveBeenCalledWith(cnpjExemplo, undefined);
   });
 });

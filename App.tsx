@@ -301,6 +301,7 @@ export default function App() {
             <LayerScreen>
               <RestaurantScreen
                 cnpj={restaurantCnpj}
+                userId={userId}
                 onBack={() => setRestaurantCnpj(null)}
                 onEvaluate={() => {
                   setComposeCnpj(restaurantCnpj);
