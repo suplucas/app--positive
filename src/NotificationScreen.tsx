@@ -6,21 +6,41 @@ import {
   View,
 } from 'react-native';
 import { formatRelative } from './format';
-import { MOCK_NOTIF } from './notificationMock';
 import { fonts, spacing, useTheme } from './theme';
+import { useNotifications } from './useNotifications';
+import type { AppNotification } from './api/types';
 
-// Tela de notificações (mock, docs/09). Linhas com cnpj abrem a página
-// do restaurante; as demais são informativas. Rodapé deixa claro que é
-// mock até existir endpoint real.
+function iconFor(type: string): string {
+  if (type === 'like') return '♥';
+  if (type === 'follow') return '＋';
+  if (type === 'review') return '✎';
+  if (type === 'save') return '★';
+  return '•';
+}
+
+function textFor(n: AppNotification): string {
+  const actor = n.actorId ?? 'alguém';
+  if (n.type === 'like') return `${actor} curtiu sua avaliação`;
+  if (n.type === 'follow') return `${actor} começou a seguir você`;
+  if (n.type === 'review') return `${actor} publicou uma avaliação`;
+  if (n.type === 'save') return `uma avaliação nova no seu “quero ir”`;
+  return n.type;
+}
+
+// Notificações (docs/09) em camada aberta pelo sino do perfil.
 export function NotificationScreen({
+  userId,
   onOpenRestaurant,
   onBack,
 }: {
+  userId: string;
   onOpenRestaurant?: (cnpj: string) => void;
   // docs/16: virou camada aberta pelo sino do perfil (saiu da navbar).
   onBack?: () => void;
 }) {
   const t = useTheme();
+  const { items, status, markRead } = useNotifications(userId);
+
   return (
     <ScrollView
       style={{ backgroundColor: t.bg }}
@@ -40,12 +60,29 @@ export function NotificationScreen({
           </Pressable>
         </View>
       ) : null}
-      {MOCK_NOTIF.map((n) => {
+
+      {status === 'loading' ? (
+        <Text style={[s.footer, { color: t.sub }]}>carregando…</Text>
+      ) : items.length === 0 ? (
+        <Text style={[s.footer, { color: t.sub }]}>
+          nenhuma notificação por aqui.
+        </Text>
+      ) : null}
+
+      {items.map((n) => {
+        const texto = textFor(n);
         const row = (
           <>
-            <Text style={[s.icon, { color: t.ink }]}>{n.icone}</Text>
+            <Text style={[s.icon, { color: t.ink }]}>{iconFor(n.type)}</Text>
             <View style={s.body}>
-              <Text style={[s.text, { color: t.ink }]}>{n.texto}</Text>
+              <Text
+                style={[
+                  s.text,
+                  { color: t.ink, fontWeight: n.readAt ? '400' : '600' },
+                ]}
+              >
+                {texto}
+              </Text>
             </View>
             <Text style={[s.time, { color: t.sub }]}>
               {formatRelative(n.createdAt)}
@@ -56,27 +93,33 @@ export function NotificationScreen({
           <Pressable
             key={n.id}
             testID={`notif-${n.id}`}
-            onPress={() => onOpenRestaurant?.(n.cnpj!)}
+            onPress={() => {
+              void markRead(n.id);
+              onOpenRestaurant?.(n.cnpj!);
+            }}
             style={({ pressed }) => [
               s.row,
               { borderBottomColor: t.line },
               pressed && { opacity: 0.85 },
             ]}
             accessibilityRole="button"
-            accessibilityLabel={n.texto}
+            accessibilityLabel={texto}
           >
             {row}
           </Pressable>
         ) : (
-          <View key={n.id} testID={`notif-${n.id}`} style={[s.row, { borderBottomColor: t.line }]}>
+          <Pressable
+            key={n.id}
+            testID={`notif-${n.id}`}
+            onPress={() => void markRead(n.id)}
+            style={[s.row, { borderBottomColor: t.line }]}
+            accessibilityRole="button"
+            accessibilityLabel={texto}
+          >
             {row}
-          </View>
+          </Pressable>
         );
       })}
-
-      <Text style={[s.footer, { color: t.sub }]}>
-        Notificações mock — entram com endpoint real.
-      </Text>
     </ScrollView>
   );
 }

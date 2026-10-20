@@ -404,6 +404,7 @@ export default function App() {
           {notifOpen ? (
             <LayerScreen>
               <NotificationScreen
+                userId={userId}
                 onOpenRestaurant={(cnpj) => {
                   setNotifOpen(false);
                   setRestaurantCnpj(cnpj);

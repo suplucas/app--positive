@@ -8,16 +8,14 @@ import {
   View,
 } from 'react-native';
 import { Avatar } from './Avatar';
-import { commentsFor, type ReviewComment } from './commentMock';
 import { formatRelative, getNote, restaurantName } from './format';
 import { SectionTitle } from './SectionTitle';
+import { useComments } from './useComments';
 import { fonts, palette, spacing, useTheme } from './theme';
 import type { Review } from './types';
 
 // Thread de comentários da review (docs/12): abre pelo 💬 dos cards de
-// feed. Comentários iniciais são mock determinístico (commentMock); o
-// comentário novo é **local** (estado da tela) — a API não tem endpoint
-// de comentários ainda.
+// feed. Comentários e envio persistem na API.
 export function CommentThreadScreen({
   review,
   authorId,
@@ -28,25 +26,15 @@ export function CommentThreadScreen({
   onBack: () => void;
 }) {
   const t = useTheme();
-  const mock = commentsFor(String(review.id));
-  const [local, setLocal] = useState<ReviewComment[]>([]);
+  const { comments, status, send } = useComments(review.id, authorId);
   const [draft, setDraft] = useState('');
-  const all = [...mock, ...local];
   const nome = restaurantName(review.restaurantCnpj);
 
-  const send = () => {
+  const submit = () => {
     const text = draft.trim();
     if (!text) return;
-    setLocal((prev) => [
-      ...prev,
-      {
-        id: `${review.id}-local-${prev.length}`,
-        userId: authorId ?? 'você',
-        text,
-        createdAt: new Date().toISOString(),
-      },
-    ]);
     setDraft('');
+    void send(text);
   };
 
   return (
@@ -68,7 +56,7 @@ export function CommentThreadScreen({
         </Pressable>
       </View>
 
-      <SectionTitle>{`comentários · ${all.length}`}</SectionTitle>
+      <SectionTitle>{`comentários · ${comments.length}`}</SectionTitle>
 
       {/* A review em si, compacta no topo da conversa */}
       <View
@@ -93,7 +81,13 @@ export function CommentThreadScreen({
         </View>
       </View>
 
-      {all.map((c) => (
+      {status === 'loading' ? (
+        <Text style={[s.itemText, { color: t.sub, paddingHorizontal: spacing.padrao }]}>
+          carregando…
+        </Text>
+      ) : null}
+
+      {comments.map((c) => (
         <View
           key={c.id}
           testID={`comentario-${c.id}`}
@@ -122,7 +116,7 @@ export function CommentThreadScreen({
         />
         <Pressable
           testID="comentar"
-          onPress={send}
+          onPress={submit}
           disabled={draft.trim() === ''}
           style={[
             s.send,
@@ -139,7 +133,7 @@ export function CommentThreadScreen({
       </View>
 
       <Text style={[s.footer, { color: t.sub }]}>
-        Comentários em modo demo — sincronizam quando houver endpoint.
+        Comentários da comunidade.
       </Text>
     </ScrollView>
   );
