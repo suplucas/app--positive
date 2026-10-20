@@ -2,8 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { act, create, ReactTestRenderer } from 'react-test-renderer';
 import { createElement } from 'react';
 import { ProfileScreen } from './ProfileScreen';
-import { MOCK_POST_PHOTOS } from './postPhotos';
-import { PERFIL, bioFor, displayName } from './mockData';
+import { bioFor, displayName } from './mockData';
 
 function render(props: Partial<Parameters<typeof ProfileScreen>[0]> = {}) {
   const userId = props.userId ?? 'bea_come_tudo';
@@ -23,10 +22,6 @@ function render(props: Partial<Parameters<typeof ProfileScreen>[0]> = {}) {
     createElement(ProfileScreen, { userId, profile, ...props }),
   );
   return { r, text: () => JSON.stringify(r.toJSON()) };
-}
-
-function followLabel(r: ReactTestRenderer): string {
-  return String(r.root.findByProps({ testID: 'seguir-label' }).props.children);
 }
 
 function textsOf(r: ReactTestRenderer, testID: string): string {
@@ -50,52 +45,40 @@ describe('ProfileScreen (v2)', () => {
     expect(text()).toContain('Crítica de fim de semana');
   });
 
-  it('usa foto real em 1 favorito e 1 célula do diário', () => {
+  it('diário mostra as reviews recebidas da API', () => {
+    const review = {
+      id: 1,
+      userId: 'ana',
+      restaurantCnpj: '123',
+      rating: 4.5,
+      comment: 'review vinda da api',
+      likes: 0,
+      createdAt: new Date().toISOString(),
+    };
+    const { text } = render({ reviews: [review] });
+    expect(text()).toContain('review vinda da api');
+  });
+
+  it('não mostra seguir no próprio perfil', () => {
     const { r } = render();
-    expect(
-      r.root.findAllByProps({ testID: 'diario-foto-4' }).length,
-    ).toBeGreaterThan(0);
-    expect(
-      r.root.findAllByProps({ testID: 'favorito-foto-1' }).length,
-    ).toBeGreaterThan(0);
-    // diário usa a 1ª foto, favorito usa a 2ª
-    expect(
-      r.root.findAllByProps({ source: MOCK_POST_PHOTOS[0] }).length,
-    ).toBeGreaterThan(0);
-    expect(
-      r.root.findAllByProps({ source: MOCK_POST_PHOTOS[1] }).length,
-    ).toBeGreaterThan(0);
+    expect(r.root.findAllByProps({ testID: 'seguir' })).toHaveLength(0);
   });
 
-  it('alterna seguir → seguindo ao tocar', () => {
+  it('não tem aba listas (sem endpoint real)', () => {
     const { r } = render();
-    expect(followLabel(r)).toBe('seguir');
-    act(() => {
-      r.root.findByProps({ testID: 'seguir' }).props.onPress();
-    });
-    expect(followLabel(r)).toBe('seguindo');
+    expect(r.root.findAllByProps({ testID: 'tab-listas' })).toHaveLength(0);
+    expect(r.root.findAllByProps({ testID: 'tab-quero-ir' }).length).toBeGreaterThan(0);
+    expect(r.root.findAllByProps({ testID: 'tab-diario' }).length).toBeGreaterThan(0);
   });
 
-  it('abre na aba diário e troca para listas', () => {
-    const { r, text } = render();
-    expect(text()).toContain('Empório Real'); // quote card do diário
-    expect(text()).not.toContain('Melhores pizzarias de SP');
-    act(() => {
-      r.root.findByProps({ testID: 'tab-listas' }).props.onPress();
-    });
-    expect(text()).toContain('Melhores pizzarias de SP');
-    expect(text()).toContain('Levar visita de fora');
-    expect(text()).not.toContain('Empório Real');
-  });
-
-  it('não tem seletor de versão e mantém seguir/abas', () => {
+  it('não tem seletor de versão e mantém as abas', () => {
     const { r } = render();
     expect(r.root.findAllByProps({ testID: 'perfil-v1' })).toHaveLength(0);
     expect(r.root.findAllByProps({ testID: 'perfil-v2' })).toHaveLength(0);
-    expect(r.root.findAllByProps({ testID: 'seguir' }).length).toBeGreaterThan(0);
     expect(
       r.root.findAllByProps({ testID: 'tab-listas' }).length,
-    ).toBeGreaterThan(0);
+    ).toBe(0);
+    expect(r.root.findAllByProps({ testID: 'tab-diario' }).length).toBeGreaterThan(0);
   });
 
   it('bio fica dentro do bloco do username, abaixo do handle', () => {

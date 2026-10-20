@@ -19,8 +19,8 @@ export function useProfile(userId: string, enabled = true) {
     setError(null);
     try {
       const [user, page] = await Promise.all([
-        getUser(userId),
-        getUserReviews(userId),
+        getUser(userId, userId),
+        getUserReviews(userId, 1, 20, userId),
       ]);
       setProfile(user);
       setReviews(page.results);

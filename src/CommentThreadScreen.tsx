@@ -28,13 +28,19 @@ export function CommentThreadScreen({
   const t = useTheme();
   const { comments, status, send } = useComments(review.id, authorId);
   const [draft, setDraft] = useState('');
+  const [error, setError] = useState<string | null>(null);
   const nome = restaurantName(review.restaurantCnpj);
 
-  const submit = () => {
+  const submit = async () => {
     const text = draft.trim();
     if (!text) return;
-    setDraft('');
-    void send(text);
+    setError(null);
+    try {
+      await send(text);
+      setDraft('');
+    } catch {
+      setError('Não consegui comentar agora. Tente de novo.');
+    }
   };
 
   return (
@@ -103,6 +109,12 @@ export function CommentThreadScreen({
           </View>
         </View>
       ))}
+
+      {error ? (
+        <Text testID="comentario-erro" style={[s.itemTime, { color: palette.lambeLambe, paddingHorizontal: spacing.padrao }]}>
+          {error}
+        </Text>
+      ) : null}
 
       <View style={[s.composer, { borderColor: t.line }]}>
         <TextInput

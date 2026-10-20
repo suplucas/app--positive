@@ -1,36 +1,25 @@
 import { useState } from 'react';
 import {
-  Image,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
-import type { ImageSourcePropType } from 'react-native';
 import { Avatar } from './Avatar';
-import { NoteBadge } from './NoteBadge';
-import { PERFIL, bioFor, displayName } from './mockData';
+import { FeedCard } from './FeedCard';
+import { displayName } from './mockData';
 import { SavedList } from './SavedList';
 import type { SavedRestaurant } from './api/user';
 import type { UserProfile } from './api/types';
 import { SectionTitle } from './SectionTitle';
-import { MOCK_POST_PHOTOS } from './postPhotos';
 import { useProfile } from './useProfile';
 import { fonts, palette, spacing, useTheme } from './theme';
+import type { Review } from './types';
 
-type Tab = 'queroir' | 'diario' | 'listas';
+type Tab = 'queroir' | 'diario';
 
-// Foto local por índice (assets/posts) para as células/favoritos mock.
-function photoAt(index: number): ImageSourcePropType {
-  const list = MOCK_POST_PHOTOS;
-  return list[((index % list.length) + list.length) % list.length] ?? list[0]!;
-}
-
-// Tela de perfil com seletor de versão (como o seletor de usuários do
-// feed): v1 = layout simples (bio + stats + favoritos + diário); v2 =
-// mock docs/04 (botão seguir + abas diário/listas + listas). Ambas usam
-// as fotos reais de assets/posts.
+// Perfil final: bio abaixo do username, stats, quero ir e diário.
 export function ProfileScreen({
   onSettings,
   onNotifications,
@@ -40,6 +29,7 @@ export function ProfileScreen({
   onOpenRestaurant,
   onFollowToggle,
   profile,
+  reviews,
   userId: propsUserId,
 }: {
   onSettings?: () => void;
@@ -54,6 +44,7 @@ export function ProfileScreen({
   onFollowToggle?: () => void;
   // Perfil injetado (API/testes); sem ele, busca em /users/:id.
   profile?: UserProfile;
+  reviews?: Review[];
   // N5: o perfil reflete o usuário ativo.
   userId?: string;
 }) {
@@ -115,6 +106,7 @@ export function ProfileScreen({
       <PerfilV2
         userId={userId}
         profile={active}
+        reviews={reviews ?? remote.reviews}
         savedCnpjs={savedCnpjs}
         savedItems={savedItems}
         onRemoveSaved={onRemoveSaved}
@@ -129,6 +121,7 @@ export function ProfileScreen({
 function PerfilV2({
   userId,
   profile,
+  reviews,
   savedCnpjs = [],
   savedItems,
   onRemoveSaved,
@@ -137,6 +130,7 @@ function PerfilV2({
 }: {
   userId: string;
   profile: UserProfile;
+  reviews: Review[];
   savedCnpjs?: string[];
   savedItems?: SavedRestaurant[];
   onRemoveSaved?: (cnpj: string) => void;
@@ -148,7 +142,7 @@ function PerfilV2({
   const [tab, setTab] = useState<Tab>('diario');
   const nome = profile.name || displayName(userId);
   const handle = profile.handle ?? userId;
-  const bio = profile.bio ?? bioFor(userId);
+  const bio = profile.bio ?? '';
 
   return (
     <>
@@ -157,28 +151,30 @@ function PerfilV2({
         <View style={s.who} testID="perfil-identidade">
           <View style={s.nameRow}>
             <Text style={[s.name, { color: t.ink }]}>{nome}</Text>
-            <Pressable
-              testID="seguir"
-              onPress={() => {
-                setFollowing((v) => !v);
-                onFollowToggle?.();
-              }}
-              hitSlop={6}
-              style={[
-                s.followBtn,
-                { borderColor: t.ink, backgroundColor: t.ink },
-                following && { backgroundColor: 'transparent', opacity: 0.7 },
-              ]}
-              accessibilityRole="button"
-              accessibilityState={{ selected: following }}
-            >
-              <Text
-                testID="seguir-label"
-                style={[s.followText, { color: following ? t.ink : t.bg }]}
+            {profile.id !== userId ? (
+              <Pressable
+                testID="seguir"
+                onPress={() => {
+                  setFollowing((v) => !v);
+                  onFollowToggle?.();
+                }}
+                hitSlop={6}
+                style={[
+                  s.followBtn,
+                  { borderColor: t.ink, backgroundColor: t.ink },
+                  following && { backgroundColor: 'transparent', opacity: 0.7 },
+                ]}
+                accessibilityRole="button"
+                accessibilityState={{ selected: following }}
               >
-                {following ? 'seguindo' : 'seguir'}
-              </Text>
-            </Pressable>
+                <Text
+                  testID="seguir-label"
+                  style={[s.followText, { color: following ? t.ink : t.bg }]}
+                >
+                  {following ? 'seguindo' : 'seguir'}
+                </Text>
+              </Pressable>
+            ) : null}
           </View>
           <Text style={[s.handle, { color: t.sub }]}>
             {`@${handle} · São Paulo`}
@@ -188,9 +184,6 @@ function PerfilV2({
       </View>
 
       <Stats stats={profile.stats} />
-
-      <SectionTitle>favoritos</SectionTitle>
-      <Shelf />
 
       <View style={[s.contentTabs, { borderBottomColor: t.line }]}>
         <TabButton
@@ -209,14 +202,6 @@ function PerfilV2({
           activeColor={t.ink}
           testID="tab-diario"
         />
-        <TabButton
-          label={`listas · ${PERFIL.listas.length}`}
-          active={tab === 'listas'}
-          onPress={() => setTab('listas')}
-          color={t.sub}
-          activeColor={t.ink}
-          testID="tab-listas"
-        />
       </View>
 
       {tab === 'queroir' ? (
@@ -226,10 +211,8 @@ function PerfilV2({
           onRemove={onRemoveSaved ?? (() => {})}
           onOpenRestaurant={onOpenRestaurant ?? (() => {})}
         />
-      ) : tab === 'diario' ? (
-        <Diary />
       ) : (
-        <Lists />
+        <Diary reviews={reviews} />
       )}
 
       <Text style={[s.legend, { color: t.sub }]}>
@@ -269,86 +252,19 @@ function Stats({
   );
 }
 
-function Shelf() {
-  return (
-    <View style={s.shelf}>
-      {PERFIL.favoritos.map((f, i) => (
-        <View
-          key={f.nota}
-          style={[s.sq, { backgroundColor: f.cor }]}
-          testID={f.photoIndex != null ? `favorito-foto-${i}` : undefined}
-        >
-          {f.photoIndex != null ? (
-            <Image source={photoAt(f.photoIndex)} style={s.fill} />
-          ) : null}
-          <NoteBadge note={f.nota} variant="chip" />
-        </View>
-      ))}
-    </View>
-  );
-}
-
-function Diary() {
-  return (
-    <View style={s.diaryGrid}>
-      {PERFIL.diario.map((cell, i) =>
-        cell.kind === 'quote' ? (
-          <View
-            key={`q-${i}`}
-            style={[s.cellQuote, { backgroundColor: cell.cor }]}
-          >
-            <View style={s.qmeta}>
-              <Text
-                style={[s.qPlace, { color: quoteInk(cell.cor) }]}
-                numberOfLines={1}
-              >
-                {cell.place}
-              </Text>
-              <Text style={[s.qNote, { color: quoteInk(cell.cor) }]}>
-                {cell.nota}
-              </Text>
-            </View>
-            <Text
-              style={[s.qText, { color: quoteInk(cell.cor) }]}
-              numberOfLines={2}
-            >
-              “{cell.text}”
-            </Text>
-          </View>
-        ) : cell.kind === 'photo' || cell.photoIndex != null ? (
-          <View
-            key={`p-${i}`}
-            testID={`diario-foto-${i}`}
-            style={[s.cell, { backgroundColor: cell.cor }]}
-          >
-            <Image source={photoAt(cell.photoIndex ?? 0)} style={s.fill} />
-            <NoteBadge note={cell.nota} variant="chip" />
-          </View>
-        ) : (
-          <View
-            key={`n-${i}`}
-            style={[s.cell, { backgroundColor: cell.cor }]}
-          >
-            <NoteBadge note={cell.nota} variant="chip" />
-          </View>
-        ),
-      )}
-    </View>
-  );
-}
-
-function Lists() {
+function Diary({ reviews }: { reviews: Review[] }) {
   const t = useTheme();
+  if (reviews.length === 0) {
+    return (
+      <Text style={[s.emptyDiary, { color: t.sub }]}>
+        sem avaliações ainda.
+      </Text>
+    );
+  }
   return (
-    <View style={s.lists}>
-      {PERFIL.listas.map((l) => (
-        <View key={l.title} style={[s.listCard, { borderBottomColor: t.line }]}>
-          <Collage cores={l.cores} />
-          <View style={s.listBody}>
-            <Text style={[s.listTitle, { color: t.ink }]}>{l.title}</Text>
-            <Text style={[s.listMeta, { color: t.sub }]}>{l.meta}</Text>
-          </View>
-        </View>
+    <View style={s.diaryList}>
+      {reviews.map((review) => (
+        <FeedCard key={String(review.id)} review={review} />
       ))}
     </View>
   );
@@ -387,28 +303,6 @@ function TabButton({
       </Text>
     </Pressable>
   );
-}
-
-// Colagem 2×2 do card de lista: 1ª cor ocupa a coluna inteira à esquerda.
-function Collage({ cores }: { cores: string[] }) {
-  return (
-    <View style={s.collage}>
-      <View style={[s.collageTall, { backgroundColor: cores[0] }]} />
-      <View style={s.collageCol}>
-        <View style={[s.collageSmall, { backgroundColor: cores[1] }]} />
-        <View style={[s.collageSmall, { backgroundColor: cores[2] }]} />
-      </View>
-    </View>
-  );
-}
-
-// Texto sobre as cores cheias de marca (mostarda → berinjela, pink → papel).
-const INK_ON: Record<string, string> = {
-  [palette.mostarda]: palette.berinjela,
-  [palette.lambeLambe]: palette.papel,
-};
-function quoteInk(bg: string): string {
-  return INK_ON[bg] ?? palette.papel;
 }
 
 const s = StyleSheet.create({
@@ -554,4 +448,10 @@ const s = StyleSheet.create({
     paddingHorizontal: spacing.padrao,
     paddingTop: spacing.padrao,
   },
+  emptyDiary: {
+    fontSize: 13,
+    paddingHorizontal: spacing.padrao,
+    paddingTop: spacing.secao,
+  },
+  diaryList: { paddingTop: spacing.interno },
 });

@@ -8,14 +8,18 @@ export type SavedRestaurant = {
   nota: number | null;
 };
 
-export async function getUser(id: string, baseUrl?: string) {
-  return apiFetch<UserProfile>(`/users/${encodeURIComponent(id)}`, { baseUrl });
+export async function getUser(id: string, viewerId?: string, baseUrl?: string) {
+  return apiFetch<UserProfile>(`/users/${encodeURIComponent(id)}`, {
+    userId: viewerId,
+    baseUrl,
+  });
 }
 
 export async function getUserReviews(
   id: string,
   page = 1,
   limit = 20,
+  viewerId?: string,
   baseUrl?: string,
 ) {
   return apiFetch<{
@@ -24,6 +28,7 @@ export async function getUserReviews(
     total: number;
     results: Review[];
   }>(`/users/${encodeURIComponent(id)}/reviews?page=${page}&limit=${limit}`, {
+    userId: viewerId,
     baseUrl,
   });
 }
@@ -34,7 +39,7 @@ export async function getSaves(
 ): Promise<SavedRestaurant[]> {
   return apiFetch<SavedRestaurant[]>(
     `/users/${encodeURIComponent(userId)}/saves`,
-    { baseUrl },
+    { userId, baseUrl },
   );
 }
 

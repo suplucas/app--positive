@@ -111,18 +111,34 @@ export function RestaurantProfileTemplate({
         </Pressable>
       </View>
 
-      <Text style={[s.proof, { color: t.sub }]}>
-        {data.totalAvaliacoes} pessoas que você segue já avaliaram aqui,
-        incluindo{' '}
-        <Text style={[s.proofBold, { color: t.ink }]}>
-          {data.seguemAvaliaram[0]}
-        </Text>{' '}
-        e{' '}
-        <Text style={[s.proofBold, { color: t.ink }]}>
-          {data.seguemAvaliaram[1]}
+      {data.totalAvaliacoes > 0 ? (
+        <Text style={[s.proof, { color: t.sub }]}>
+          {data.seguemAvaliaram.length >= 2 ? (
+            <>
+              {data.totalAvaliacoes} pessoas que você segue já avaliaram aqui,
+              incluindo{' '}
+              <Text style={[s.proofBold, { color: t.ink }]}>
+                {data.seguemAvaliaram[0]}
+              </Text>{' '}
+              e{' '}
+              <Text style={[s.proofBold, { color: t.ink }]}>
+                {data.seguemAvaliaram[1]}
+              </Text>
+              .
+            </>
+          ) : data.seguemAvaliaram.length === 1 ? (
+            <>
+              {data.totalAvaliacoes} pessoas já avaliaram aqui, incluindo{' '}
+              <Text style={[s.proofBold, { color: t.ink }]}>
+                {data.seguemAvaliaram[0]}
+              </Text>
+              .
+            </>
+          ) : (
+            `${data.totalAvaliacoes} avaliações da comunidade.`
+          )}
         </Text>
-        .
-      </Text>
+      ) : null}
 
       <SectionTitle>o que a galera diz</SectionTitle>
       <View style={s.flairWrap}>

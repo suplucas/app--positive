@@ -143,7 +143,12 @@ export default function App() {
       const remotePhoto = item.photoUrl
         ? { uri: resolvePhotoUrl(item.photoUrl) }
         : null;
-      const photo = remotePhoto ?? photoFor(item, index);
+      const isMock =
+        item.layout != null ||
+        item.photoIndex != null ||
+        item.photoIndexes != null;
+      const photo =
+        remotePhoto ?? (isMock ? photoFor(item, index) : null);
       const strong = item.rating != null && item.rating * 2 >= STRONG_NOTE;
       const layout: ReviewLayout =
         item.layout ?? (photo ? 'photo' : strong ? 'quote' : 'row');
