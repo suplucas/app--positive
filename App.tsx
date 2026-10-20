@@ -110,7 +110,8 @@ export default function App() {
     );
   const feedVisible =
     screen === 'feed' && !restaurantCnpj && !settingsOpen;
-  const { items, status, error, hasMore, refresh, loadMore } = useFeed(userId);
+  const { items, status, error, hasMore, refresh, loadMore, like } =
+    useFeed(userId);
 
   const onEndReached = useCallback(() => {
     if (status !== 'loading-more' && status !== 'loading') {
@@ -264,6 +265,7 @@ export default function App() {
                       photos={d.photos}
                       onPress={openPlace}
                       onComments={openComments}
+                      onLike={() => void like(item)}
                     />
                   );
                 }
@@ -274,11 +276,12 @@ export default function App() {
                       tone={d.tone}
                       onPress={openPlace}
                       onComments={openComments}
+                      onLike={() => void like(item)}
                     />
                   );
                 }
                 return (
-                  <FeedCard review={item} onPress={openPlace} onComments={openComments} />
+                  <FeedCard review={item} onPress={openPlace} onComments={openComments} onLike={() => void like(item)} />
                 );
               }}
               onEndReachedThreshold={0.4}

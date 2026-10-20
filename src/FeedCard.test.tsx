@@ -116,4 +116,18 @@ describe('FeedCard', () => {
     const { r } = render();
     expect(r.root.findByProps({ testID: 'card-1' }).props.onPress).toBeUndefined();
   });
+
+  it('like chama onLike quando recebido', () => {
+    const onLike = vi.fn();
+    const { r } = render({ onLike });
+    act(() => {
+      r.root.findByProps({ testID: 'like-1' }).props.onPress();
+    });
+    expect(onLike).toHaveBeenCalled();
+  });
+
+  it('sem onLike, o número de likes não é botão', () => {
+    const { r } = render();
+    expect(r.root.findAllByProps({ testID: 'like-1' })).toHaveLength(0);
+  });
 });

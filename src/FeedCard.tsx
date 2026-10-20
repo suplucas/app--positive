@@ -15,6 +15,7 @@ export function FeedCard({
   strong = false,
   onPress,
   onComments,
+  onLike,
 }: {
   review: Review;
   strong?: boolean;
@@ -22,6 +23,7 @@ export function FeedCard({
   // docs/12: abre a thread de comentários (só quando o App passa o
   // callback — ex.: cards da página do restaurante não têm thread).
   onComments?: () => void;
+  onLike?: () => void;
 }) {
   const t = useTheme();
   const nome = restaurantName(review.restaurantCnpj);
@@ -46,7 +48,19 @@ export function FeedCard({
           />
         ) : null}
         <View style={s.meta}>
-          <Text style={[s.metaText, { color: t.sub }]}>▲ {review.likes}</Text>
+          {onLike ? (
+            <Pressable
+              testID={`like-${review.id}`}
+              onPress={onLike}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel="curtir avaliação"
+            >
+              <Text style={[s.metaText, { color: t.sub }]}>▲ {review.likes}</Text>
+            </Pressable>
+          ) : (
+            <Text style={[s.metaText, { color: t.sub }]}>▲ {review.likes}</Text>
+          )}
           <Text style={[s.metaText, { color: t.sub }]}>
             {formatRelative(review.createdAt)}
           </Text>

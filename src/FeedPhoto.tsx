@@ -27,12 +27,14 @@ export function FeedPhoto({
   photos,
   onPress,
   onComments,
+  onLike,
 }: {
   review: Review;
   photos: ImageSourcePropType[];
   onPress?: () => void;
   // docs/12: abre a thread de comentários (opcional, como `onPress`).
   onComments?: () => void;
+  onLike?: () => void;
 }) {
   const t = useTheme();
   const [saved, setSaved] = useState(false);
@@ -139,7 +141,19 @@ export function FeedPhoto({
       ) : null}
 
       <View style={s.actions}>
-        <Text style={[s.action, { color: t.sub }]}>▲ {review.likes}</Text>
+        {onLike ? (
+          <Pressable
+            testID={`like-photo-${review.id}`}
+            onPress={onLike}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel="curtir avaliação"
+          >
+            <Text style={[s.action, { color: t.sub }]}>▲ {review.likes}</Text>
+          </Pressable>
+        ) : (
+          <Text style={[s.action, { color: t.sub }]}>▲ {review.likes}</Text>
+        )}
         {review.flairs?.[0] ? <Flair label={review.flairs[0]} /> : null}
         {onComments ? (
           <Pressable

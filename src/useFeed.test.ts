@@ -3,12 +3,13 @@ import { act, create, ReactTestRenderer } from "react-test-renderer";
 import { createElement } from "react";
 import { useFeed } from "./useFeed";
 import { MOCK_USER } from "./mockFeed";
-import { getFeed } from "./api";
+import { getFeed, likeReview } from "./api";
 import type { FeedResponse } from "./types";
 
-vi.mock("./api.js", () => ({ getFeed: vi.fn() }));
+vi.mock("./api.js", () => ({ getFeed: vi.fn(), likeReview: vi.fn() }));
 
 const getFeedMock = vi.mocked(getFeed);
+const likeReviewMock = vi.mocked(likeReview);
 
 const page20 = (page: number) => ({
   page,
@@ -239,6 +240,19 @@ describe("useFeed", () => {
     expect(h.get().items).toHaveLength(1);
     expect(h.get().hasMore).toBe(false);
     expect(h.get().status).toBe("idle");
+  });
+
+  it("like otimista soma 1 e chama a API", async () => {
+    getFeedMock.mockResolvedValue(page20(1));
+    likeReviewMock.mockResolvedValue({ id: 100, likes: 1 });
+    const h = renderHook("user_1");
+    await act(async () => {});
+    const first = h.get().items[0]!;
+    await act(async () => {
+      await h.get().like(first);
+    });
+    expect(h.get().items[0]!.likes).toBe(1);
+    expect(likeReviewMock).toHaveBeenCalledWith("user_1", first.id);
   });
 
   it("usuário mock não é mais especial: busca no backend", async () => {

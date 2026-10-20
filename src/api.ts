@@ -47,6 +47,19 @@ export async function postReview(
   return data;
 }
 
+// Incrementa o like da review no backend. O otimismo (+1) fica no hook.
+export async function likeReview(
+  userId: string,
+  id: string | number,
+  baseUrl?: string,
+): Promise<{ id: number; likes: number }> {
+  return apiFetch<{ id: number; likes: number }>(`/reviews/${id}/like`, {
+    method: "POST",
+    userId,
+    baseUrl,
+  });
+}
+
 // Sobe a foto da review (multipart) e devolve a URL pública salva no
 // storage. Chamada antes do POST /reviews; a review guarda só a URL.
 export async function uploadReviewPhoto(

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { getFeed, postReview } from "./api";
+import { getFeed, likeReview, postReview } from "./api";
 
 const okBody = {
   page: 1,
@@ -82,6 +82,26 @@ describe("getFeed", () => {
     );
     if (prev === undefined) delete process.env.EXPO_PUBLIC_API_URL;
     else process.env.EXPO_PUBLIC_API_URL = prev;
+  });
+});
+
+describe("likeReview", () => {
+  it("faz POST /reviews/:id/like com x-user-id", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ id: 7, likes: 4 }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(likeReview("user_1", 7, "http://api.test")).resolves.toEqual({
+      id: 7,
+      likes: 4,
+    });
+    expect(fetchMock.mock.calls[0][0]).toBe("http://api.test/reviews/7/like");
+    expect(fetchMock.mock.calls[0][1]).toMatchObject({
+      method: "POST",
+      headers: expect.objectContaining({ "x-user-id": "user_1" }),
+    });
   });
 });
 

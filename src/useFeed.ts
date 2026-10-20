@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { getFeed } from "./api";
+import { getFeed, likeReview } from "./api";
 import type { FeedStatus, Review } from "./types";
 
 const DEFAULT_LIMIT = 20;
@@ -58,6 +58,27 @@ export function useFeed(userId: string, limit: number = DEFAULT_LIMIT) {
     await loadPage(pageRef.current + 1, "append");
   }, [hasMore, status, items.length, loadPage]);
 
+  // Like otimista: soma 1 na hora e desfaz se a API falhar.
+  const like = useCallback(
+    async (review: Review) => {
+      const bump = (delta: number) =>
+        setItems((prev) =>
+          prev.map((item) =>
+            item.id === review.id
+              ? { ...item, likes: Math.max(0, item.likes + delta) }
+              : item,
+          ),
+        );
+      bump(1);
+      try {
+        await likeReview(userId, review.id);
+      } catch {
+        bump(-1);
+      }
+    },
+    [userId],
+  );
+
   // initial load + reload on user change
   useEffect(() => {
     pageRef.current = 1;
@@ -68,5 +89,5 @@ export function useFeed(userId: string, limit: number = DEFAULT_LIMIT) {
     void loadPage(1, "replace");
   }, [userId, loadPage]);
 
-  return { items, status, error, hasMore, refresh, loadMore };
+  return { items, status, error, hasMore, refresh, loadMore, like };
 }

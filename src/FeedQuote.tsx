@@ -15,12 +15,14 @@ export function FeedQuote({
   tone = 'mostarda',
   onPress,
   onComments,
+  onLike,
 }: {
   review: Review;
   tone?: 'mostarda' | 'lambeLambe';
   onPress?: () => void;
   // docs/12: abre a thread de comentários (opcional, como `onPress`).
   onComments?: () => void;
+  onLike?: () => void;
 }) {
   const nome = restaurantName(review.restaurantCnpj);
   const bg = tone === 'lambeLambe' ? palette.lambeLambe : palette.mostarda;
@@ -46,8 +48,21 @@ export function FeedQuote({
         </Text>
         <View style={s.metaRight}>
           {review.flairs?.[0] ? <Flair label={review.flairs[0]} /> : null}
+          {onLike ? (
+            <Pressable
+              testID={`like-quote-${review.id}`}
+              onPress={onLike}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel="curtir avaliação"
+            >
+              <Text style={[s.actions, { color: ink }]}>▲ {review.likes}</Text>
+            </Pressable>
+          ) : (
+            <Text style={[s.actions, { color: ink }]}>▲ {review.likes}</Text>
+          )}
           <Text style={[s.actions, { color: ink }]}>
-            ▲ {review.likes} · {formatRelative(review.createdAt)}
+            · {formatRelative(review.createdAt)}
           </Text>
           {onComments ? (
             <Pressable
