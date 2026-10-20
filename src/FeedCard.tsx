@@ -61,7 +61,9 @@ export function FeedCard({
               <Text style={[s.metaText, { color: t.sub }]}>💬</Text>
             </Pressable>
           ) : null}
-          <Flair strong={strong} />
+          {review.flairs?.[0] ? (
+            <Flair label={review.flairs[0]} strong={strong} />
+          ) : null}
         </View>
       </View>
       <NoteBadge note={getNote(review.rating)} />

@@ -1,7 +1,14 @@
 // Helpers de apresentação: nota na escala 0-10, tempo relativo,
 // cor de avatar por usuário e resolução de nome de restaurante.
 import { restaurantNames } from "./restaurantNames";
+import { apiBaseUrl } from "./api/client";
 import { palette } from "./theme";
+
+// URL de foto vinda da API: absoluta ou relativa ao backend.
+export function resolvePhotoUrl(url: string): string {
+  if (/^https?:\/\//i.test(url)) return url;
+  return `${apiBaseUrl()}${url.startsWith("/") ? "" : "/"}${url}`;
+}
 
 // API guarda rating 0-5; a marca (protótipo/identidade) usa notas 0-10.
 export function getNote(rating: number | null): string {

@@ -10,6 +10,7 @@ import {
   View,
 } from 'react-native';
 import { Avatar } from './Avatar';
+import { Flair } from './Flair';
 import { formatRelative, getNote, restaurantName } from './format';
 import { fonts, palette, spacing, useTheme } from './theme';
 import type { Review } from './types';
@@ -139,6 +140,7 @@ export function FeedPhoto({
 
       <View style={s.actions}>
         <Text style={[s.action, { color: t.sub }]}>▲ {review.likes}</Text>
+        {review.flairs?.[0] ? <Flair label={review.flairs[0]} /> : null}
         {onComments ? (
           <Pressable
             testID={`comentar-photo-${review.id}`}

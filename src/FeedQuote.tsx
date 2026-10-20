@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Avatar } from './Avatar';
 import { ExpandableText } from './ExpandableText';
+import { Flair } from './Flair';
 import { formatRelative, getNote, restaurantName } from './format';
 import { fonts, palette, spacing } from './theme';
 import type { Review } from './types';
@@ -44,6 +45,7 @@ export function FeedQuote({
           {nome ?? ''}
         </Text>
         <View style={s.metaRight}>
+          {review.flairs?.[0] ? <Flair label={review.flairs[0]} /> : null}
           <Text style={[s.actions, { color: ink }]}>
             ▲ {review.likes} · {formatRelative(review.createdAt)}
           </Text>

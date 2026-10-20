@@ -6,7 +6,26 @@ import {
   restaurantName,
   searchRestaurants,
   friendlyApiError,
+  resolvePhotoUrl,
 } from "./format";
+
+describe("resolvePhotoUrl", () => {
+  it("mantém URL absoluta", () => {
+    expect(resolvePhotoUrl("https://cdn.test/a.jpg")).toBe(
+      "https://cdn.test/a.jpg",
+    );
+  });
+
+  it("prefixa URL relativa com a base da API", () => {
+    const prev = process.env.EXPO_PUBLIC_API_URL;
+    process.env.EXPO_PUBLIC_API_URL = "http://api.test";
+    expect(resolvePhotoUrl("/uploads/a.jpg")).toBe(
+      "http://api.test/uploads/a.jpg",
+    );
+    if (prev === undefined) delete process.env.EXPO_PUBLIC_API_URL;
+    else process.env.EXPO_PUBLIC_API_URL = prev;
+  });
+});
 
 describe("getNote", () => {
   it("converte rating 0-5 da API para nota 0-10 (1 casa)", () => {

@@ -9,7 +9,7 @@ import {
   View,
 } from 'react-native';
 import type { ImageSourcePropType } from 'react-native';
-import { postReview } from './api';
+import { postReview, uploadReviewPhoto } from './api';
 import { NoteSlider } from './NoteSlider';
 import { SectionTitle } from './SectionTitle';
 import {
@@ -21,8 +21,9 @@ import {
 import { pickPhoto } from './pickPhoto';
 import { fonts, palette, spacing, useTheme } from './theme';
 
-// Teto de fotos por avaliação (docs/15).
-export const MAX_PHOTOS = 4;
+// Teto de fotos por avaliação (docs/15). A API persiste 1 foto por
+// review nesta fase; o compose acompanha o contrato.
+export const MAX_PHOTOS = 1;
 
 // Flairs disponíveis (docs_04): até 2 por avaliação, o primeiro
 // selecionado sai quando entra o terceiro (mesma regra do mock).
@@ -131,10 +132,19 @@ export function ComposeV2({
     setSending(true);
     setError(null);
     try {
+      const first = photos[0];
+      const uri =
+        first && typeof first === "object" && "uri" in first
+          ? (first as { uri?: string }).uri
+          : undefined;
+      const photoUrl = uri ? await uploadReviewPhoto(userId, uri) : null;
+
       await postReview(userId, {
         restaurantCnpj: selected.cnpj,
         rating: note / 2, // API usa escala 0–5; UI usa 0–10
-        comment: caption.trim() === '' ? null : caption.trim(),
+        comment: caption.trim() === "" ? null : caption.trim(),
+        ...(photoUrl ? { photoUrl } : {}),
+        ...(flairs.length > 0 ? { flairs } : {}),
       });
       onPosted();
     } catch (e) {
@@ -261,7 +271,7 @@ export function ComposeV2({
           <Text style={s.cam}>📷</Text>
           <Text style={[s.photoText, { color: t.sub }]}>adicionar foto</Text>
           <Text style={[s.photoSub, { color: t.sub }]}>
-            da sua galeria · até {MAX_PHOTOS} fotos · sem foto, vira um quote
+            da sua galeria · 1 foto · sem foto, vira um quote
             card
           </Text>
         </Pressable>
@@ -305,7 +315,7 @@ export function ComposeV2({
             ) : null}
           </View>
           <Text style={[s.photoHint, { color: t.sub }]}>
-            até {MAX_PHOTOS} fotos · só local até existir endpoint · × remove
+            foto · vai para a API · × remove
           </Text>
         </>
       )}

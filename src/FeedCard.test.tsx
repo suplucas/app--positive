@@ -12,6 +12,7 @@ const baseReview: Review = {
   comment: 'ótimo',
   likes: 0,
   createdAt: '2026-01-01T00:00:00.000Z',
+  flairs: ['boa pra ir só'],
 };
 
 function render(props: Partial<Parameters<typeof FeedCard>[0]> = {}) {
@@ -78,8 +79,22 @@ describe('FeedCard', () => {
   });
 
   it('flair forte quando marcado (máx 1 por tela é responsabilidade de App)', () => {
-    const { text } = render({ strong: true });
-    expect(text).toContain('chorei de tão bom');
+    const r: ReactTestRenderer = create(
+      createElement(FeedCard, {
+        review: { ...baseReview, flairs: ['chorei de tão bom'] },
+        strong: true,
+      }),
+    );
+    expect(JSON.stringify(r.toJSON())).toContain('chorei de tão bom');
+  });
+
+  it('sem flairs: nenhum chip aparece', () => {
+    const r: ReactTestRenderer = create(
+      createElement(FeedCard, {
+        review: { ...baseReview, flairs: [] },
+      }),
+    );
+    expect(JSON.stringify(r.toJSON())).not.toContain('boa pra ir só');
   });
 
   it('sem flair forte não usa cor cheia', () => {

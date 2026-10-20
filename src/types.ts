@@ -17,6 +17,9 @@ export type Review = {
   // Layout fixo (feeds mock). Ausente → derivado (foto pela regra de
   // índice, quote para nota alta, senão linha).
   layout?: ReviewLayout | null;
+  // Mídia/flairs persistidos na API (integração total).
+  photoUrl?: string | null;
+  flairs?: string[];
 };
 
 export type FeedResponse = {

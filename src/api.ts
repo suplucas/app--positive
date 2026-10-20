@@ -1,4 +1,4 @@
-import { apiFetch } from "./api/client";
+import { ApiError, apiBaseUrl, apiFetch } from "./api/client";
 import type { FeedResponse, Review } from "./types";
 
 export async function getFeed(
@@ -45,4 +45,33 @@ export async function postReview(
     throw new Error("POST /reviews: invalid payload");
   }
   return data;
+}
+
+// Sobe a foto da review (multipart) e devolve a URL pública salva no
+// storage. Chamada antes do POST /reviews; a review guarda só a URL.
+export async function uploadReviewPhoto(
+  userId: string,
+  uri: string,
+  baseUrl?: string,
+): Promise<string> {
+  const form = new FormData();
+  form.append("file", {
+    uri,
+    name: "review.jpg",
+    type: "image/jpeg",
+  } as unknown as Blob);
+
+  const res = await fetch(`${baseUrl ?? apiBaseUrl()}/uploads/review-photo`, {
+    method: "POST",
+    headers: { "x-user-id": userId, Accept: "application/json" },
+    body: form,
+  });
+  if (!res.ok) {
+    throw new ApiError(res.status, "/uploads/review-photo");
+  }
+  const data = (await res.json()) as { url?: unknown };
+  if (typeof data?.url !== "string") {
+    throw new Error("POST /uploads/review-photo: invalid payload");
+  }
+  return data.url;
 }

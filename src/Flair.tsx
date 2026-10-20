@@ -1,10 +1,17 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { fonts, palette, spacing, useTheme } from './theme';
 
-// Flair quieto (padrão, baixo contraste) vs forte (cor cheia, máx. 1 por
-// tela — quem marca `strong` é o App). Nota numérica nunca substitui o
-// flair, e o flair nunca substitui a nota (identidade §09).
-export function Flair({ strong = false }: { strong?: boolean }) {
+// Flair real da review (um dos labels escolhidos no compose). Quieto
+// por padrão; forte pinta a cor cheia (máx. 1 por tela — quem decide é
+// o App). Nota numérica nunca substitui o flair, e o flair nunca
+// substitui a nota (identidade §09).
+export function Flair({
+  label,
+  strong = false,
+}: {
+  label: string;
+  strong?: boolean;
+}) {
   const t = useTheme();
   return (
     <View
@@ -12,7 +19,7 @@ export function Flair({ strong = false }: { strong?: boolean }) {
       style={[s.base, { backgroundColor: strong ? palette.picles : t.quietBg }]}
     >
       <Text style={[s.text, { color: strong ? palette.papel : t.sub }]}>
-        {strong ? 'chorei de tão bom' : 'boa pra ir só'}
+        {label}
       </Text>
     </View>
   );

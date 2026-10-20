@@ -2,15 +2,17 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { create, ReactTestRenderer, act } from 'react-test-renderer';
 import { createElement } from 'react';
 import { ComposeV2 } from './ComposeV2';
-import { postReview } from './api';
+import { postReview, uploadReviewPhoto } from './api';
 import { restaurantNames } from './restaurantNames';
 import type { Review } from './types';
 
 vi.mock('./api', () => ({
   postReview: vi.fn(),
+  uploadReviewPhoto: vi.fn(),
 }));
 
 const postReviewMock = vi.mocked(postReview);
+const uploadPhotoMock = vi.mocked(uploadReviewPhoto);
 
 // Usa um restaurante real do mapa do seed.
 const [cnpjExemplo, nomeExemplo] = Object.entries(restaurantNames)[0];
@@ -85,52 +87,42 @@ describe('ComposeV2 (trocar via busca, docs/16)', () => {
   });
 });
 
-describe('ComposeV2 (várias fotos, docs/15)', () => {
-  it('adiciona até 4 fotos: miniaturas na fila, preview na 1ª', async () => {
-    let n = 0;
+describe('ComposeV2 (foto, docs/15)', () => {
+  it('adiciona 1 foto: miniatura e preview', async () => {
     const r = render({
-      onPickPhoto: async () => ({ uri: `file://f${n++}.jpg` }),
+      onPickPhoto: async () => ({ uri: 'file://f0.jpg' }),
     });
-    for (let i = 0; i < 3; i++) {
-      await act(async () => {
-        byID(r, 'foto-add').props.onPress();
-      });
-    }
+    await act(async () => {
+      byID(r, 'foto-add').props.onPress();
+    });
     expect(r.root.findAllByProps({ testID: 'foto-thumb-0' })).toHaveLength(1);
-    expect(r.root.findAllByProps({ testID: 'foto-thumb-2' })).toHaveLength(1);
     expect(byID(r, 'foto-preview').props.source).toEqual({
       uri: 'file://f0.jpg',
     });
   });
 
-  it('remover a 1ª foto: as demais sobem, preview vira a próxima', async () => {
-    let n = 0;
+  it('teto de 1: o botão de adicionar some depois da foto', async () => {
     const r = render({
-      onPickPhoto: async () => ({ uri: `file://f${n++}.jpg` }),
+      onPickPhoto: async () => ({ uri: 'file://g0.jpg' }),
     });
-    await act(async () => byID(r, 'foto-add').props.onPress());
-    await act(async () => byID(r, 'foto-add').props.onPress());
+    await act(async () => {
+      byID(r, 'foto-add').props.onPress();
+    });
+    expect(r.root.findAllByProps({ testID: 'foto-add' })).toHaveLength(0);
+  });
+
+  it('remover a foto volta ao estado sem preview', async () => {
+    const r = render({
+      onPickPhoto: async () => ({ uri: 'file://f0.jpg' }),
+    });
+    await act(async () => {
+      byID(r, 'foto-add').props.onPress();
+    });
     act(() => {
       byID(r, 'foto-tirar-0').props.onPress();
     });
-    expect(r.root.findAllByProps({ testID: 'foto-thumb-0' })).toHaveLength(1);
-    expect(byID(r, 'foto-preview').props.source).toEqual({
-      uri: 'file://f1.jpg',
-    });
-  });
-
-  it('teto de 4: botão de adicionar some', async () => {
-    let n = 0;
-    const r = render({
-      onPickPhoto: async () => ({ uri: `file://g${n++}.jpg` }),
-    });
-    for (let i = 0; i < 4; i++) {
-      await act(async () => {
-        byID(r, 'foto-add').props.onPress();
-      });
-    }
-    expect(r.root.findAllByProps({ testID: 'foto-add' })).toHaveLength(0);
-    expect(r.root.findAllByProps({ testID: 'foto-thumb-3' })).toHaveLength(1);
+    expect(r.root.findAllByProps({ testID: 'foto-preview' })).toHaveLength(0);
+    expect(r.root.findAllByProps({ testID: 'foto-add' })).toHaveLength(1);
   });
 
   it('cancelar o picker não altera a fila', async () => {
@@ -163,14 +155,14 @@ describe('ComposeV2 (foto real, docs/13)', () => {
     expect(r.root.findAllByProps({ testID: 'foto-preview' })).toHaveLength(0);
   });
 
-  it('estado com foto deixa claro que ela não vai para a API', async () => {
+  it('estado com foto deixa claro que ela vai para a API', async () => {
     const r = render({
       onPickPhoto: async () => ({ uri: 'file://demo/foto.jpg' }),
     });
     await act(async () => {
       byID(r, 'foto-add').props.onPress();
     });
-    expect(JSON.stringify(r.toJSON())).toContain('local');
+    expect(JSON.stringify(r.toJSON())).toContain('vai para a API');
   });
 });
 
@@ -201,6 +193,7 @@ function selectedFlairs(r: ReactTestRenderer): string[] {
 
 beforeEach(() => {
   postReviewMock.mockReset();
+  uploadPhotoMock.mockReset();
   postReviewMock.mockResolvedValue(reviewCreated);
 });
 
@@ -235,6 +228,31 @@ describe('ComposeV2', () => {
       comment: null,
     });
     expect(onPosted).toHaveBeenCalled();
+  });
+
+  it('foto + flairs: sobe a foto e envia photoUrl/flairs', async () => {
+    uploadPhotoMock.mockResolvedValue('/uploads/foto.jpg');
+    const r = render({
+      onPickPhoto: async () => ({ uri: 'file://demo/foto.jpg' }),
+    });
+    pick(r);
+    await act(async () => {
+      byID(r, 'foto-add').props.onPress();
+    });
+    act(() => {
+      byID(r, 'flair-volto-sim').props.onPress();
+    });
+    await act(async () => {
+      byID(r, 'publicar-v2').props.onPress();
+    });
+    expect(uploadPhotoMock).toHaveBeenCalledWith('user_1', 'file://demo/foto.jpg');
+    expect(postReviewMock).toHaveBeenCalledWith(
+      'user_1',
+      expect.objectContaining({
+        photoUrl: '/uploads/foto.jpg',
+        flairs: ['volto sim'],
+      }),
+    );
   });
 
   it('nota no slider vira rating float na API (9.5 → 4.75)', async () => {

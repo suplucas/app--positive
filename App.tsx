@@ -57,7 +57,7 @@ import {
   useTheme,
   type Theme,
 } from './src/theme';
-import { friendlyApiError } from './src/format';
+import { friendlyApiError, resolvePhotoUrl } from './src/format';
 import { useFeed } from './src/useFeed';
 import type { Review, ReviewLayout } from './src/types';
 import type { ImageSourcePropType } from 'react-native';
@@ -133,13 +133,16 @@ export default function App() {
     >();
     let quotes = 0;
     items.forEach((item, index) => {
-      const photo = photoFor(item, index);
+      const remotePhoto = item.photoUrl
+        ? { uri: resolvePhotoUrl(item.photoUrl) }
+        : null;
+      const photo = remotePhoto ?? photoFor(item, index);
       const strong = item.rating != null && item.rating * 2 >= STRONG_NOTE;
       const layout: ReviewLayout =
         item.layout ?? (photo ? 'photo' : strong ? 'quote' : 'row');
       if (layout === 'photo') {
-        // 2+ fotos (mock photoIndexes) → carrossel; senão, foto única.
-        const photos = photosFor(item, index);
+        // Foto remota da API vence; senão, 2+ fotos do mock viram carrossel.
+        const photos = remotePhoto ? [remotePhoto] : photosFor(item, index);
         map.set(item.id, {
           layout,
           photos: photos.length > 0 ? photos : [MOCK_POST_PHOTOS[0]],
