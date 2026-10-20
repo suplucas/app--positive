@@ -43,18 +43,21 @@ STORAGE_DIR=uploads                   # produção: trocar por S3
 
 ## Limitações conhecidas / próximo passo
 
-- **Busca do app**: mantém o catálogo local como primeira camada e usa
-  `/places/search` como fallback; os chips de filtro ainda são
-  client-side. A busca do compose também usa o catálogo local.
-- **Perfil**: favoritos, diário e listas ainda usam `mockData`
-  (favoritos/listas não têm endpoint na spec). Stats, bio, saves e
-  follow já são reais.
+- **Busca do app**: agora é API-only (`/places/search`), com debounce e
+  resultados locais + OSM. O compose ainda usa o catálogo local para o
+  campo de local.
+- **Perfil**: stats, bio, diário (reviews da API), saves e follow
+  existem; favoritos e listas foram removidos por falta de endpoint. O
+  botão seguir fica oculto no próprio perfil (não há tela de outro
+  usuário ainda).
 - **Mapa**: os pins vêm de `GET /places` (restaurantes com review e
   coordenadas). Rode `npm run geocode` na API para popular o backfill.
 - **Auth**: `x-user-id` segue como identidade de POC; não há
   autenticação real.
 - **Nominatim**: público apenas em dev; produção exige provedor
   pago/self-hosted (`OSM_BASE_URL`).
+- **Notificações**: endpoints e produtores de like/follow/comment
+  existem; a lista começa vazia até essas ações acontecerem.
 - **Testes da API**: os 3 testes de `feed_read` em
   `ReviewService.spec.ts` continuam vermelhos; eles já estavam
   modificados no working tree antes desta integração e cobrem um log
