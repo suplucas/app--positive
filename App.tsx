@@ -47,6 +47,7 @@ import { MapScreen } from './src/MapScreen';
 import { NotificationScreen } from './src/NotificationScreen';
 import { SearchScreen } from './src/SearchScreen';
 import { SettingsScreen, type ThemeMode } from './src/SettingsScreen';
+import type { PlaceHit } from './src/api/types';
 import {
   ThemeContext,
   darkTheme,
@@ -91,6 +92,7 @@ export default function App() {
   // Sub-páginas: página do restaurante (aberta no toque em card de feed)
   // e local pré-selecionado na composição (botão "avaliar" do restaurante).
   const [restaurantCnpj, setRestaurantCnpj] = useState<string | null>(null);
+  const [osmPlace, setOsmPlace] = useState<PlaceHit | null>(null);
   const [composeCnpj, setComposeCnpj] = useState<string | null>(null);
   // Lista "quero ir" (docs/10): fonte única de saves, compartilhada com
   // o toggle da página do restaurante.
@@ -224,7 +226,14 @@ export default function App() {
         <View style={styles.content}>
           {screen === 'busca' ? (
             <SearchScreen
-              onOpenRestaurant={(cnpj) => setRestaurantCnpj(cnpj)}
+              onOpenRestaurant={(cnpj) => {
+                setOsmPlace(null);
+                setRestaurantCnpj(cnpj);
+              }}
+              onOpenPlace={(hit) => {
+                setOsmPlace(hit);
+                setRestaurantCnpj(hit.id);
+              }}
               onBack={() => setScreen('feed')}
             />
           ) : screen === 'mapa' ? (
@@ -254,6 +263,7 @@ export default function App() {
                 const d = decorated.get(item.id);
                 const openPlace = () => {
                   if (item.restaurantCnpj) {
+                    setOsmPlace(null);
                     setRestaurantCnpj(String(item.restaurantCnpj));
                   }
                 };
@@ -302,13 +312,25 @@ export default function App() {
               <RestaurantScreen
                 cnpj={restaurantCnpj}
                 userId={userId}
-                onBack={() => setRestaurantCnpj(null)}
+                osmPlace={osmPlace ?? undefined}
+                onBack={() => {
+                  setOsmPlace(null);
+                  setRestaurantCnpj(null);
+                }}
                 onEvaluate={() => {
+                  if (restaurantCnpj.startsWith('osm:')) return;
                   setComposeCnpj(restaurantCnpj);
                   setScreen('compose');
                 }}
-                saved={savedCnpjs.includes(restaurantCnpj)}
-                onSaveToggle={() => toggleSaved(restaurantCnpj)}
+                saved={
+                  !restaurantCnpj.startsWith('osm:') &&
+                  savedCnpjs.includes(restaurantCnpj)
+                }
+                onSaveToggle={
+                  restaurantCnpj.startsWith('osm:')
+                    ? undefined
+                    : () => toggleSaved(restaurantCnpj)
+                }
               />
             </LayerScreen>
           ) : null}

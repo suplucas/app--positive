@@ -20,10 +20,13 @@ import { fonts, palette, spacing, useTheme } from './theme';
 // (quando o `onPick` vem da avaliação: escolher preenche o local).
 export function SearchScreen({
   onOpenRestaurant,
+  onOpenPlace,
   onPick,
   onBack,
 }: {
   onOpenRestaurant: (cnpj: string) => void;
+  // Resultado OSM: o App guarda o hit para abrir o perfil sem CNPJ.
+  onOpenPlace?: (hit: PlaceHit) => void;
   // Modo picker (fluxo "trocar" da avaliação): escolher devolve o hit.
   onPick?: (hit: RestaurantHit) => void;
   onBack?: () => void;
@@ -66,6 +69,7 @@ export function SearchScreen({
             nota: d.notaMedia.toFixed(1),
             capa: d.capa,
             isOsm: false,
+            place: undefined,
           };
         })
       : osmHits.map((hit) => ({
@@ -75,10 +79,12 @@ export function SearchScreen({
           nota: hit.nota == null ? null : hit.nota.toFixed(1),
           capa: palette.picles,
           isOsm: true,
+          place: hit,
         }));
 
-  const choose = (id: string, nome: string) => {
-    if (onPick) onPick({ cnpj: id, nome });
+  const choose = (id: string, nome: string, place?: PlaceHit) => {
+    if (place && onOpenPlace) onOpenPlace(place);
+    else if (onPick) onPick({ cnpj: id, nome });
     else onOpenRestaurant(id);
   };
 
@@ -151,7 +157,7 @@ export function SearchScreen({
           <Pressable
             key={hit.id}
             testID={`busca-hit-${hit.id}`}
-            onPress={() => choose(hit.id, hit.nome)}
+            onPress={() => choose(hit.id, hit.nome, hit.place)}
             style={({ pressed }) => [
               s.row,
               { borderBottomColor: t.line },

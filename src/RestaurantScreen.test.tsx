@@ -164,4 +164,30 @@ describe('RestaurantScreen (docs_05)', () => {
     expect(JSON.stringify(r.toJSON())).toContain('Restaurante da API');
     expect(getRestaurant).toHaveBeenCalledWith(cnpjExemplo, undefined);
   });
+
+  it('resultado OSM abre o template sem chamar a API de restaurante', async () => {
+    const r = create(
+      createElement(RestaurantScreen, {
+        cnpj: 'osm:node/1',
+        osmPlace: {
+          id: 'osm:node/1',
+          source: 'osm',
+          nome: 'Pizza do OSM',
+          endereco: 'Rua OSM, São Paulo',
+          categoria: 'restaurant',
+          lat: -23.55,
+          lng: -46.63,
+          nota: 8.2,
+          bairro: 'Pinheiros',
+        },
+        onBack: vi.fn(),
+        onEvaluate: vi.fn(),
+      }),
+    );
+    await act(async () => {});
+    const text = JSON.stringify(r.toJSON());
+    expect(text).toContain('Pizza do OSM');
+    expect(text).toContain('0');
+    expect(getRestaurant).not.toHaveBeenCalled();
+  });
 });

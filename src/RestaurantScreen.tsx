@@ -1,4 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import type { PlaceHit } from './api/types';
 import {
   RestaurantProfileTemplate,
   type RestaurantProfileData,
@@ -24,6 +25,7 @@ function coverFor(cnpj: string): string {
 export function RestaurantScreen({
   cnpj,
   data: injected,
+  osmPlace,
   userId,
   onBack,
   onEvaluate,
@@ -32,6 +34,9 @@ export function RestaurantScreen({
 }: {
   cnpj: string;
   data?: RestaurantData;
+  // Resultado OSM vindo da busca (id "osm:<tipo>/<id>"): não há
+  // endpoint de restaurante; o template usa o hit e zero reviews.
+  osmPlace?: PlaceHit;
   userId?: string;
   onBack: () => void;
   onEvaluate: () => void;
@@ -41,9 +46,20 @@ export function RestaurantScreen({
   onSaveToggle?: () => void;
 }) {
   const t = useTheme();
-  const remote = useRestaurant(cnpj, userId, !injected);
+  const isOsm = cnpj.startsWith('osm:');
+  const remote = useRestaurant(cnpj, userId, !injected && !isOsm);
 
-  if (!injected && remote.status === 'loading') {
+  if (!injected && isOsm && !osmPlace) {
+    return (
+      <View style={[s.center, { backgroundColor: t.bg }]}>
+        <Text style={[s.message, { color: t.ink }]}>
+          Não encontrei os dados desse lugar no OpenStreetMap.
+        </Text>
+      </View>
+    );
+  }
+
+  if (!injected && !isOsm && remote.status === 'loading') {
     return (
       <View style={[s.center, { backgroundColor: t.bg }]}>
         <Text style={[s.message, { color: t.sub }]}>carregando…</Text>
@@ -51,7 +67,7 @@ export function RestaurantScreen({
     );
   }
 
-  if (!injected && (remote.status === 'error' || !remote.data)) {
+  if (!injected && !isOsm && (remote.status === 'error' || !remote.data)) {
     return (
       <View style={[s.center, { backgroundColor: t.bg }]}>
         <Text style={[s.message, { color: t.ink }]}>
@@ -72,21 +88,37 @@ export function RestaurantScreen({
 
   const data: RestaurantProfileData = injected
     ? injected
-    : {
-        cnpj: remote.data!.cnpj,
-        nome: remote.data!.nome,
-        categoria: remote.data!.categoria,
-        bairro: remote.data!.bairro ?? remote.data!.municipio,
-        preco: remote.data!.preco,
-        distanciaKm: null,
-        capa: coverFor(cnpj),
-        notaMedia: remote.data!.notaMedia,
-        totalAvaliacoes: remote.data!.totalAvaliacoes,
-        queroIr: remote.data!.queroIr,
-        flairs: remote.data!.flairs,
-        seguemAvaliaram: remote.data!.seguemAvaliaram,
-        reviews: remote.reviews,
-      };
+    : isOsm && osmPlace
+      ? {
+          cnpj,
+          nome: osmPlace.nome,
+          categoria: osmPlace.categoria,
+          bairro: osmPlace.bairro ?? null,
+          preco: null,
+          distanciaKm: null,
+          capa: coverFor(cnpj),
+          notaMedia: osmPlace.nota ?? null,
+          totalAvaliacoes: 0,
+          queroIr: 0,
+          flairs: [],
+          seguemAvaliaram: [],
+          reviews: [],
+        }
+      : {
+          cnpj: remote.data!.cnpj,
+          nome: remote.data!.nome,
+          categoria: remote.data!.categoria,
+          bairro: remote.data!.bairro ?? remote.data!.municipio,
+          preco: remote.data!.preco,
+          distanciaKm: null,
+          capa: coverFor(cnpj),
+          notaMedia: remote.data!.notaMedia,
+          totalAvaliacoes: remote.data!.totalAvaliacoes,
+          queroIr: remote.data!.queroIr,
+          flairs: remote.data!.flairs,
+          seguemAvaliaram: remote.data!.seguemAvaliaram,
+          reviews: remote.reviews,
+        };
 
   return (
     <RestaurantProfileTemplate
