@@ -26,6 +26,7 @@ function byID(r: ReactTestRenderer, id: string) {
 
 describe('SettingsScreen', () => {
   it('renderiza todos os usuários de demo e as 3 opções de tema', () => {
+    expect(DEMO_USERS).not.toContain('mock');
     const text = JSON.stringify(render().toJSON());
     for (const u of DEMO_USERS) expect(text).toContain(u);
     expect(text).toContain('sistema');

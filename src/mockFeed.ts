@@ -12,7 +12,6 @@ export const DEMO_USERS = [
   "mogli",
   "dosso",
   "lucas",
-  MOCK_USER,
 ] as const;
 
 function hoursAgo(hours: number): string {
