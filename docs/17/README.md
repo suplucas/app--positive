@@ -86,7 +86,12 @@ Fases 1–4 da spec `2026-10-20-mvp-grupo-pequeno-design.md` entregues:
   recência, proximidade) em `FeedService`; log `feed_read` implementado
   (suíte da API 100% verde).
 
-Pendente (Fase 5 — depende de credenciais/infra):
-- Storage S3-compatible em produção.
-- Deploy da API + app para o grupo.
+Pendente (Fase 5 — deploy):
+- Deploy da API + app para o grupo (env no Railway já suportadas).
 - Estados vazios adicionais e smoke e2e.
+
+Storage de foto: `PHOTO_STORAGE` escolhe **S3-compatible** quando
+`S3_BUCKET` está definido (Railway) e disco local caso contrário.
+Variáveis: `S3_BUCKET`, `S3_REGION`, `S3_ENDPOINT`,
+`S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, `S3_PUBLIC_BASE_URL`,
+`S3_ACL` (opcional).
