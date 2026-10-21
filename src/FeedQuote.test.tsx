@@ -7,7 +7,7 @@ import type { Review } from './types';
 const baseReview: Review = {
   id: 7,
   userId: 'bea_come_tudo',
-  restaurantCnpj: '123',
+  restaurantId: '123',
   rating: 4.5,
   comment: 'volto sempre',
   likes: 12,

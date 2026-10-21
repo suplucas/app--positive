@@ -22,7 +22,7 @@ export async function getFeed(
 }
 
 export type NewReview = {
-  restaurantCnpj: string;
+  restaurantId: string;
   // escala da API 0-5; a UI v2 envia float (nota 0-10 / 2).
   rating: number;
   comment: string | null;

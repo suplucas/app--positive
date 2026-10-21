@@ -131,6 +131,7 @@ describe('RestaurantScreen (docs_05)', () => {
 
   it('sem data injetada, busca perfil + reviews na API', async () => {
     vi.mocked(getRestaurant).mockResolvedValue({
+      id: cnpjExemplo,
       cnpj: cnpjExemplo,
       nome: 'Restaurante da API',
       categoria: 'massa',

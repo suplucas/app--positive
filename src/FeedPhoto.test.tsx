@@ -7,7 +7,7 @@ import type { Review } from './types';
 const baseReview: Review = {
   id: 3,
   userId: 'caio.garfo',
-  restaurantCnpj: '123',
+  restaurantId: '123',
   rating: 4.35,
   comment: 'pastel de feira ainda ganha',
   likes: 61,

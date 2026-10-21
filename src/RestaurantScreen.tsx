@@ -105,7 +105,7 @@ export function RestaurantScreen({
           reviews: [],
         }
       : {
-          cnpj: remote.data!.cnpj,
+          cnpj: remote.data!.id,
           nome: remote.data!.nome,
           categoria: remote.data!.categoria,
           bairro: remote.data!.bairro ?? remote.data!.municipio,

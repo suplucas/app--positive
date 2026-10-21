@@ -42,7 +42,7 @@ export function FeedPhoto({
   const { width: winW } = useWindowDimensions();
   const multi = photos.length > 1;
   const photoH = 480;
-  const nome = restaurantName(review.restaurantCnpj);
+  const nome = restaurantName(review.restaurantId);
 
   const media = multi ? (
     <ScrollView

@@ -5,7 +5,7 @@ export type ReviewLayout = "photo" | "quote" | "row";
 export type Review = {
   id: string | number;
   userId: string;
-  restaurantCnpj: string | null;
+  restaurantId: string | null;
   rating: number | null;
   comment: string | null;
   likes: number;

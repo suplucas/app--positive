@@ -13,7 +13,7 @@ vi.mock('./api/comment.js', () => ({
 const review: Review = {
   id: 'mock-1',
   userId: 'bea_come_tudo',
-  restaurantCnpj: '09597505000150',
+  restaurantId: '09597505000150',
   rating: 4.55,
   comment: 'Pedi o mesmo prato três vezes só pra confirmar que não foi acidente.',
   likes: 128,

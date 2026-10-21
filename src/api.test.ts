@@ -8,7 +8,7 @@ const okBody = {
     {
       id: 1,
       userId: "user_1",
-      restaurantCnpj: "123",
+      restaurantId: "123",
       rating: 5,
       comment: "ok",
       likes: 0,
@@ -109,7 +109,7 @@ describe("postReview", () => {
   const created = {
     id: 99,
     userId: "user_19",
-    restaurantCnpj: "123",
+    restaurantId: "123",
     rating: 4,
     comment: "bom",
     likes: 0,
@@ -125,7 +125,7 @@ describe("postReview", () => {
 
     const r = await postReview(
       "user_19",
-      { restaurantCnpj: "123", rating: 4, comment: "bom" },
+      { restaurantId: "123", rating: 4, comment: "bom" },
       "http://api.test",
     );
 
@@ -138,7 +138,7 @@ describe("postReview", () => {
           "Content-Type": "application/json",
         }),
         body: JSON.stringify({
-          restaurantCnpj: "123",
+          restaurantId: "123",
           rating: 4,
           comment: "bom",
         }),
@@ -159,7 +159,7 @@ describe("postReview", () => {
     await expect(
       postReview(
         "user_1",
-        { restaurantCnpj: "1", rating: 3, comment: null },
+        { restaurantId: "1", rating: 3, comment: null },
         "http://api.test",
       ),
     ).rejects.toThrow(/400/);
@@ -176,7 +176,7 @@ describe("postReview", () => {
     await expect(
       postReview(
         "user_1",
-        { restaurantCnpj: "1", rating: 3, comment: null },
+        { restaurantId: "1", rating: 3, comment: null },
         "http://api.test",
       ),
     ).rejects.toThrow(/invalid payload/);

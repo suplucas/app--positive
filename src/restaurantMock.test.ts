@@ -29,7 +29,7 @@ describe("restaurantFor (mock p/ docs_05)", () => {
     expect(d.reviews.length).toBeGreaterThanOrEqual(3);
     expect(new Set(d.reviews.map((r) => r.id)).size).toBe(d.reviews.length);
     for (const r of d.reviews) {
-      expect(r.restaurantCnpj).toBe(cnpjSeed);
+      expect(r.restaurantId).toBe(cnpjSeed);
     }
   });
 

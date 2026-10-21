@@ -11,7 +11,8 @@ export type FeedResponseDto = {
 };
 
 export type RestaurantProfile = {
-  cnpj: string;
+  id: string;
+  cnpj: string | null;
   nome: string;
   categoria: string | null;
   bairro: string | null;

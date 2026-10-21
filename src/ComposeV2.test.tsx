@@ -20,7 +20,7 @@ const [cnpjOutro] = Object.entries(restaurantNames)[3];
 const reviewCreated: Review = {
   id: 1,
   userId: 'user_1',
-  restaurantCnpj: cnpjExemplo,
+  restaurantId: cnpjExemplo,
   rating: 4,
   comment: null,
   likes: 0,
@@ -223,7 +223,7 @@ describe('ComposeV2', () => {
       byID(r, 'publicar-v2').props.onPress();
     });
     expect(postReviewMock).toHaveBeenCalledWith('user_1', {
-      restaurantCnpj: cnpjExemplo,
+      restaurantId: cnpjExemplo,
       rating: 4,
       comment: null,
     });
@@ -266,7 +266,7 @@ describe('ComposeV2', () => {
       byID(r, 'publicar-v2').props.onPress();
     });
     expect(postReviewMock).toHaveBeenCalledWith('user_1', {
-      restaurantCnpj: cnpjExemplo,
+      restaurantId: cnpjExemplo,
       rating: 4.75,
       comment: null,
     });
@@ -319,7 +319,7 @@ describe('ComposeV2', () => {
     const [userId, payload] = postReviewMock.mock.calls[0];
     expect(userId).toBe('user_1');
     expect(payload).toEqual({
-      restaurantCnpj: cnpjExemplo,
+      restaurantId: cnpjExemplo,
       rating: 4,
       comment: null,
     });

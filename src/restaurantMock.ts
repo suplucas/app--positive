@@ -83,7 +83,7 @@ export function restaurantFor(cnpj: string): RestaurantData {
   const reviews: Review[] = Array.from({ length: 5 }, (_, i) => ({
     id: `${cnpj}-r${i}`,
     userId: pick(USERS, h + i),
-    restaurantCnpj: cnpj,
+    restaurantId: cnpj,
     // `>>>` (não `>>`): shift com sinal pode dar negativo e jogar a
     // nota/likes/distância pra fora da faixa.
     rating: 2.5 + ((h >>> (i * 3)) % 25) / 10, // 2.5–4.9 (escala API 0-5)

@@ -40,3 +40,28 @@ export async function getPlaces(
   });
   return Array.isArray(data.results) ? data.results : [];
 }
+
+export async function importPlace(
+  hit: {
+    id: string;
+    nome: string;
+    endereco: string | null;
+    categoria: string | null;
+    lat: number | null;
+    lng: number | null;
+  },
+  baseUrl?: string,
+): Promise<{ id: string }> {
+  return apiFetch<{ id: string }>('/places/import', {
+    method: 'POST',
+    baseUrl,
+    body: {
+      id: hit.id,
+      nome: hit.nome,
+      endereco: hit.endereco,
+      categoria: hit.categoria,
+      lat: hit.lat,
+      lng: hit.lng,
+    },
+  });
+}

@@ -29,7 +29,7 @@ export function CommentThreadScreen({
   const { comments, status, send } = useComments(review.id, authorId);
   const [draft, setDraft] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const nome = restaurantName(review.restaurantCnpj);
+  const nome = restaurantName(review.restaurantId);
 
   const submit = async () => {
     const text = draft.trim();

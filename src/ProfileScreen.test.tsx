@@ -49,7 +49,7 @@ describe('ProfileScreen (v2)', () => {
     const review = {
       id: 1,
       userId: 'ana',
-      restaurantCnpj: '123',
+      restaurantId: '123',
       rating: 4.5,
       comment: 'review vinda da api',
       likes: 0,

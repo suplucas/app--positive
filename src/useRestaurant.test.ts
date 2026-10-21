@@ -13,6 +13,7 @@ const getRestaurantMock = vi.mocked(getRestaurant);
 const getReviewsMock = vi.mocked(getRestaurantReviews);
 
 const profile = {
+  id: "123",
   cnpj: "123",
   nome: "Pizza X",
   categoria: "Restaurante",

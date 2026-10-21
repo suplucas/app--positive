@@ -24,7 +24,7 @@ const data: RestaurantData = {
     {
       id: 'r1',
       userId: 'ana',
-      restaurantCnpj: '12345678000199',
+      restaurantId: '12345678000199',
       rating: 4.5,
       comment: 'muito bom mesmo',
       likes: 3,

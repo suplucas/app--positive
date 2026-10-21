@@ -10,6 +10,8 @@ import {
 } from 'react-native';
 import type { ImageSourcePropType } from 'react-native';
 import { postReview, uploadReviewPhoto } from './api';
+import { importPlace, searchPlaces } from './api/place';
+import type { PlaceHit } from './api/types';
 import { NoteSlider } from './NoteSlider';
 import { SectionTitle } from './SectionTitle';
 import {
@@ -87,10 +89,69 @@ export function ComposeV2({
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const results = useMemo(
-    () => (selected ? [] : searchRestaurants(query)),
-    [query, selected],
-  );
+  const [apiResults, setApiResults] = useState<PlaceHit[]>([]);
+
+  // Busca na API (com fallback OSM); se a API não responder, cai no
+  // catálogo local para o dev não ficar sem o campo.
+  useEffect(() => {
+    if (selected || query.trim().length < 2) {
+      setApiResults([]);
+      return;
+    }
+    let active = true;
+    searchPlaces(query)
+      .then((hits) => {
+        if (active) setApiResults(hits);
+      })
+      .catch(() => {
+        if (active) setApiResults([]);
+      });
+    return () => {
+      active = false;
+    };
+  }, [query, selected]);
+
+  const results = useMemo(() => {
+    if (selected) {
+      return [] as {
+        id: string;
+        nome: string;
+        source: 'local' | 'osm';
+        hit?: PlaceHit;
+      }[];
+    }
+    if (apiResults.length > 0) {
+      return apiResults.map((hit) => ({
+        id: hit.id,
+        nome: hit.nome,
+        source: hit.source,
+        hit,
+      }));
+    }
+    return searchRestaurants(query).map((hit) => ({
+      id: hit.cnpj,
+      nome: hit.nome,
+      source: 'local' as const,
+    }));
+  }, [apiResults, query, selected]);
+
+  const choose = async (r: {
+    id: string;
+    nome: string;
+    source: 'local' | 'osm';
+    hit?: PlaceHit;
+  }) => {
+    let id = r.id;
+    if (r.source === 'osm' && r.hit) {
+      try {
+        id = (await importPlace(r.hit)).id;
+      } catch {
+        id = r.id;
+      }
+    }
+    setSelected({ cnpj: id, nome: r.nome });
+    setQuery('');
+  };
 
   // Local escolhido no picker de busca (docs/16) que volta do App.
   useEffect(() => {
@@ -140,7 +201,7 @@ export function ComposeV2({
       const photoUrl = uri ? await uploadReviewPhoto(userId, uri) : null;
 
       await postReview(userId, {
-        restaurantCnpj: selected.cnpj,
+        restaurantId: selected.cnpj,
         rating: note / 2, // API usa escala 0–5; UI usa 0–10
         comment: caption.trim() === "" ? null : caption.trim(),
         ...(photoUrl ? { photoUrl } : {}),
@@ -229,9 +290,9 @@ export function ComposeV2({
           />
           {results.map((r) => (
             <Pressable
-              key={r.cnpj}
-              testID={`pick-v2-${r.cnpj}`}
-              onPress={() => setSelected(r)}
+              key={r.id}
+              testID={`pick-v2-${r.id}`}
+              onPress={() => void choose(r)}
               style={({ pressed }) => [
                 s.result,
                 { borderBottomColor: t.line, opacity: pressed ? 0.6 : 1 },
@@ -239,7 +300,7 @@ export function ComposeV2({
               accessibilityRole="button"
             >
               <Text style={[s.resultNome, { color: t.ink }]}>{r.nome}</Text>
-              <Text style={[s.resultCnpj, { color: t.sub }]}>{r.cnpj}</Text>
+              <Text style={[s.resultCnpj, { color: t.sub }]}>{r.id}</Text>
             </Pressable>
           ))}
           {query.trim() !== '' && results.length === 0 ? (

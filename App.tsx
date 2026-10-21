@@ -116,7 +116,7 @@ function MainApp({
   const [settingsOpen, setSettingsOpen] = useState(false);
   // Sub-páginas: página do restaurante (aberta no toque em card de feed)
   // e local pré-selecionado na composição (botão "avaliar" do restaurante).
-  const [restaurantCnpj, setRestaurantCnpj] = useState<string | null>(null);
+  const [restaurantId, setRestaurantCnpj] = useState<string | null>(null);
   const [osmPlace, setOsmPlace] = useState<PlaceHit | null>(null);
   const [composeCnpj, setComposeCnpj] = useState<string | null>(null);
   // Lista "quero ir" (docs/10): persistida na API e compartilhada com
@@ -140,7 +140,7 @@ function MainApp({
     );
   };
   const feedVisible =
-    screen === 'feed' && !restaurantCnpj && !settingsOpen;
+    screen === 'feed' && !restaurantId && !settingsOpen;
   const { items, status, error, hasMore, refresh, loadMore, like } =
     useFeed(userId);
 
@@ -301,9 +301,9 @@ function MainApp({
               renderItem={({ item }) => {
                 const d = decorated.get(item.id);
                 const openPlace = () => {
-                  if (item.restaurantCnpj) {
+                  if (item.restaurantId) {
                     setOsmPlace(null);
-                    setRestaurantCnpj(String(item.restaurantCnpj));
+                    setRestaurantCnpj(String(item.restaurantId));
                   }
                 };
                 const openComments = () => setCommentReview(item);
@@ -346,10 +346,10 @@ function MainApp({
 
           {/* Sub-telas como camadas: o conteúdo principal fica montado
               (feed preserva o scroll) e cada camada anima a entrada. */}
-          {restaurantCnpj ? (
+          {restaurantId ? (
             <LayerScreen>
               <RestaurantScreen
-                cnpj={restaurantCnpj}
+                cnpj={restaurantId}
                 userId={userId}
                 osmPlace={osmPlace ?? undefined}
                 onBack={() => {
@@ -357,18 +357,18 @@ function MainApp({
                   setRestaurantCnpj(null);
                 }}
                 onEvaluate={() => {
-                  if (restaurantCnpj.startsWith('osm:')) return;
-                  setComposeCnpj(restaurantCnpj);
+                  if (restaurantId.startsWith('osm:')) return;
+                  setComposeCnpj(restaurantId);
                   setScreen('compose');
                 }}
                 saved={
-                  !restaurantCnpj.startsWith('osm:') &&
-                  savedCnpjs.includes(restaurantCnpj)
+                  !restaurantId.startsWith('osm:') &&
+                  savedCnpjs.includes(restaurantId)
                 }
                 onSaveToggle={
-                  restaurantCnpj.startsWith('osm:')
+                  restaurantId.startsWith('osm:')
                     ? undefined
-                    : () => toggleSaved(restaurantCnpj)
+                    : () => toggleSaved(restaurantId)
                 }
               />
             </LayerScreen>
@@ -443,7 +443,7 @@ function MainApp({
           ) : null}
         </View>
 
-        {settingsOpen || commentReview || notifOpen || composePickerOpen || screen === 'compose' || restaurantCnpj ? null : (
+        {settingsOpen || commentReview || notifOpen || composePickerOpen || screen === 'compose' || restaurantId ? null : (
           <Navbar
             active={screen}
             onNavigate={(s) => {

@@ -24,7 +24,7 @@ export function FeedQuote({
   onComments?: () => void;
   onLike?: () => void;
 }) {
-  const nome = restaurantName(review.restaurantCnpj);
+  const nome = restaurantName(review.restaurantId);
   const bg = tone === 'lambeLambe' ? palette.lambeLambe : palette.mostarda;
   const ink = tone === 'lambeLambe' ? palette.papel : palette.berinjela;
   const body = (

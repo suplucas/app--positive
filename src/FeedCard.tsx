@@ -26,7 +26,7 @@ export function FeedCard({
   onLike?: () => void;
 }) {
   const t = useTheme();
-  const nome = restaurantName(review.restaurantCnpj);
+  const nome = restaurantName(review.restaurantId);
   const body = (
     <>
       <Avatar userId={review.userId} />

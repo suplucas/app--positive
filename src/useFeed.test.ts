@@ -16,7 +16,7 @@ const page20 = (page: number) => ({
   results: Array.from({ length: 20 }, (_, i) => ({
     id: page * 100 + i,
     userId: "u",
-    restaurantCnpj: null,
+    restaurantId: null,
     rating: 5,
     comment: null,
     likes: 0,
@@ -114,7 +114,7 @@ describe("useFeed", () => {
       results: Array.from({ length: 20 }, (_, i) => ({
         id: 900 + i,
         userId: "user_slow",
-        restaurantCnpj: null,
+        restaurantId: null,
         rating: 5,
         comment: null,
         likes: 0,
@@ -127,7 +127,7 @@ describe("useFeed", () => {
       results: Array.from({ length: 20 }, (_, i) => ({
         id: 100 + i,
         userId: "user_fast",
-        restaurantCnpj: null,
+        restaurantId: null,
         rating: 5,
         comment: null,
         likes: 0,
