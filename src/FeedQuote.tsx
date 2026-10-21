@@ -16,6 +16,7 @@ export function FeedQuote({
   onPress,
   onComments,
   onLike,
+  onAuthorPress,
 }: {
   review: Review;
   tone?: 'mostarda' | 'lambeLambe';
@@ -23,6 +24,7 @@ export function FeedQuote({
   // docs/12: abre a thread de comentários (opcional, como `onPress`).
   onComments?: () => void;
   onLike?: () => void;
+  onAuthorPress?: () => void;
 }) {
   const nome = restaurantName(review.restaurantId);
   const bg = tone === 'lambeLambe' ? palette.lambeLambe : palette.mostarda;
@@ -30,7 +32,15 @@ export function FeedQuote({
   const body = (
     <>
       <View style={s.top}>
-        <Avatar userId={review.userId} size={28} />
+        <Pressable
+          testID={`author-${review.id}`}
+          onPress={onAuthorPress}
+          disabled={!onAuthorPress}
+          hitSlop={6}
+          accessibilityRole={onAuthorPress ? 'button' : undefined}
+        >
+          <Avatar userId={review.userId} size={28} />
+        </Pressable>
         <Text style={[s.uname, { color: ink }]}>{review.userId}</Text>
         <Text style={[s.note, { color: ink }]}>{getNote(review.rating)}</Text>
       </View>

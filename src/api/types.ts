@@ -45,6 +45,7 @@ export type UserProfile = {
   name: string;
   handle: string | null;
   bio: string | null;
+  isFollowing: boolean;
   stats: {
     reviews: number;
     followers: number;

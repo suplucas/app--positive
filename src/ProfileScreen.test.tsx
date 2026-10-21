@@ -11,6 +11,7 @@ function render(props: Partial<Parameters<typeof ProfileScreen>[0]> = {}) {
     name: displayName(userId),
     handle: userId,
     bio: bioFor(userId),
+    isFollowing: false,
     stats: {
       reviews: 184,
       followers: 92,

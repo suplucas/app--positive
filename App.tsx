@@ -47,6 +47,7 @@ import { MapScreen } from './src/MapScreen';
 import { NotificationScreen } from './src/NotificationScreen';
 import { SearchScreen } from './src/SearchScreen';
 import { SettingsScreen, type ThemeMode } from './src/SettingsScreen';
+import { UserProfileScreen } from './src/UserProfileScreen';
 import type { PlaceHit } from './src/api/types';
 import {
   ThemeContext,
@@ -116,8 +117,9 @@ function MainApp({
   const [settingsOpen, setSettingsOpen] = useState(false);
   // Sub-páginas: página do restaurante (aberta no toque em card de feed)
   // e local pré-selecionado na composição (botão "avaliar" do restaurante).
-  const [restaurantId, setRestaurantCnpj] = useState<string | null>(null);
+  const [restaurantId, setRestaurantId] = useState<string | null>(null);
   const [osmPlace, setOsmPlace] = useState<PlaceHit | null>(null);
+  const [profileUserId, setProfileUserId] = useState<string | null>(null);
   const [composeCnpj, setComposeCnpj] = useState<string | null>(null);
   // Lista "quero ir" (docs/10): persistida na API e compartilhada com
   // o toggle da página do restaurante.
@@ -262,16 +264,16 @@ function MainApp({
             <SearchScreen
               onOpenRestaurant={(cnpj) => {
                 setOsmPlace(null);
-                setRestaurantCnpj(cnpj);
+                setRestaurantId(cnpj);
               }}
               onOpenPlace={(hit) => {
                 setOsmPlace(hit);
-                setRestaurantCnpj(hit.id);
+                setRestaurantId(hit.id);
               }}
               onBack={() => setScreen('feed')}
             />
           ) : screen === 'mapa' ? (
-            <MapScreen onOpenRestaurant={(cnpj) => setRestaurantCnpj(cnpj)} />
+            <MapScreen onOpenRestaurant={(cnpj) => setRestaurantId(cnpj)} />
           ) : screen === 'perfil' ? (
             <ProfileScreen
               userId={userId}
@@ -286,7 +288,7 @@ function MainApp({
                   true,
                 );
               }}
-              onOpenRestaurant={(cnpj) => setRestaurantCnpj(cnpj)}
+              onOpenRestaurant={(cnpj) => setRestaurantId(cnpj)}
             />
           ) : (
             <FlatList<Review>
@@ -303,7 +305,7 @@ function MainApp({
                 const openPlace = () => {
                   if (item.restaurantId) {
                     setOsmPlace(null);
-                    setRestaurantCnpj(String(item.restaurantId));
+                    setRestaurantId(String(item.restaurantId));
                   }
                 };
                 const openComments = () => setCommentReview(item);
@@ -315,6 +317,7 @@ function MainApp({
                       onPress={openPlace}
                       onComments={openComments}
                       onLike={() => void like(item)}
+                      onAuthorPress={() => setProfileUserId(item.userId)}
                     />
                   );
                 }
@@ -326,11 +329,12 @@ function MainApp({
                       onPress={openPlace}
                       onComments={openComments}
                       onLike={() => void like(item)}
+                      onAuthorPress={() => setProfileUserId(item.userId)}
                     />
                   );
                 }
                 return (
-                  <FeedCard review={item} onPress={openPlace} onComments={openComments} onLike={() => void like(item)} />
+                  <FeedCard review={item} onPress={openPlace} onComments={openComments} onLike={() => void like(item)} onAuthorPress={() => setProfileUserId(item.userId)} />
                 );
               }}
               onEndReachedThreshold={0.4}
@@ -346,6 +350,20 @@ function MainApp({
 
           {/* Sub-telas como camadas: o conteúdo principal fica montado
               (feed preserva o scroll) e cada camada anima a entrada. */}
+          {profileUserId ? (
+            <LayerScreen>
+              <UserProfileScreen
+                userId={profileUserId}
+                viewerId={userId}
+                onBack={() => setProfileUserId(null)}
+                onOpenRestaurant={(id) => {
+                  setProfileUserId(null);
+                  setOsmPlace(null);
+                  setRestaurantId(id);
+                }}
+              />
+            </LayerScreen>
+          ) : null}
           {restaurantId ? (
             <LayerScreen>
               <RestaurantScreen
@@ -354,7 +372,7 @@ function MainApp({
                 osmPlace={osmPlace ?? undefined}
                 onBack={() => {
                   setOsmPlace(null);
-                  setRestaurantCnpj(null);
+                  setRestaurantId(null);
                 }}
                 onEvaluate={() => {
                   if (restaurantId.startsWith('osm:')) return;
@@ -435,7 +453,7 @@ function MainApp({
                 userId={userId}
                 onOpenRestaurant={(cnpj) => {
                   setNotifOpen(false);
-                  setRestaurantCnpj(cnpj);
+                  setRestaurantId(cnpj);
                 }}
                 onBack={() => setNotifOpen(false)}
               />
@@ -443,12 +461,12 @@ function MainApp({
           ) : null}
         </View>
 
-        {settingsOpen || commentReview || notifOpen || composePickerOpen || screen === 'compose' || restaurantId ? null : (
+        {settingsOpen || commentReview || notifOpen || composePickerOpen || screen === 'compose' || restaurantId || profileUserId ? null : (
           <Navbar
             active={screen}
             onNavigate={(s) => {
               // Navegação pela navbar fecha sub-telas (ex.: restaurante).
-              setRestaurantCnpj(null);
+              setRestaurantId(null);
               setScreen(s);
             }}
             onCompose={() => {

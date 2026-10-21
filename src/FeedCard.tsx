@@ -16,6 +16,7 @@ export function FeedCard({
   onPress,
   onComments,
   onLike,
+  onAuthorPress,
 }: {
   review: Review;
   strong?: boolean;
@@ -24,12 +25,22 @@ export function FeedCard({
   // callback — ex.: cards da página do restaurante não têm thread).
   onComments?: () => void;
   onLike?: () => void;
+  // Abre o perfil do autor da review.
+  onAuthorPress?: () => void;
 }) {
   const t = useTheme();
   const nome = restaurantName(review.restaurantId);
   const body = (
     <>
-      <Avatar userId={review.userId} />
+      <Pressable
+        testID={`author-${review.id}`}
+        onPress={onAuthorPress}
+        disabled={!onAuthorPress}
+        hitSlop={6}
+        accessibilityRole={onAuthorPress ? 'button' : undefined}
+      >
+        <Avatar userId={review.userId} />
+      </Pressable>
       <View style={s.body}>
         <View style={s.top}>
           <Text style={[s.uname, { color: t.ink }]}>{review.userId}</Text>
