@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>tim — perfil</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700;800&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#FBF2E4; --ink:#241A22; --sub:rgba(36,26,34,0.58);
+      --mustard:#F2A93B; --pink:#E63E75; --pickle:#7A9A3D;
+      --line:rgba(36,26,34,0.10);
+      box-sizing:border-box;
+      padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+    }
+    *{box-sizing:border-box;}
+    html,body{height:100%;}
+    body{
+      margin:0; background:var(--ink); color:var(--ink);
+      font-family:'Instrument Sans',sans-serif; -webkit-font-smoothing:antialiased;
+      display:flex; justify-content:center;
+    }
+    .disp{font-family:'Bricolage Grotesque';}
+
+    .phone{width:100%; max-width:400px; min-height:100%; background:var(--bg); position:relative; overflow-x:hidden;}
+
+    header{
+      position:sticky; top:0; z-index:5; background:var(--bg);
+      padding:14px 16px 10px; padding-top:calc(14px + env(safe-area-inset-top,0px));
+      display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--line);
+    }
+    .word{font-family:'Bricolage Grotesque'; font-weight:800; font-size:18px;}
+    .theme-btn{
+      width:30px; height:30px; border-radius:50%; background:none; border:1px solid var(--line);
+      color:var(--ink); font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0;
+    }
+
+    .bio-block{padding:20px 16px 16px; display:flex; gap:14px; align-items:flex-start;}
+    .avatar-lg{width:64px; height:64px; border-radius:50%; background:var(--pink); flex-shrink:0;}
+    .who{flex:1; min-width:0;}
+    .name-row{display:flex; align-items:center; gap:10px;}
+    .p-uname{font-family:'Bricolage Grotesque'; font-weight:800; font-size:19px;}
+    .follow-btn{
+      font-family:'Bricolage Grotesque'; font-weight:700; font-size:12px; padding:6px 16px; border-radius:20px;
+      cursor:pointer; border:1.5px solid var(--ink); background:var(--ink); color:var(--bg); margin-left:auto;
+    }
+    .follow-btn.following{background:transparent; color:var(--ink); opacity:0.7;}
+    .handle{font-size:12.5px; color:var(--sub); margin-top:1px;}
+    .niche{
+      display:inline-flex; align-items:center; gap:5px; margin-top:7px;
+      background:var(--mustard); color:#241A22; border-radius:20px; padding:3px 10px 3px 6px;
+      font-family:'Bricolage Grotesque'; font-weight:700; font-size:11.5px;
+    }
+
+    .stats{display:flex; padding:16px 16px 16px; gap:0; border-bottom:1px solid var(--line);}
+    .stat{flex:1; text-align:center;}
+    .stat .n{font-family:'Bricolage Grotesque'; font-weight:800; font-size:17px;}
+    .stat .l{font-size:11px; color:var(--sub); margin-top:1px;}
+
+    .shelf{display:flex; gap:8px; padding:16px 16px 6px;}
+    .shelf .sq{flex:1; aspect-ratio:1; border-radius:10px; position:relative;}
+    .shelf .sq .n{
+      position:absolute; bottom:5px; right:5px; background:rgba(36,26,34,0.82); color:#FBF2E4;
+      font-family:'Bricolage Grotesque'; font-weight:800; font-size:10.5px; padding:1px 5px; border-radius:5px;
+    }
+
+    .content-tabs{display:flex; gap:0; padding:14px 16px 0; border-bottom:1px solid var(--line);}
+    .ctab{
+      font-family:'Bricolage Grotesque'; font-weight:700; font-size:13.5px; color:var(--sub);
+      background:none; border:none; padding:0 0 10px; cursor:pointer; border-bottom:2px solid transparent;
+      flex:1; text-align:center;
+    }
+    .ctab.active{color:var(--ink); border-bottom-color:var(--ink);}
+
+    .content-panel{display:none;}
+    .content-panel.active{display:block;}
+
+    footer.legend{padding:16px 16px 34px; font-size:12px; color:var(--sub); line-height:1.5;}
+
+    .navbar{
+      position:sticky; bottom:0; z-index:5; display:flex; align-items:center; justify-content:space-around;
+      background:var(--bg); border-top:1px solid var(--line); padding:10px 8px calc(10px + env(safe-area-inset-bottom,0px));
+      margin-top:auto;
+    }
+    .nav-item{display:flex; flex-direction:column; align-items:center; gap:3px; font-size:10.5px; color:var(--sub); background:none; border:none; cursor:pointer; text-decoration:none; font-family:inherit;}
+    .nav-item .ico{font-size:18px; line-height:1;}
+    .nav-item.active{color:var(--ink); font-weight:600;}
+    .nav-item.add .ico{
+      width:34px; height:34px; border-radius:50%; background:var(--pink); color:var(--bg);
+      display:flex; align-items:center; justify-content:center; font-size:18px; margin-top:-16px;
+    }
+
+    @media (prefers-color-scheme: dark){
+      :root:not([data-theme="light"]){ --bg:#121212; --ink:#F2F0EF; --sub:rgba(242,240,239,0.55); --line:rgba(242,240,239,0.09); }
+    }
+    :root[data-theme="dark"]{ --bg:#121212; --ink:#F2F0EF; --sub:rgba(242,240,239,0.55); --line:rgba(242,240,239,0.09); }
+  </style>
+</head>
+<body>
+<div class="phone">
+
+  <header>
+    <div class="word disp">perfil</div>
+    <button class="theme-btn" id="themeBtn" onclick="toggleTheme()">🌙</button>
+  </header>
+
+  <div class="screen" id="profileContent">
+    <div class="bio-block">
+      <div class="avatar-lg" id="userAvatar"></div>
+      <div class="who">
+        <div class="name-row">
+          <div class="p-uname disp" id="userName">Bea Ferraz</div>
+          <button class="follow-btn disp" id="followBtn" onclick="toggleFollow()">seguir</button>
+        </div>
+        <div class="handle" id="userHandle">@bea_come_tudo · São Paulo</div>
+        <div class="niche" id="userNiche">sommelier de boteco</div>
+      </div>
+    </div>
+    <div class="bio" id="userBio"></div>
+
+    <div class="stats">
+      <div class="stat"><div class="n disp" id="reviewsCount">128</div><div class="l">avaliações</div></div>
+      <div class="stat"><div class="n disp" id="followersCount">842</div><div class="l">seguidores</div></div>
+      <div class="stat"><div class="n disp" id="followingCount">76</div><div class="l">seguindo</div></div>
+      <div class="stat"><div class="n disp" id="scoreCount">9.1</div><div class="l">média</div></div>
+    </div>
+
+    <div class="section-title">favoritos</div>
+    <div class="shelf" id="favoritesShelf">
+      <!-- Preenche via JS -->
+    </div>
+
+    <div class="section-title">diário</div>
+    <div class="content-tabs">
+      <button class="ctab active" data-tab="diario" onclick="showTab('diario')">diário</button>
+      <button class="ctab" data-tab="listas" onclick="showTab('listas')">listas</button>
+      <button class="ctab" data-tab="quero" onclick="showTab('quero')">quero ir</button>
+    </div>
+
+    <div class="content-panel active" id="panel-diario">
+      <div id="diaryContent"></div>
+    </div>
+
+    <div class="content-panel" id="panel-listas">
+      <div style="padding:16px; color:var(--sub);">Ainda não criou listas.</div>
+    </div>
+
+    <div class="content-panel" id="panel-quero">
+      <div style="padding:16px; color:var(--sub);">Nenhum restaurante na lista "quero ir".</div>
+    </div>
+  </div>
+
+  <nav class="navbar">
+    <a class="nav-item" href="screen-feed.html"><span class="ico">⌂</span>feed</a>
+    <a class="nav-item" href="screen-buscar.html"><span class="ico">⌕</span>buscar</a>
+    <a class="nav-item add" href="screen-criar.html"><span class="ico">+</span></a>
+    <a class="nav-item" href="screen-notif.html"><span class="ico">♡</span>notif.</a>
+    <a class="nav-item active" href="screen-perfil.html"><span class="ico">●</span>perfil</a>
+  </nav>
+</div>
+
+<script>
+  // Mock DB é compartilhado via localStorage ou pode ser importado
+  // Para esta demo, vamos redefinir os dados necessários aqui
+  const mockDB = window.mockDB || {
+    users: {
+      bea_come_tudo: {
+        id: "bea_come_tudo", name: "Bea Ferraz", handle: "bea_come_tudo",
+        score: "9.1", reviews: 128, followers: 842, following: 76,
+        bio: "Crítica de fim de semana. Se a fila for grande, provavelmente eu tô nela.",
+        location: "São Paulo", niche: "sommelier de boteco"
+      },
+      juu_talher: {
+        id: "juu_talher", name: "Júlia", handle: "juu_talher",
+        score: "9.4", reviews: 76, followers: 421, following: 58,
+        bio: "Amante de cozinha criativa e jardins suspenso.",
+        location: "Rio de Janeiro", niche: "food explorer"
+      },
+      renato_critico: {
+        id: "renato_critico", name: "Renato", handle: "renato_critico",
+        score: "8.8", reviews: 214, followers: 1204, following: 89,
+        bio: "Crítico focado em detalhes e consistência.",
+        location: "Belo Horizonte", niche: "culinário"
+      }
+    },
+    restaurants: {
+      "boteco-da-ana": { id: "boteco-da-ana", name: "Boteco da Ana" },
+      "sushi-kaza": { id: "sushi-kaza", name: "Sushi Kaza" },
+      "emporio-real": { id: "emporio-real", name: "Empório Real" }
+    },
+    reviews: [
+      { userId: "bea_come_tudo", restaurantId: "boteco-da-ana", score: 4.8, text: "Pedi o mesmo prato três vezes só pra confirmar que não foi acidente.", visitedAt: "2026-09-27", liked: true },
+      { userId: "bea_come_tudo", restaurantId: "emporio-real", score: 4.6, text: "Fila valeu cada minuto, sem exagero.", visitedAt: "2026-09-23", liked: true },
+      { userId: "juu_talher", restaurantId: "sushi-kaza", score: 5.0, text: "O salmão maçaricado foi perfeito.", visitedAt: "2026-09-26", liked: true },
+      { userId: "renato_critico", restaurantId: "sushi-kaza", score: 4.0, text: "O peixe estava ótimo, mas o arroz precisa de ajuste.", visitedAt: "2026-09-23", liked: false }
+    ],
+    favorites: {
+      bea_come_tudo: ["boteco-da-ana", "emporio-real"],
+      juu_talher: ["sushi-kaza"],
+      renato_critico: ["sushi-kaza", "boteco-da-ana"]
+    }
+  };
+
+  const appState = {
+    currentUser: localStorage.getItem("tim-currentUser") || "bea_come_tudo",
+    theme: localStorage.getItem("tim-theme") || "light",
+    currentScreen: "perfil"
+  };
+
+  // Funções compartilhadas
+  function loadAppState() {
+    const saved = localStorage.getItem("tim-app-state");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.currentUser && mockDB.users[parsed.currentUser]) {
+          appState.currentUser = parsed.currentUser;
+        }
+        if (parsed.theme) appState.theme = parsed.theme;
+      } catch (e) {}
+    }
+    applyTheme(appState.theme);
+  }
+
+  function saveAppState() {
+    localStorage.setItem("tim-app-state", JSON.stringify({
+      currentUser: appState.currentUser,
+      theme: appState.theme
+    }));
+  }
+
+  function setTheme(theme) {
+    appState.theme = theme;
+    applyTheme(theme);
+    saveAppState();
+  }
+
+  function applyTheme(theme) {
+    document.documentElement.setAttribute("data-theme", theme);
+    document.getElementById('themeBtn').textContent = theme === "dark" ? "☀️" : "🌙";
+  }
+
+  function toggleTheme() {
+    setTheme(appState.theme === "dark" ? "light" : "dark");
+  }
+
+  function setCurrentUser(userId) {
+    if (mockDB.users[userId]) {
+      appState.currentUser = userId;
+      saveAppState();
+      localStorage.setItem("tim-currentUser", userId);
+      renderProfile();
+    }
+  }
+
+  function toggleFollow() {
+    const btn = document.getElementById('followBtn');
+    const isFollowing = btn.classList.toggle('following');
+    btn.textContent = isFollowing ? 'seguindo' : 'seguir';
+  }
+
+  function showTab(tab) {
+    document.querySelectorAll('.ctab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+    document.querySelectorAll('.content-panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + tab));
+  }
+
+  function renderProfile() {
+    const user = mockDB.users[appState.currentUser];
+    if (!user) return;
+
+    // Atualizar header
+    document.getElementById('userName').textContent = user.name;
+    document.getElementById('userHandle').textContent = "@" + user.handle + " · " + user.location;
+    document.getElementById('userBio').textContent = user.bio;
+    document.getElementById('userNiche').textContent = user.niche;
+    document.getElementById('reviewsCount').textContent = user.reviews;
+    document.getElementById('followersCount').textContent = user.followers;
+    document.getElementById('followingCount').textContent = user.following;
+    document.getElementById('scoreCount').textContent = user.score;
+
+    // Favoritos
+    const favs = mockDB.favorites[appState.currentUser] || [];
+    document.getElementById('favoritesShelf').innerHTML = favs.map(rId => {
+      const r = mockDB.restaurants[rId];
+      if (!r) return '';
+      const bg = ['var(--mustard)', 'var(--pink)', 'var(--pickle)', '#3E5C78'][Math.floor(Math.random()*4)];
+      return `<div class="sq" style="background:${bg};"><span class="n disp">9.${Math.floor(Math.random()*10)}</span></div>`;
+    }).join('');
+
+    // Diário
+    const diary = mockDB.reviews
+      .filter(r => r.userId === appState.currentUser)
+      .sort((a, b) => new Date(b.visitedAt) - new Date(a.visitedAt));
+
+    if (diary.length === 0) {
+      document.getElementById('diaryContent').innerHTML = 
+        '<div style="padding:16px; color:var(--sub);">Ainda não escreveu reviews.</div>';
+      return;
+    }
+
+    const HTML = diary.map(r => {
+      const restaurant = mockDB.restaurants[r.restaurantId] || { name: "Restaurante" };
+      return `<div style="padding:12px 16px; border-bottom:1px solid var(--line);">
+        <div style="display:flex; gap:10px; align-items:center;">
+          <div style="width:12px; height:12px; border-radius:50%; background:var(--pink);"></div>
+          <div style="flex:1;">
+            <div style="font-family:Bricolage Grotesque; font-weight:700; font-size:13.5px;">${restaurant.name}</div>
+            <div style="font-size:11px; color:var(--sub);">${r.score} ★ · ${new Date(r.visitedAt).toLocaleDateString('pt-BR')}</div>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+
+    document.getElementById('diaryContent').innerHTML = HTML;
+  }
+
+  // Inicialização
+  document.addEventListener('DOMContentLoaded', function() {
+    loadAppState();
+    renderProfile();
+  });
+</script>
+
+</body>
+</html>
