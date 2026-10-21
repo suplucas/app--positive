@@ -17,6 +17,8 @@ import {
   Text,
   View,
   useColorScheme,
+  type NativeScrollEvent,
+  NativeSyntheticEvent,
 } from 'react-native';
 import {
   BricolageGrotesque_700Bold,
@@ -102,6 +104,26 @@ function MainApp({
   onSignOut: () => Promise<void>;
 }) {
   const systemScheme = useColorScheme();
+  // Navbar flutuante: some quando rola para baixo, volte quando sobe.
+  const navAnim = useRef(new Animated.Value(0)).current;
+  const lastScrollY = useRef(0);
+
+  const handleScroll = useCallback(
+    (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const currentY = e.nativeEvent.contentOffset.y;
+      const last = lastScrollY.current;
+      // Só anima se o scroll passou do limite (evita micro-tremores).
+      if (Math.abs(currentY - last) < 6) return;
+      Animated.timing(navAnim, {
+        toValue: currentY > last ? 1 : 0,
+        duration: 150,
+        easing: Easing.out(Easing.quad),
+        useNativeDriver: true,
+      }).start();
+      lastScrollY.current = currentY;
+    },
+    [navAnim],
+  );
   // Escolha do usuário na tela de configurações: null = seguir o sistema.
   const [themeMode, setThemeMode] = useState<ThemeMode>('system');
   const mode: Theme['mode'] =
@@ -338,6 +360,8 @@ function MainApp({
               }}
               onEndReachedThreshold={0.4}
               onEndReached={onEndReached}
+              onScroll={handleScroll}
+              scrollEventThrottle={16}
               refreshControl={
                 <RefreshControl
                   refreshing={status === 'loading'}
@@ -463,6 +487,7 @@ function MainApp({
         {settingsOpen || commentReview || notifOpen || composePickerOpen || screen === 'compose' || restaurantId || profileUserId ? null : (
           <Navbar
             active={screen}
+            navAnim={navAnim}
             onNavigate={(s) => {
               // Navegação pela navbar fecha sub-telas (ex.: restaurante).
               setRestaurantId(null);
