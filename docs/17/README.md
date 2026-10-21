@@ -69,3 +69,24 @@ STORAGE_DIR=uploads                   # produção: trocar por S3
   `npx expo export --platform android`.
 - API: `npm test` (61 testes novos/verdes; 3 falhas pré-existentes
   acima) e `npm run build`.
+
+## MVP grupo pequeno (docs/17)
+
+Fases 1–4 da spec `2026-10-20-mvp-grupo-pequeno-design.md` entregues:
+
+- **Auth real**: `POST /auth/register`, `/auth/login`, `GET /auth/me`;
+  Bearer JWT no app (`useSession` + `expo-secure-store`); telas de
+  login/cadastro; `AuthGuard` global.
+- **Restaurante por id + OSM**: `restaurants.id` (seed = CNPJ, OSM =
+  `osm:<tipo>/<id>`), `POST /places/import`, compose buscando na API e
+  importando resultado OSM.
+- **Seguir**: `isFollowing` no perfil + `UserProfileScreen` aberta pelo
+  autor do feed; botão seguir/seguindo.
+- **Feed heurístico**: score por sinais (social, afinidade, qualidade,
+  recência, proximidade) em `FeedService`; log `feed_read` implementado
+  (suíte da API 100% verde).
+
+Pendente (Fase 5 — depende de credenciais/infra):
+- Storage S3-compatible em produção.
+- Deploy da API + app para o grupo.
+- Estados vazios adicionais e smoke e2e.
