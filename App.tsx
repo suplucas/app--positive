@@ -70,9 +70,16 @@ import type { ImageSourcePropType } from 'react-native';
 const STRONG_NOTE = 9;
 
 export default function App() {
+  const [fontsLoaded] = useFonts({
+    BricolageGrotesque_700Bold,
+    BricolageGrotesque_800ExtraBold,
+    InstrumentSans_400Regular,
+    InstrumentSans_500Medium,
+    InstrumentSans_600SemiBold,
+  });
   const session = useSession();
 
-  if (session.status === 'loading') {
+  if (!fontsLoaded || session.status === 'loading') {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
         <Text>carregando…</Text>
@@ -94,14 +101,6 @@ function MainApp({
   userId: string;
   onSignOut: () => Promise<void>;
 }) {
-  useFonts({
-    BricolageGrotesque_700Bold,
-    BricolageGrotesque_800ExtraBold,
-    InstrumentSans_400Regular,
-    InstrumentSans_500Medium,
-    InstrumentSans_600SemiBold,
-  });
-
   const systemScheme = useColorScheme();
   // Escolha do usuário na tela de configurações: null = seguir o sistema.
   const [themeMode, setThemeMode] = useState<ThemeMode>('system');
