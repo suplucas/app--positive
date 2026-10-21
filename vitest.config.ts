@@ -46,6 +46,12 @@ const testStubs: Plugin = {
     // (testes injetam o resultado via a seam `onPickPhoto`).
     if (path.includes("/expo-image-picker/"))
       return `export const launchImageLibraryAsync = async () => ({ canceled: true, assets: [] });`;
+    // expo-secure-store não roda em Node: stub em memória.
+    if (path.includes("/expo-secure-store/"))
+      return `const store = new Map();
+export const getItemAsync = async (k) => store.get(k) ?? null;
+export const setItemAsync = async (k, v) => { store.set(k, v); };
+export const deleteItemAsync = async (k) => { store.delete(k); };`;
     // WebView é nativo: stub de host que preserva props p/ testar source
     // (HTML do mapa) e onMessage (ponte pin → restaurante).
     if (path.includes("/react-native-webview/"))

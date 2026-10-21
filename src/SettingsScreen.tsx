@@ -1,10 +1,7 @@
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { DEMO_USERS } from './demoUsers';
 import { fonts, spacing, useTheme } from './theme';
 
-// Tela de configurações (acessada pelo perfil): trocar o usuário de
-// demo e fixar o tema (sistema/claro/escuro). Substitui o seletor de
-// usuários e o toggle de tema que moravam no header do feed.
+// Tela de configurações (acessada pelo perfil): tema e sair da conta.
 export type ThemeMode = 'system' | 'light' | 'dark';
 
 const THEME_OPTIONS: {
@@ -19,17 +16,15 @@ const THEME_OPTIONS: {
 ];
 
 export function SettingsScreen({
-  userId,
-  onUserChange,
   themeMode,
   onThemeChange,
   onBack,
+  onSignOut,
 }: {
-  userId: string;
-  onUserChange: (id: string) => void;
   themeMode: ThemeMode;
   onThemeChange: (mode: ThemeMode) => void;
   onBack: () => void;
+  onSignOut?: () => Promise<void>;
 }) {
   const t = useTheme();
   return (
@@ -49,21 +44,6 @@ export function SettingsScreen({
       </View>
 
       <View style={s.section}>
-        <Text style={[s.label, { color: t.sub }]}>usuário</Text>
-        <View style={s.chips}>
-          {DEMO_USERS.map((u) => (
-            <Chip
-              key={u}
-              chipTestID={`user-${u}`}
-              label={u}
-              active={u === userId}
-              onPress={() => onUserChange(u)}
-            />
-          ))}
-        </View>
-      </View>
-
-      <View style={s.section}>
         <Text style={[s.label, { color: t.sub }]}>tema</Text>
         <View style={s.chips}>
           {THEME_OPTIONS.map((o) => (
@@ -77,6 +57,18 @@ export function SettingsScreen({
           ))}
         </View>
       </View>
+      {onSignOut ? (
+        <View style={s.section}>
+          <Pressable
+            testID="sair"
+            onPress={() => void onSignOut()}
+            style={[s.chip, { backgroundColor: t.quietBg, alignSelf: 'flex-start' }]}
+            accessibilityRole="button"
+          >
+            <Text style={[s.chipText, { color: t.ink }]}>sair da conta</Text>
+          </Pressable>
+        </View>
+      ) : null}
     </ScrollView>
   );
 }

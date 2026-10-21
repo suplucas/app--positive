@@ -2,15 +2,12 @@ import { describe, it, expect, vi } from 'vitest';
 import { create, ReactTestRenderer, act } from 'react-test-renderer';
 import { createElement } from 'react';
 import { SettingsScreen } from './SettingsScreen';
-import { DEMO_USERS } from './demoUsers';
 
 type ThemeMode = Parameters<typeof SettingsScreen>[0]['themeMode'];
 
 function render(props: Partial<Parameters<typeof SettingsScreen>[0]> = {}) {
   const r = create(
     createElement(SettingsScreen, {
-      userId: 'user_1',
-      onUserChange: vi.fn(),
       themeMode: 'system' as ThemeMode,
       onThemeChange: vi.fn(),
       onBack: vi.fn(),
@@ -25,28 +22,11 @@ function byID(r: ReactTestRenderer, id: string) {
 }
 
 describe('SettingsScreen', () => {
-  it('renderiza todos os usuários de demo e as 3 opções de tema', () => {
-    expect(DEMO_USERS).not.toContain('mock');
+  it('renderiza as 3 opções de tema', () => {
     const text = JSON.stringify(render().toJSON());
-    for (const u of DEMO_USERS) expect(text).toContain(u);
     expect(text).toContain('sistema');
     expect(text).toContain('claro');
     expect(text).toContain('escuro');
-  });
-
-  it('marca o usuário ativo com selected', () => {
-    const r = render({ userId: 'mogli' });
-    expect(byID(r, 'user-mogli').props.accessibilityState.selected).toBe(true);
-    expect(byID(r, 'user-user_1').props.accessibilityState.selected).toBe(false);
-  });
-
-  it('tocar num usuário chama onUserChange', () => {
-    const onUserChange = vi.fn();
-    const r = render({ onUserChange });
-    act(() => {
-      byID(r, 'user-dosso').props.onPress();
-    });
-    expect(onUserChange).toHaveBeenCalledWith('dosso');
   });
 
   it('marca o tema ativo e toca em onThemeChange', () => {
@@ -58,6 +38,15 @@ describe('SettingsScreen', () => {
       byID(r, 'tema-sistema').props.onPress();
     });
     expect(onThemeChange).toHaveBeenCalledWith('system');
+  });
+
+  it('sair chama onSignOut', () => {
+    const onSignOut = vi.fn().mockResolvedValue(undefined);
+    const r = render({ onSignOut });
+    act(() => {
+      byID(r, 'sair').props.onPress();
+    });
+    expect(onSignOut).toHaveBeenCalled();
   });
 
   it('voltar chama onBack', () => {

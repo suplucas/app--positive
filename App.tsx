@@ -30,6 +30,7 @@ import {
 import { useFonts } from 'expo-font';
 import { StatusBar } from 'expo-status-bar';
 import { CommentThreadScreen } from './src/CommentThreadScreen';
+import { AuthFlow } from './src/AuthFlow';
 import { ErrorBoundary } from './src/ErrorBoundary';
 import { FeedCard } from './src/FeedCard';
 import { FeedPhoto } from './src/FeedPhoto';
@@ -60,6 +61,7 @@ import {
 import { friendlyApiError, resolvePhotoUrl, restaurantName } from './src/format';
 import { useFeed } from './src/useFeed';
 import { useSaves } from './src/useSaves';
+import { useSession } from './src/useSession';
 import type { Review, ReviewLayout } from './src/types';
 import type { ImageSourcePropType } from 'react-native';
 
@@ -67,6 +69,30 @@ import type { ImageSourcePropType } from 'react-native';
 const STRONG_NOTE = 9;
 
 export default function App() {
+  const session = useSession();
+
+  if (session.status === 'loading') {
+    return (
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+        <Text>carregando…</Text>
+      </View>
+    );
+  }
+
+  if (session.status === 'signed-out' || !session.user) {
+    return <AuthFlow signIn={session.signIn} signUp={session.signUp} />;
+  }
+
+  return <MainApp userId={session.user.id} onSignOut={session.signOut} />;
+}
+
+function MainApp({
+  userId,
+  onSignOut,
+}: {
+  userId: string;
+  onSignOut: () => Promise<void>;
+}) {
   useFonts({
     BricolageGrotesque_700Bold,
     BricolageGrotesque_800ExtraBold,
@@ -87,7 +113,6 @@ export default function App() {
   const theme = mode === 'dark' ? darkTheme : lightTheme;
 
   const [screen, setScreen] = useState<Screen>('feed');
-  const [userId, setUserId] = useState<string>('user_1');
   const [settingsOpen, setSettingsOpen] = useState(false);
   // Sub-páginas: página do restaurante (aberta no toque em card de feed)
   // e local pré-selecionado na composição (botão "avaliar" do restaurante).
@@ -388,11 +413,10 @@ export default function App() {
           {settingsOpen ? (
             <LayerScreen>
               <SettingsScreen
-                userId={userId}
-                onUserChange={(id) => setUserId(id)}
                 themeMode={themeMode}
                 onThemeChange={(m) => setThemeMode(m)}
                 onBack={() => setSettingsOpen(false)}
+                onSignOut={onSignOut}
               />
             </LayerScreen>
           ) : null}
