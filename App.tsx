@@ -318,6 +318,8 @@ function MainApp({
                 );
               }}
               onOpenRestaurant={(cnpj) => setRestaurantId(cnpj)}
+              onEditReview={openEdit}
+              onDeleteReview={confirmDelete}
             />
           ) : (
             <FlatList<Review>
@@ -429,6 +431,8 @@ function MainApp({
                     ? undefined
                     : () => toggleSaved(restaurantId)
                 }
+                onEditReview={openEdit}
+                onDeleteReview={confirmDelete}
               />
             </LayerScreen>
           ) : null}

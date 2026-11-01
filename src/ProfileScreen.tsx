@@ -31,6 +31,8 @@ export function ProfileScreen({
   profile,
   reviews,
   userId: propsUserId,
+  onEditReview,
+  onDeleteReview,
 }: {
   onSettings?: () => void;
   // docs/16: notificações saíram da navbar e ganharam atalho (sino) aqui.
@@ -47,6 +49,9 @@ export function ProfileScreen({
   reviews?: Review[];
   // N5: o perfil reflete o usuário ativo.
   userId?: string;
+  // MVP: editar/apagar a própria review direto do diário.
+  onEditReview?: (review: Review) => void;
+  onDeleteReview?: (review: Review) => void;
 }) {
   const userId = propsUserId ?? 'bea_come_tudo';
   const t = useTheme();
@@ -112,6 +117,8 @@ export function ProfileScreen({
         onRemoveSaved={onRemoveSaved}
         onOpenRestaurant={onOpenRestaurant}
         onFollowToggle={onFollowToggle}
+        onEditReview={onEditReview}
+        onDeleteReview={onDeleteReview}
       />
     </ScrollView>
   );
@@ -127,6 +134,8 @@ function PerfilV2({
   onRemoveSaved,
   onOpenRestaurant,
   onFollowToggle,
+  onEditReview,
+  onDeleteReview,
 }: {
   userId: string;
   profile: UserProfile;
@@ -136,6 +145,8 @@ function PerfilV2({
   onRemoveSaved?: (cnpj: string) => void;
   onOpenRestaurant?: (cnpj: string) => void;
   onFollowToggle?: () => void;
+  onEditReview?: (review: Review) => void;
+  onDeleteReview?: (review: Review) => void;
 }) {
   const t = useTheme();
   const [following, setFollowing] = useState(false);
@@ -212,7 +223,11 @@ function PerfilV2({
           onOpenRestaurant={onOpenRestaurant ?? (() => {})}
         />
       ) : (
-        <Diary reviews={reviews} />
+        <Diary
+          reviews={reviews}
+          onEditReview={onEditReview}
+          onDeleteReview={onDeleteReview}
+        />
       )}
 
       <Text style={[s.legend, { color: t.sub }]}>
@@ -252,7 +267,15 @@ function Stats({
   );
 }
 
-function Diary({ reviews }: { reviews: Review[] }) {
+function Diary({
+  reviews,
+  onEditReview,
+  onDeleteReview,
+}: {
+  reviews: Review[];
+  onEditReview?: (review: Review) => void;
+  onDeleteReview?: (review: Review) => void;
+}) {
   const t = useTheme();
   if (reviews.length === 0) {
     return (
@@ -264,7 +287,12 @@ function Diary({ reviews }: { reviews: Review[] }) {
   return (
     <View style={s.diaryList}>
       {reviews.map((review) => (
-        <FeedCard key={String(review.id)} review={review} />
+        <FeedCard
+          key={String(review.id)}
+          review={review}
+          onEdit={onEditReview ? () => onEditReview(review) : undefined}
+          onDelete={onDeleteReview ? () => onDeleteReview(review) : undefined}
+        />
       ))}
     </View>
   );

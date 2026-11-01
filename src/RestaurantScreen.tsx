@@ -1,5 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { PlaceHit } from './api/types';
+import type { Review } from './types';
 import {
   RestaurantProfileTemplate,
   type RestaurantProfileData,
@@ -31,6 +32,8 @@ export function RestaurantScreen({
   onEvaluate,
   saved = false,
   onSaveToggle,
+  onEditReview,
+  onDeleteReview,
 }: {
   cnpj: string;
   data?: RestaurantData;
@@ -44,6 +47,9 @@ export function RestaurantScreen({
   // avisa; quem decide é a lista.
   saved?: boolean;
   onSaveToggle?: () => void;
+  // MVP: editar/apagar a própria review na lista de avaliações.
+  onEditReview?: (review: Review) => void;
+  onDeleteReview?: (review: Review) => void;
 }) {
   const t = useTheme();
   const isOsm = cnpj.startsWith('osm:');
@@ -127,6 +133,9 @@ export function RestaurantScreen({
       onBack={onBack}
       onEvaluate={onEvaluate}
       onSaveToggle={onSaveToggle}
+      viewerId={userId}
+      onEditReview={onEditReview}
+      onDeleteReview={onDeleteReview}
     />
   );
 }

@@ -91,4 +91,23 @@ describe('RestaurantProfileTemplate (template de apresentação)', () => {
     expect(onEvaluate).toHaveBeenCalled();
     expect(onSaveToggle).toHaveBeenCalled();
   });
+
+  it('review própria ganha editar/apagar; de outro usuário, não', () => {
+    const onEditReview = vi.fn();
+    const onDeleteReview = vi.fn();
+    const own = { ...data.reviews[0]!, userId: 'ana' };
+    const other = { ...data.reviews[0]!, id: 'r2', userId: 'bia' };
+    const { r } = render({
+      viewerId: 'ana',
+      onEditReview,
+      onDeleteReview,
+      data: { ...data, reviews: [own, other] },
+    });
+    act(() => byID(r, 'editar-r1').props.onPress());
+    act(() => byID(r, 'apagar-r1').props.onPress());
+    expect(onEditReview).toHaveBeenCalledWith(own);
+    expect(onDeleteReview).toHaveBeenCalledWith(own);
+    expect(r.root.findAllByProps({ testID: 'editar-r2' })).toHaveLength(0);
+    expect(r.root.findAllByProps({ testID: 'apagar-r2' })).toHaveLength(0);
+  });
 });

@@ -65,6 +65,44 @@ describe('ProfileScreen (v2)', () => {
     expect(r.root.findAllByProps({ testID: 'seguir' })).toHaveLength(0);
   });
 
+  it('diário expõe editar/apagar quando o App passa os callbacks', () => {
+    const review = {
+      id: 1,
+      userId: 'bea_come_tudo',
+      restaurantId: '123',
+      rating: 4.5,
+      comment: 'review vinda da api',
+      likes: 0,
+      createdAt: new Date().toISOString(),
+    };
+    const onEditReview = vi.fn();
+    const onDeleteReview = vi.fn();
+    const { r } = render({ reviews: [review], onEditReview, onDeleteReview });
+    act(() => {
+      r.root.findByProps({ testID: 'editar-1' }).props.onPress();
+    });
+    act(() => {
+      r.root.findByProps({ testID: 'apagar-1' }).props.onPress();
+    });
+    expect(onEditReview).toHaveBeenCalledWith(review);
+    expect(onDeleteReview).toHaveBeenCalledWith(review);
+  });
+
+  it('diário sem callbacks: nenhum botão de dono', () => {
+    const review = {
+      id: 1,
+      userId: 'bea_come_tudo',
+      restaurantId: '123',
+      rating: 4.5,
+      comment: 'review vinda da api',
+      likes: 0,
+      createdAt: new Date().toISOString(),
+    };
+    const { r } = render({ reviews: [review] });
+    expect(r.root.findAllByProps({ testID: 'editar-1' })).toHaveLength(0);
+    expect(r.root.findAllByProps({ testID: 'apagar-1' })).toHaveLength(0);
+  });
+
   it('não tem aba listas (sem endpoint real)', () => {
     const { r } = render();
     expect(r.root.findAllByProps({ testID: 'tab-listas' })).toHaveLength(0);

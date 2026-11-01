@@ -30,12 +30,19 @@ export function RestaurantProfileTemplate({
   onBack,
   onEvaluate,
   onSaveToggle,
+  viewerId,
+  onEditReview,
+  onDeleteReview,
 }: {
   data: RestaurantProfileData;
   saved?: boolean;
   onBack: () => void;
   onEvaluate: () => void;
   onSaveToggle?: () => void;
+  // MVP: editar/apagar a própria review também na página do restaurante.
+  viewerId?: string;
+  onEditReview?: (review: Review) => void;
+  onDeleteReview?: (review: Review) => void;
 }) {
   const t = useTheme();
   const nota = data.notaMedia == null ? '—' : data.notaMedia.toFixed(1);
@@ -162,13 +169,26 @@ export function RestaurantProfileTemplate({
 
       <SectionTitle>avaliações</SectionTitle>
       <View style={s.list}>
-        {data.reviews.map((rv, i) =>
-          i === 1 ? (
-            <FeedQuote key={String(rv.id)} review={rv} tone="mostarda" />
+        {data.reviews.map((rv, i) => {
+          const isOwn =
+            viewerId != null && String(rv.userId) === String(viewerId);
+          const ownerProps = isOwn
+            ? {
+                onEdit: onEditReview ? () => onEditReview(rv) : undefined,
+                onDelete: onDeleteReview ? () => onDeleteReview(rv) : undefined,
+              }
+            : {};
+          return i === 1 ? (
+            <FeedQuote
+              key={String(rv.id)}
+              review={rv}
+              tone="mostarda"
+              {...ownerProps}
+            />
           ) : (
-            <FeedCard key={String(rv.id)} review={rv} />
-          ),
-        )}
+            <FeedCard key={String(rv.id)} review={rv} {...ownerProps} />
+          );
+        })}
       </View>
 
       <Text style={[s.legend, { color: t.sub }]}>
