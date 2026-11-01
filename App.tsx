@@ -25,6 +25,7 @@ import { StatusBar } from 'expo-status-bar';
 import { CommentThreadScreen } from './src/CommentThreadScreen';
 import { AuthFlow } from './src/AuthFlow';
 import { EditProfileScreen } from './src/EditProfileScreen';
+import { EmptyState } from './src/EmptyState';
 import { ErrorBoundary } from './src/ErrorBoundary';
 import { FeedCard } from './src/FeedCard';
 import { FeedPhoto } from './src/FeedPhoto';
@@ -232,16 +233,14 @@ function MainApp({
     return map;
   }, [items]);
 
-  // Só estados que pedem atenção; paginação (fim de feed / carregando
-  // mais) não aparece mais — o próprio fim da lista comunica.
+  // Só estados que pedem atenção; o feed vazio ganha um empty state
+  // próprio (abaixo), não o banner. Paginação não aparece mais.
   const banner =
     status === 'loading' && items.length === 0
       ? 'Carregando feed…'
       : status === 'error'
         ? friendlyApiError(error, 'feed')
-        : status === 'empty'
-          ? 'Feed vazio para este usuário'
-          : null;
+        : null;
 
   return (
     <ThemeContext.Provider value={theme}>
@@ -332,10 +331,28 @@ function MainApp({
               data={items}
               keyExtractor={(item) => String(item.id)}
               ListHeaderComponent={
-                <View>
-                  {/* <Podium /> */}
-                  <SectionTitle>reviews recentes</SectionTitle>
-                </View>
+                status === 'empty' ? undefined : (
+                  <View>
+                    {/* <Podium /> */}
+                    <SectionTitle>reviews recentes</SectionTitle>
+                  </View>
+                )
+              }
+              ListEmptyComponent={
+                status === 'empty' ? (
+                  <EmptyState
+                    emoji="🍽️"
+                    testID="feed-vazio"
+                    title="O feed tá quieto por aqui."
+                    subtitle="Siga gente que come bem ou avalie um lugar pra começar."
+                    actionLabel="avaliar um lugar"
+                    onAction={() => {
+                      setEditingReview(null);
+                      setComposeCnpj(null);
+                      setScreen('compose');
+                    }}
+                  />
+                ) : undefined
               }
               renderItem={({ item }) => {
                 const d = decorated.get(item.id);
