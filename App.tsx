@@ -20,16 +20,6 @@ import {
   type NativeScrollEvent,
   NativeSyntheticEvent,
 } from 'react-native';
-import {
-  BricolageGrotesque_700Bold,
-  BricolageGrotesque_800ExtraBold,
-} from '@expo-google-fonts/bricolage-grotesque';
-import {
-  InstrumentSans_400Regular,
-  InstrumentSans_500Medium,
-  InstrumentSans_600SemiBold,
-} from '@expo-google-fonts/instrument-sans';
-import { useFonts } from 'expo-font';
 import { StatusBar } from 'expo-status-bar';
 import { CommentThreadScreen } from './src/CommentThreadScreen';
 import { AuthFlow } from './src/AuthFlow';
@@ -72,16 +62,9 @@ import type { ImageSourcePropType } from 'react-native';
 const STRONG_NOTE = 9;
 
 export default function App() {
-  const [fontsLoaded] = useFonts({
-    BricolageGrotesque_700Bold,
-    BricolageGrotesque_800ExtraBold,
-    InstrumentSans_400Regular,
-    InstrumentSans_500Medium,
-    InstrumentSans_600SemiBold,
-  });
   const session = useSession();
 
-  if (!fontsLoaded || session.status === 'loading') {
+  if (session.status === 'loading') {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
         <Text>carregando…</Text>

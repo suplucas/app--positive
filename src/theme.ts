@@ -20,11 +20,11 @@ export const spacing = {
 } as const;
 
 export const fonts = {
-  display700: "BricolageGrotesque_700Bold",
-  display800: "BricolageGrotesque_800ExtraBold",
-  corpo: "InstrumentSans_400Regular",
-  corpo500: "InstrumentSans_500Medium",
-  corpo600: "InstrumentSans_600SemiBold",
+  display700: "Helvetica-Bold",
+  display800: "Helvetica-Bold",
+  corpo: "Helvetica",
+  corpo500: "Helvetica",
+  corpo600: "Helvetica-Bold",
 } as const;
 
 export type Theme = {

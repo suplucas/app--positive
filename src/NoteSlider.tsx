@@ -1,5 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+  type ScrollViewInstance,
+} from 'react-native';
 import { fonts, palette, useTheme } from './theme';
 
 // Slider de nota na escala 0.0–10.0 em passos de 0.5 (docs_04): scroll
@@ -18,7 +25,7 @@ export function NoteSlider({
 }) {
   const t = useTheme();
   const [pad, setPad] = useState(0);
-  const scroller = useRef<ScrollView>(null);
+  const scroller = useRef<ScrollViewInstance>(null);
   const initRef = useRef(false);
 
   const clamp = (v: number) => Math.min(10, Math.max(0, Math.round(v * 2) / 2));

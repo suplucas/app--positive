@@ -20,7 +20,7 @@ export function Navbar({
   active: Screen;
   onNavigate: (s: Screen) => void;
   onCompose: () => void;
-  navAnim: Animated.AnimatedValue;
+  navAnim: Animated.Value;
 }) {
   const t = useTheme();
   return (
