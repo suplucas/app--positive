@@ -2,17 +2,19 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { create, ReactTestRenderer, act } from 'react-test-renderer';
 import { createElement } from 'react';
 import { ComposeV2 } from './ComposeV2';
-import { postReview, uploadReviewPhoto } from './api';
+import { postReview, updateReview, uploadReviewPhoto } from './api';
 import { restaurantNames } from './restaurantNames';
 import type { Review } from './types';
 
 vi.mock('./api', () => ({
   postReview: vi.fn(),
   uploadReviewPhoto: vi.fn(),
+  updateReview: vi.fn(),
 }));
 
 const postReviewMock = vi.mocked(postReview);
 const uploadPhotoMock = vi.mocked(uploadReviewPhoto);
+const updateReviewMock = vi.mocked(updateReview);
 
 // Usa um restaurante real do mapa do seed.
 const [cnpjExemplo, nomeExemplo] = Object.entries(restaurantNames)[0];
@@ -194,6 +196,7 @@ function selectedFlairs(r: ReactTestRenderer): string[] {
 beforeEach(() => {
   postReviewMock.mockReset();
   uploadPhotoMock.mockReset();
+  updateReviewMock.mockReset();
   postReviewMock.mockResolvedValue(reviewCreated);
 });
 
@@ -358,5 +361,111 @@ describe('ComposeV2', () => {
     expect(
       byID(r, 'publicar-v2').props.accessibilityState.disabled,
     ).toBe(false);
+  });
+});
+
+describe('ComposeV2 (editar avaliação própria)', () => {
+  const ownReview: Review = {
+    id: 42,
+    userId: 'user_1',
+    restaurantId: cnpjExemplo,
+    rating: 4.5,
+    comment: 'bom demais',
+    likes: 3,
+    createdAt: '2026-09-24T00:00:00.000Z',
+    flairs: ['achado'],
+    photoUrl: '/uploads/foto.jpg',
+  };
+
+  it('prefill: título, nota, legenda e flairs; local travado', () => {
+    const r = render({ editReview: ownReview });
+    expect(JSON.stringify(r.toJSON())).toContain('editar avaliação');
+    expect(subtreeTexts(r, 'preview-v2')).toContain('9.0');
+    expect(byID(r, 'legenda').props.value).toBe('bom demais');
+    expect(selectedFlairs(r)).toEqual(['flair-achado']);
+    // local da review é fixo: sem "trocar" nem busca
+    expect(r.root.findAllByProps({ testID: 'trocar-restaurante' })).toHaveLength(0);
+    expect(r.root.findAllByProps({ testID: 'buscar-v2' })).toHaveLength(0);
+    // foto existente aparece como preview
+    expect(r.root.findAllByProps({ testID: 'foto-preview' })).toHaveLength(1);
+  });
+
+  it('salvar chama PUT /reviews com os campos editados', async () => {
+    updateReviewMock.mockResolvedValue({ ...ownReview });
+    const onPosted = vi.fn();
+    const r = render({ editReview: ownReview, onPosted });
+    await act(async () => {
+      byID(r, 'publicar-v2').props.onPress();
+    });
+    const [userId, id, payload] = updateReviewMock.mock.calls[0]!;
+    expect(userId).toBe('user_1');
+    expect(id).toBe(42);
+    expect(payload).toEqual({
+      rating: 4.5,
+      comment: 'bom demais',
+      flairs: ['achado'],
+    });
+    expect(onPosted).toHaveBeenCalled();
+  });
+
+  it('alterar a nota reflete no PUT', async () => {
+    updateReviewMock.mockResolvedValue({ ...ownReview });
+    const r = render({ editReview: ownReview });
+    act(() => byID(r, 'nota-tick-8.0').props.onPress());
+    await act(async () => {
+      byID(r, 'publicar-v2').props.onPress();
+    });
+    expect(updateReviewMock).toHaveBeenCalledWith(
+      'user_1',
+      42,
+      expect.objectContaining({ rating: 4 }),
+    );
+  });
+
+  it('remover a foto existente envia photoUrl null', async () => {
+    updateReviewMock.mockResolvedValue({ ...ownReview });
+    const r = render({ editReview: ownReview });
+    act(() => byID(r, 'foto-tirar-0').props.onPress());
+    await act(async () => {
+      byID(r, 'publicar-v2').props.onPress();
+    });
+    expect(updateReviewMock).toHaveBeenCalledWith(
+      'user_1',
+      42,
+      expect.objectContaining({ photoUrl: null }),
+    );
+  });
+
+  it('trocar a foto sobe a nova e envia a URL no PUT', async () => {
+    updateReviewMock.mockResolvedValue({ ...ownReview });
+    uploadPhotoMock.mockResolvedValue('/uploads/nova.jpg');
+    const r = render({
+      editReview: ownReview,
+      onPickPhoto: async () => ({ uri: 'file://nova.jpg' }),
+    });
+    act(() => byID(r, 'foto-tirar-0').props.onPress());
+    await act(async () => byID(r, 'foto-add').props.onPress());
+    await act(async () => {
+      byID(r, 'publicar-v2').props.onPress();
+    });
+    expect(uploadPhotoMock).toHaveBeenCalledWith('user_1', 'file://nova.jpg');
+    expect(updateReviewMock).toHaveBeenCalledWith(
+      'user_1',
+      42,
+      expect.objectContaining({ photoUrl: '/uploads/nova.jpg' }),
+    );
+  });
+
+  it('erro de rede mostra mensagem e mantém na tela (sem onPosted)', async () => {
+    updateReviewMock.mockRejectedValue(new Error('PUT /reviews/42 failed: 500'));
+    const onPosted = vi.fn();
+    const r = render({ editReview: ownReview, onPosted });
+    await act(async () => {
+      byID(r, 'publicar-v2').props.onPress();
+    });
+    expect(onPosted).not.toHaveBeenCalled();
+    expect(JSON.stringify(r.toJSON())).toContain(
+      'Não consegui publicar sua avaliação.',
+    );
   });
 });

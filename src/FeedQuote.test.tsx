@@ -88,3 +88,29 @@ describe('FeedQuote', () => {
     expect(onPress).toHaveBeenCalled();
   });
 });
+
+describe('FeedQuote (editar/apagar review própria)', () => {
+  it('com onEdit: botão "editar" dispara o callback', () => {
+    const onEdit = vi.fn();
+    const { r } = render({ onEdit });
+    act(() => {
+      r.root.findByProps({ testID: 'editar-7' }).props.onPress();
+    });
+    expect(onEdit).toHaveBeenCalled();
+  });
+
+  it('com onDelete: botão "apagar" dispara o callback', () => {
+    const onDelete = vi.fn();
+    const { r } = render({ onDelete });
+    act(() => {
+      r.root.findByProps({ testID: 'apagar-7' }).props.onPress();
+    });
+    expect(onDelete).toHaveBeenCalled();
+  });
+
+  it('sem onEdit/onDelete: nenhum botão de dono aparece', () => {
+    const { r } = render();
+    expect(r.root.findAllByProps({ testID: 'editar-7' })).toHaveLength(0);
+    expect(r.root.findAllByProps({ testID: 'apagar-7' })).toHaveLength(0);
+  });
+});

@@ -47,6 +47,45 @@ export async function postReview(
   return data;
 }
 
+// Campos editáveis da própria review (docs MVP). Só os campos presentes
+// são alterados; `flairs` sempre substitui a lista (vazia limpa todos).
+export type ReviewEdit = {
+  rating?: number;
+  comment?: string | null;
+  photoUrl?: string | null;
+  flairs?: string[];
+};
+
+export async function updateReview(
+  userId: string,
+  id: string | number,
+  review: ReviewEdit,
+  baseUrl?: string,
+): Promise<Review> {
+  const data = await apiFetch<Review>(`/reviews/${id}`, {
+    method: "PUT",
+    userId,
+    baseUrl,
+    body: review,
+  });
+  if (typeof data !== "object" || data === null || data.id === undefined) {
+    throw new Error("PUT /reviews/:id: invalid payload");
+  }
+  return data;
+}
+
+export async function deleteReview(
+  userId: string,
+  id: string | number,
+  baseUrl?: string,
+): Promise<void> {
+  await apiFetch<void>(`/reviews/${id}`, {
+    method: "DELETE",
+    userId,
+    baseUrl,
+  });
+}
+
 // Incrementa o like da review no backend. O otimismo (+1) fica no hook.
 export async function likeReview(
   userId: string,

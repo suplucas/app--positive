@@ -29,6 +29,8 @@ export function FeedPhoto({
   onComments,
   onLike,
   onAuthorPress,
+  onEdit,
+  onDelete,
 }: {
   review: Review;
   photos: ImageSourcePropType[];
@@ -37,6 +39,9 @@ export function FeedPhoto({
   onComments?: () => void;
   onLike?: () => void;
   onAuthorPress?: () => void;
+  // Editar/apagar: só o App passa quando a review é do próprio usuário.
+  onEdit?: () => void;
+  onDelete?: () => void;
 }) {
   const t = useTheme();
   const [saved, setSaved] = useState(false);
@@ -165,6 +170,28 @@ export function FeedPhoto({
           <Text style={[s.action, { color: t.sub }]}>▲ {review.likes}</Text>
         )}
         {review.flairs?.[0] ? <Flair label={review.flairs[0]} /> : null}
+        {onEdit ? (
+          <Pressable
+            testID={`editar-${review.id}`}
+            onPress={onEdit}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel="editar avaliação"
+          >
+            <Text style={[s.action, { color: t.sub }]}>editar</Text>
+          </Pressable>
+        ) : null}
+        {onDelete ? (
+          <Pressable
+            testID={`apagar-${review.id}`}
+            onPress={onDelete}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel="apagar avaliação"
+          >
+            <Text style={[s.action, { color: t.sub }]}>apagar</Text>
+          </Pressable>
+        ) : null}
         {onComments ? (
           <Pressable
             testID={`comentar-photo-${review.id}`}

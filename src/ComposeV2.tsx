@@ -9,13 +9,16 @@ import {
   View,
 } from 'react-native';
 import type { ImageSourcePropType } from 'react-native';
-import { postReview, uploadReviewPhoto } from './api';
+import { postReview, updateReview, uploadReviewPhoto } from './api';
+import type { ReviewEdit } from './api';
 import { importPlace, searchPlaces } from './api/place';
 import type { PlaceHit } from './api/types';
 import { NoteSlider } from './NoteSlider';
 import { SectionTitle } from './SectionTitle';
+import type { Review } from './types';
 import {
   friendlyApiError,
+  resolvePhotoUrl,
   restaurantName,
   searchRestaurants,
   type RestaurantHit,
@@ -63,6 +66,7 @@ export function ComposeV2({
   onPickPhoto,
   onChangePlace,
   pickedCnpj,
+  editReview,
 }: {
   userId: string;
   initialCnpj?: string | null;
@@ -74,18 +78,26 @@ export function ComposeV2({
   // docs/16: "trocar" abre a busca (picker); `pickedCnpj` volta do App.
   onChangePlace?: () => void;
   pickedCnpj?: string | null;
+  // MVP: edição da própria review — prefill e PUT em vez de POST.
+  editReview?: Review | null;
 }) {
   const t = useTheme();
+  const editing = editReview != null;
   const [query, setQuery] = useState('');
-  const [selected, setSelected] = useState<RestaurantHit | null>(() =>
-    initialCnpj
-      ? { cnpj: initialCnpj, nome: restaurantName(initialCnpj) ?? initialCnpj }
-      : null,
+  const [selected, setSelected] = useState<RestaurantHit | null>(() => {
+    const cnpj = editReview?.restaurantId ?? initialCnpj;
+    return cnpj
+      ? { cnpj, nome: restaurantName(cnpj) ?? cnpj }
+      : null;
+  });
+  const [note, setNote] = useState(() =>
+    editReview?.rating != null ? editReview.rating * 2 : 8,
   );
-  const [note, setNote] = useState(8); // padrão do mock: 8.0
-  const [caption, setCaption] = useState('');
-  const [flairs, setFlairs] = useState<string[]>([]);
-  const [photos, setPhotos] = useState<ImageSourcePropType[]>([]);
+  const [caption, setCaption] = useState(() => editReview?.comment ?? '');
+  const [flairs, setFlairs] = useState<string[]>(() => editReview?.flairs ?? []);
+  const [photos, setPhotos] = useState<ImageSourcePropType[]>(() =>
+    editReview?.photoUrl ? [{ uri: resolvePhotoUrl(editReview.photoUrl) }] : [],
+  );
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -155,14 +167,14 @@ export function ComposeV2({
 
   // Local escolhido no picker de busca (docs/16) que volta do App.
   useEffect(() => {
-    if (pickedCnpj) {
+    if (pickedCnpj && !editing) {
       setSelected({
         cnpj: pickedCnpj,
         nome: restaurantName(pickedCnpj) ?? pickedCnpj,
       });
       setQuery('');
     }
-  }, [pickedCnpj]);
+  }, [pickedCnpj, editing]);
 
   const canSend = selected !== null && !sending;
 
@@ -198,12 +210,33 @@ export function ComposeV2({
         first && typeof first === "object" && "uri" in first
           ? (first as { uri?: string }).uri
           : undefined;
+      const isRemote = !!uri && /^https?:\/\//i.test(uri);
+      const comment = caption.trim() === "" ? null : caption.trim();
+
+      if (editReview) {
+        // Edição: sempre envia notch/comment/flairs; a foto só entra se
+        // mudou (removida → null; nova → upload; remota → mantém).
+        const body: ReviewEdit = {
+          rating: note / 2,
+          comment,
+          flairs,
+        };
+        if (!uri) {
+          body.photoUrl = null;
+        } else if (!isRemote) {
+          body.photoUrl = await uploadReviewPhoto(userId, uri);
+        }
+        await updateReview(userId, editReview.id, body);
+        onPosted();
+        return;
+      }
+
       const photoUrl = uri ? await uploadReviewPhoto(userId, uri) : null;
 
       await postReview(userId, {
         restaurantId: selected.cnpj,
         rating: note / 2, // API usa escala 0–5; UI usa 0–10
-        comment: caption.trim() === "" ? null : caption.trim(),
+        comment,
         ...(photoUrl ? { photoUrl } : {}),
         ...(flairs.length > 0 ? { flairs } : {}),
       });
@@ -229,7 +262,9 @@ export function ComposeV2({
         >
           <Text style={[s.hbtn, { color: t.sub }]}>cancelar</Text>
         </Pressable>
-        <Text style={[s.htitle, { color: t.ink }]}>nova avaliação</Text>
+        <Text style={[s.htitle, { color: t.ink }]}>
+          {editing ? 'editar avaliação' : 'nova avaliação'}
+        </Text>
         <Pressable
           testID="publicar-v2"
           onPress={() => void submit()}
@@ -241,7 +276,9 @@ export function ComposeV2({
           accessibilityRole="button"
           accessibilityState={{ disabled: !canSend, busy: sending }}
         >
-          <Text style={s.publishBtnText}>{sending ? 'tim…' : 'tim!'}</Text>
+          <Text style={s.publishBtnText}>
+            {sending ? 'tim…' : editing ? 'salvar' : 'tim!'}
+          </Text>
         </Pressable>
       </View>
 
@@ -252,29 +289,39 @@ export function ComposeV2({
       >
       <SectionTitle>onde você comeu</SectionTitle>
       {selected ? (
-        <Pressable
-          testID="trocar-restaurante"
-          onPress={() => {
-            // Com picker disponível abre a busca; senão, volta ao campo.
-            if (onChangePlace) onChangePlace();
-            else {
-              setSelected(null);
-              setQuery('');
-            }
-          }}
-          style={[s.place, { backgroundColor: t.quietBg }]}
-          accessibilityRole="button"
-          accessibilityLabel="trocar restaurante"
-        >
-          <Text style={s.pin}>📍</Text>
-          <View style={{ flex: 1 }}>
-            <Text style={[s.placeNome, { color: t.ink }]}>{selected.nome}</Text>
-            <Text style={[s.placeSub, { color: t.sub }]}>{selected.cnpj}</Text>
+        editing ? (
+          <View style={[s.place, { backgroundColor: t.quietBg }]}>
+            <Text style={s.pin}>📍</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={[s.placeNome, { color: t.ink }]}>{selected.nome}</Text>
+              <Text style={[s.placeSub, { color: t.sub }]}>{selected.cnpj}</Text>
+            </View>
           </View>
-          <Text style={[s.placeTrocar, { color: palette.lambeLambe }]}>
-            trocar
-          </Text>
-        </Pressable>
+        ) : (
+          <Pressable
+            testID="trocar-restaurante"
+            onPress={() => {
+              // Com picker disponível abre a busca; senão, volta ao campo.
+              if (onChangePlace) onChangePlace();
+              else {
+                setSelected(null);
+                setQuery('');
+              }
+            }}
+            style={[s.place, { backgroundColor: t.quietBg }]}
+            accessibilityRole="button"
+            accessibilityLabel="trocar restaurante"
+          >
+            <Text style={s.pin}>📍</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={[s.placeNome, { color: t.ink }]}>{selected.nome}</Text>
+              <Text style={[s.placeSub, { color: t.sub }]}>{selected.cnpj}</Text>
+            </View>
+            <Text style={[s.placeTrocar, { color: palette.lambeLambe }]}>
+              trocar
+            </Text>
+          </Pressable>
+        )
       ) : (
         <>
           <TextInput

@@ -1,4 +1,5 @@
 import { ComposeV2 } from './ComposeV2';
+import type { Review } from './types';
 
 // Tela de avaliação na versão final (docs_04/docs_16). O seletor v1/v2
 // foi removido; o fluxo é sempre o ComposeV2 (slider, foto, flairs e
@@ -10,6 +11,7 @@ export function ComposeScreen({
   onPosted,
   onChangePlace,
   pickedCnpj,
+  editReview,
 }: {
   userId: string;
   initialCnpj?: string | null;
@@ -19,6 +21,8 @@ export function ComposeScreen({
   // resultado escolhido, devolvido pelo App.
   onChangePlace?: () => void;
   pickedCnpj?: string | null;
+  // MVP: edição da própria review (prefill + PUT) quando presente.
+  editReview?: Review | null;
 }) {
   return (
     <ComposeV2
@@ -28,6 +32,7 @@ export function ComposeScreen({
       onPosted={onPosted}
       onChangePlace={onChangePlace}
       pickedCnpj={pickedCnpj}
+      editReview={editReview}
     />
   );
 }

@@ -4,7 +4,7 @@ import { ExpandableText } from './ExpandableText';
 import { Flair } from './Flair';
 import { NoteBadge } from './NoteBadge';
 import { formatRelative, getNote, restaurantName } from './format';
-import { fonts, spacing, useTheme } from './theme';
+import { fonts, palette, spacing, useTheme } from './theme';
 import type { Review } from './types';
 
 // Linha do feed: texto-primeiro, avatar à esquerda, nota à direita
@@ -17,6 +17,8 @@ export function FeedCard({
   onComments,
   onLike,
   onAuthorPress,
+  onEdit,
+  onDelete,
 }: {
   review: Review;
   strong?: boolean;
@@ -27,6 +29,9 @@ export function FeedCard({
   onLike?: () => void;
   // Abre o perfil do autor da review.
   onAuthorPress?: () => void;
+  // Editar/apagar: só o App passa quando a review é do próprio usuário.
+  onEdit?: () => void;
+  onDelete?: () => void;
 }) {
   const t = useTheme();
   const nome = restaurantName(review.restaurantId);
@@ -88,6 +93,30 @@ export function FeedCard({
           ) : null}
           {review.flairs?.[0] ? (
             <Flair label={review.flairs[0]} strong={strong} />
+          ) : null}
+          {onEdit ? (
+            <Pressable
+              testID={`editar-${review.id}`}
+              onPress={onEdit}
+              hitSlop={6}
+              accessibilityRole="button"
+              accessibilityLabel="editar avaliação"
+            >
+              <Text style={[s.metaText, { color: t.sub }]}>editar</Text>
+            </Pressable>
+          ) : null}
+          {onDelete ? (
+            <Pressable
+              testID={`apagar-${review.id}`}
+              onPress={onDelete}
+              hitSlop={6}
+              accessibilityRole="button"
+              accessibilityLabel="apagar avaliação"
+            >
+              <Text style={[s.metaText, { color: palette.lambeLambe }]}>
+                apagar
+              </Text>
+            </Pressable>
           ) : null}
         </View>
       </View>

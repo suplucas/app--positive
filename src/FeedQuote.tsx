@@ -17,6 +17,8 @@ export function FeedQuote({
   onComments,
   onLike,
   onAuthorPress,
+  onEdit,
+  onDelete,
 }: {
   review: Review;
   tone?: 'mostarda' | 'lambeLambe';
@@ -25,6 +27,9 @@ export function FeedQuote({
   onComments?: () => void;
   onLike?: () => void;
   onAuthorPress?: () => void;
+  // Editar/apagar: só o App passa quando a review é do próprio usuário.
+  onEdit?: () => void;
+  onDelete?: () => void;
 }) {
   const nome = restaurantName(review.restaurantId);
   const bg = tone === 'lambeLambe' ? palette.lambeLambe : palette.mostarda;
@@ -83,6 +88,28 @@ export function FeedQuote({
               accessibilityLabel="abrir comentários"
             >
               <Text style={[s.actions, { color: ink }]}>💬</Text>
+            </Pressable>
+          ) : null}
+          {onEdit ? (
+            <Pressable
+              testID={`editar-${review.id}`}
+              onPress={onEdit}
+              hitSlop={6}
+              accessibilityRole="button"
+              accessibilityLabel="editar avaliação"
+            >
+              <Text style={[s.actions, { color: ink }]}>editar</Text>
+            </Pressable>
+          ) : null}
+          {onDelete ? (
+            <Pressable
+              testID={`apagar-${review.id}`}
+              onPress={onDelete}
+              hitSlop={6}
+              accessibilityRole="button"
+              accessibilityLabel="apagar avaliação"
+            >
+              <Text style={[s.actions, { color: ink }]}>apagar</Text>
             </Pressable>
           ) : null}
         </View>
