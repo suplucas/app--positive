@@ -88,7 +88,27 @@ Fases 1–4 da spec `2026-10-20-mvp-grupo-pequeno-design.md` entregues:
 
 Pendente (Fase 5 — deploy):
 - Deploy da API + app para o grupo (env no Railway já suportadas).
-- Estados vazios adicionais e smoke e2e.
+- Smoke e2e automatizado da API.
+
+## Experiência completa (rodada 1)
+
+- **Editar/apagar a própria review**: `PUT /reviews/:id` e
+  `DELETE /reviews/:id` (autor-only); no app, botões `editar`/`apagar`
+  nas próprias reviews do feed, do diário do perfil e da página do
+  restaurante; edição reusa o compose (local travado, prefill de
+  nota/legenda/flairs/foto) e apagar pede confirmação.
+- **Editar perfil**: `PUT /users/:id` (nome/bio/foto; só o próprio);
+  `EditProfileScreen` aberta pelo perfil.
+- **Foto de perfil**: `POST /uploads/avatar` (mesmo storage da review);
+  `User.photo_url` (migration `013`); o avatar do perfil usa a foto.
+- **Estados vazios**: `EmptyState` reutilizável; o feed vazio ganha CTA
+  de avaliar (busca/mapa/quero ir/perfil já tinham o seu).
+- **Expo SDK 58**: RN 0.88.1 e `expo-*` alinhados (corrige o bundling
+  `react-native/asset-registry`); fontes do sistema (Google Fonts
+  removidas).
+
+Validação atual: app **262 testes** (`npm run typecheck && npm test`) e
+API **105 testes** (`npm test && npm run build`), ambos verdes.
 
 Storage de foto: `PHOTO_STORAGE` escolhe **S3-compatible** quando
 `S3_BUCKET` está definido (Railway) e disco local caso contrário.

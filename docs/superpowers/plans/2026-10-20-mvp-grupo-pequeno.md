@@ -1,5 +1,11 @@
 # MVP Grupo Pequeno — Implementation Plan
 
+> **Status:** Fases 1–4 e 5.1–5.2 entregues (auth, restaurante/OSM,
+> seguir, feed heurístico, S3 storage, estados vazios). Fase 5.3
+> (docs/env) parcial. A "rodada 1 da experiência completa" (editar/apagar
+> review, editar perfil, foto de perfil, empty states, SDK 58) está na
+> Fase 6, no fim deste arquivo.
+>
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Endurecer o app/API para um grupo pequeno real: login, avaliar lugares do OSM, seguir usuários, feed heurístico e storage/deploy de produção.
@@ -302,3 +308,64 @@
 - [ ] Step 2: Rodar `npm run typecheck && npm test` no app e `npm test && npm run build` na API.
 - [ ] Step 3: Smoke e2e básico da API (`/auth/register`, `/feed` autenticado).
 - [ ] Step 4: Commit `docs: mvp grupo pequeno`.
+
+---
+
+## Fase 6 — Experiência completa (rodada 1)
+
+**Escopo:** editar/apagar a própria review, editar perfil, foto de
+perfil e estados vazios. E2E e analytics ficam para a rodada 2.
+
+### Task 6.0: Expo SDK 58 (destrava o teste no iPhone)
+
+**Repo:** `app--positive`
+
+- [x] Alinhar `expo-*`/`react-native` (RN 0.88.1) via `expo install --fix`
+      → corrige `Unable to resolve react-native/asset-registry`.
+- [x] Adaptar tipos ao RN 0.88 (`Animated.Value`, `ScrollViewInstance`).
+- [x] Remover `@expo-google-fonts` (theme usa Helvetica) e manter o gate
+      de sessão (evita piscar o login). Commit `7a04a7c`.
+
+### Task 6.1: Editar/apagar review (API)
+
+**Repo:** `api--positive--feed`
+
+- [x] `PUT /reviews/:id` e `DELETE /reviews/:id`, autor-only (404 p/
+      não-autor); `ReviewService.updateReview/deleteReview`; validação
+      de rating antes de mutar; flairs via delete+insert. Commit `d0b8593`.
+
+### Task 6.2: Editar/apagar review (app)
+
+**Repo:** `app--positive`
+
+- [x] `api.updateReview/deleteReview`; `useFeed.remove` otimista.
+- [x] Botões `editar`/`apagar` no FeedCard/FeedQuote/FeedPhoto (só nas
+      próprias) + confirmação.
+- [x] Modo edição no ComposeV2 (prefill; local travado; foto remota
+      mantida, removida vira null, nova é enviada). Commits `1a28d6c`,
+      `3722cab` (perfil + página do restaurante).
+
+### Task 6.3: Editar perfil + foto (API)
+
+**Repo:** `api--positive--feed`
+
+- [x] `User.photoUrl` (migration `013_user_photo.sql`).
+- [x] `PUT /users/:id` (nome/bio/handle/foto; só o próprio);
+      `getProfile` expõe `photoUrl`.
+- [x] `POST /uploads/avatar`. Commit `aaeece8`.
+
+### Task 6.4: Editar perfil + foto (app)
+
+**Repo:** `app--positive`
+
+- [x] `api/user.updateUserProfile`, `api.uploadAvatarPhoto`.
+- [x] `EditProfileForm` (apresentação) + `EditProfileScreen` (upload +
+      PUT); avatar do perfil usa a foto. Commit `264b623`.
+
+### Task 6.5: Estados vazios
+
+**Repo:** `app--positive`
+
+- [x] `EmptyState` reutilizável; feed vazio com CTA de avaliar (busca,
+      mapa, quero ir e diário já tinham o seu). Commit `3003b66`.
+
