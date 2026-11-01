@@ -103,6 +103,20 @@ describe('ProfileScreen (v2)', () => {
     expect(r.root.findAllByProps({ testID: 'apagar-1' })).toHaveLength(0);
   });
 
+  it('perfil próprio expõe "editar perfil" quando há callback', () => {
+    const onEditProfile = vi.fn();
+    const { r } = render({ onEditProfile });
+    act(() => {
+      r.root.findByProps({ testID: 'editar-perfil' }).props.onPress();
+    });
+    expect(onEditProfile).toHaveBeenCalled();
+  });
+
+  it('sem callback, não mostra "editar perfil"', () => {
+    const { r } = render();
+    expect(r.root.findAllByProps({ testID: 'editar-perfil' })).toHaveLength(0);
+  });
+
   it('não tem aba listas (sem endpoint real)', () => {
     const { r } = render();
     expect(r.root.findAllByProps({ testID: 'tab-listas' })).toHaveLength(0);

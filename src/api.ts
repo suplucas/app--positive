@@ -106,24 +106,42 @@ export async function uploadReviewPhoto(
   uri: string,
   baseUrl?: string,
 ): Promise<string> {
+  return uploadPhoto(userId, uri, "/uploads/review-photo", baseUrl);
+}
+
+// Sobe a foto de perfil (multipart) e devolve a URL salva no storage.
+export async function uploadAvatarPhoto(
+  userId: string,
+  uri: string,
+  baseUrl?: string,
+): Promise<string> {
+  return uploadPhoto(userId, uri, "/uploads/avatar", baseUrl);
+}
+
+async function uploadPhoto(
+  userId: string,
+  uri: string,
+  path: string,
+  baseUrl?: string,
+): Promise<string> {
   const form = new FormData();
   form.append("file", {
     uri,
-    name: "review.jpg",
+    name: "photo.jpg",
     type: "image/jpeg",
   } as unknown as Blob);
 
-  const res = await fetch(`${baseUrl ?? apiBaseUrl()}/uploads/review-photo`, {
+  const res = await fetch(`${baseUrl ?? apiBaseUrl()}${path}`, {
     method: "POST",
     headers: { "x-user-id": userId, Accept: "application/json" },
     body: form,
   });
   if (!res.ok) {
-    throw new ApiError(res.status, "/uploads/review-photo");
+    throw new ApiError(res.status, path);
   }
   const data = (await res.json()) as { url?: unknown };
   if (typeof data?.url !== "string") {
-    throw new Error("POST /uploads/review-photo: invalid payload");
+    throw new Error(`POST ${path}: invalid payload`);
   }
   return data.url;
 }

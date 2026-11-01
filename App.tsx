@@ -24,6 +24,7 @@ import {
 import { StatusBar } from 'expo-status-bar';
 import { CommentThreadScreen } from './src/CommentThreadScreen';
 import { AuthFlow } from './src/AuthFlow';
+import { EditProfileScreen } from './src/EditProfileScreen';
 import { ErrorBoundary } from './src/ErrorBoundary';
 import { FeedCard } from './src/FeedCard';
 import { FeedPhoto } from './src/FeedPhoto';
@@ -120,6 +121,9 @@ function MainApp({
 
   const [screen, setScreen] = useState<Screen>('feed');
   const [settingsOpen, setSettingsOpen] = useState(false);
+  // Edição do próprio perfil (MVP) + versão p/ forçar refetch ao salvar.
+  const [editProfileOpen, setEditProfileOpen] = useState(false);
+  const [profileVersion, setProfileVersion] = useState(0);
   // Sub-páginas: página do restaurante (aberta no toque em card de feed)
   // e local pré-selecionado na composição (botão "avaliar" do restaurante).
   const [restaurantId, setRestaurantId] = useState<string | null>(null);
@@ -305,6 +309,7 @@ function MainApp({
             <MapScreen onOpenRestaurant={(cnpj) => setRestaurantId(cnpj)} />
           ) : screen === 'perfil' ? (
             <ProfileScreen
+              key={profileVersion}
               userId={userId}
               onSettings={() => setSettingsOpen(true)}
               onNotifications={() => setNotifOpen(true)}
@@ -320,6 +325,7 @@ function MainApp({
               onOpenRestaurant={(cnpj) => setRestaurantId(cnpj)}
               onEditReview={openEdit}
               onDeleteReview={confirmDelete}
+              onEditProfile={() => setEditProfileOpen(true)}
             />
           ) : (
             <FlatList<Review>
@@ -507,9 +513,21 @@ function MainApp({
               />
             </LayerScreen>
           ) : null}
+          {editProfileOpen ? (
+            <LayerScreen>
+              <EditProfileScreen
+                userId={userId}
+                onBack={() => setEditProfileOpen(false)}
+                onSaved={() => {
+                  setEditProfileOpen(false);
+                  setProfileVersion((v) => v + 1);
+                }}
+              />
+            </LayerScreen>
+          ) : null}
         </View>
 
-        {settingsOpen || commentReview || notifOpen || composePickerOpen || screen === 'compose' || restaurantId || profileUserId ? null : (
+        {settingsOpen || commentReview || notifOpen || composePickerOpen || editProfileOpen || screen === 'compose' || restaurantId || profileUserId ? null : (
           <Navbar
             active={screen}
             navAnim={navAnim}

@@ -9,6 +9,7 @@ import {
 import { Avatar } from './Avatar';
 import { FeedCard } from './FeedCard';
 import { displayName } from './mockData';
+import { resolvePhotoUrl } from './format';
 import { SavedList } from './SavedList';
 import type { SavedRestaurant } from './api/user';
 import type { UserProfile } from './api/types';
@@ -33,6 +34,7 @@ export function ProfileScreen({
   userId: propsUserId,
   onEditReview,
   onDeleteReview,
+  onEditProfile,
 }: {
   onSettings?: () => void;
   // docs/16: notificações saíram da navbar e ganharam atalho (sino) aqui.
@@ -52,6 +54,8 @@ export function ProfileScreen({
   // MVP: editar/apagar a própria review direto do diário.
   onEditReview?: (review: Review) => void;
   onDeleteReview?: (review: Review) => void;
+  // MVP: abrir a edição do próprio perfil (nome/bio/foto).
+  onEditProfile?: () => void;
 }) {
   const userId = propsUserId ?? 'bea_come_tudo';
   const t = useTheme();
@@ -119,6 +123,7 @@ export function ProfileScreen({
         onFollowToggle={onFollowToggle}
         onEditReview={onEditReview}
         onDeleteReview={onDeleteReview}
+        onEditProfile={onEditProfile}
       />
     </ScrollView>
   );
@@ -136,6 +141,7 @@ function PerfilV2({
   onFollowToggle,
   onEditReview,
   onDeleteReview,
+  onEditProfile,
 }: {
   userId: string;
   profile: UserProfile;
@@ -147,6 +153,7 @@ function PerfilV2({
   onFollowToggle?: () => void;
   onEditReview?: (review: Review) => void;
   onDeleteReview?: (review: Review) => void;
+  onEditProfile?: () => void;
 }) {
   const t = useTheme();
   const [following, setFollowing] = useState(false);
@@ -158,7 +165,15 @@ function PerfilV2({
   return (
     <>
       <View style={s.bioBlock}>
-        <Avatar userId={userId} size={72} />
+        <Avatar
+          userId={userId}
+          size={72}
+          photo={
+            profile.photoUrl
+              ? { uri: resolvePhotoUrl(profile.photoUrl) }
+              : undefined
+          }
+        />
         <View style={s.who} testID="perfil-identidade">
           <View style={s.nameRow}>
             <Text style={[s.name, { color: t.ink }]}>{nome}</Text>
@@ -191,6 +206,19 @@ function PerfilV2({
             {`@${handle} · São Paulo`}
           </Text>
           <Text style={[s.bio, { color: t.ink }]}>{bio}</Text>
+          {onEditProfile && profile.id === userId ? (
+            <Pressable
+              testID="editar-perfil"
+              onPress={onEditProfile}
+              hitSlop={6}
+              accessibilityRole="button"
+              accessibilityLabel="editar perfil"
+            >
+              <Text style={[s.editProfile, { color: palette.lambeLambe }]}>
+                editar perfil
+              </Text>
+            </Pressable>
+          ) : null}
         </View>
       </View>
 
@@ -377,6 +405,12 @@ const s = StyleSheet.create({
     fontSize: 13,
     marginTop: spacing.interno,
     lineHeight: 19,
+  },
+  editProfile: {
+    fontSize: 12.5,
+    fontFamily: fonts.corpo600,
+    fontWeight: '600',
+    marginTop: spacing.interno,
   },
   stats: {
     flexDirection: 'row',

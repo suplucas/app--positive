@@ -15,6 +15,30 @@ export async function getUser(id: string, viewerId?: string, baseUrl?: string) {
   });
 }
 
+// Edita o próprio perfil (nome/bio/foto). Só os campos presentes mudam;
+// `bio: null` limpa a bio e `photoUrl: null` remove a foto.
+export type UserProfileEdit = {
+  name?: string;
+  bio?: string | null;
+  handle?: string | null;
+  photoUrl?: string | null;
+};
+
+export async function updateUserProfile(
+  id: string,
+  data: UserProfileEdit,
+  baseUrl?: string,
+): Promise<UserProfile> {
+  const profile = await apiFetch<UserProfile>(
+    `/users/${encodeURIComponent(id)}`,
+    { method: "PUT", userId: id, baseUrl, body: data },
+  );
+  if (typeof profile !== "object" || profile === null || !profile.id) {
+    throw new Error("PUT /users/:id: invalid payload");
+  }
+  return profile;
+}
+
 export async function getUserReviews(
   id: string,
   page = 1,
