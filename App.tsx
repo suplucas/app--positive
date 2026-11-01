@@ -22,6 +22,16 @@ import {
   NativeSyntheticEvent,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import {
+  BricolageGrotesque_700Bold,
+  BricolageGrotesque_800ExtraBold,
+} from '@expo-google-fonts/bricolage-grotesque';
+import {
+  InstrumentSans_400Regular,
+  InstrumentSans_500Medium,
+  InstrumentSans_600SemiBold,
+} from '@expo-google-fonts/instrument-sans';
+import { useFonts } from 'expo-font';
 import { CommentThreadScreen } from './src/CommentThreadScreen';
 import { AuthFlow } from './src/AuthFlow';
 import { EditProfileScreen } from './src/EditProfileScreen';
@@ -65,9 +75,18 @@ import type { ImageSourcePropType } from 'react-native';
 const STRONG_NOTE = 9;
 
 export default function App() {
+  // Fontes da identidade na RAIZ (antes do login): sem isso o logo/título
+  // da tela de entrar caem na fonte do sistema.
+  const [fontsLoaded] = useFonts({
+    BricolageGrotesque_700Bold,
+    BricolageGrotesque_800ExtraBold,
+    InstrumentSans_400Regular,
+    InstrumentSans_500Medium,
+    InstrumentSans_600SemiBold,
+  });
   const session = useSession();
 
-  if (session.status === 'loading') {
+  if (!fontsLoaded || session.status === 'loading') {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
         <Text>carregando…</Text>
