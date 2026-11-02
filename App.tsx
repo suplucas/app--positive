@@ -1,15 +1,27 @@
-import { useCallback, useMemo, useState } from 'react';
 import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
+import {
+  Animated,
+  Alert,
+  Easing,
   FlatList,
   Pressable,
   RefreshControl,
   SafeAreaView,
-  ScrollView,
   StyleSheet,
   Text,
   View,
   useColorScheme,
+  type NativeScrollEvent,
+  NativeSyntheticEvent,
 } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 import {
   BricolageGrotesque_700Bold,
   BricolageGrotesque_800ExtraBold,
@@ -20,17 +32,28 @@ import {
   InstrumentSans_600SemiBold,
 } from '@expo-google-fonts/instrument-sans';
 import { useFonts } from 'expo-font';
-import { StatusBar } from 'expo-status-bar';
+import { CommentThreadScreen } from './src/CommentThreadScreen';
+import { AuthFlow } from './src/AuthFlow';
+import { EditProfileScreen } from './src/EditProfileScreen';
+import { EmptyState } from './src/EmptyState';
+import { ErrorBoundary } from './src/ErrorBoundary';
 import { FeedCard } from './src/FeedCard';
 import { FeedPhoto } from './src/FeedPhoto';
 import { FeedQuote } from './src/FeedQuote';
-import { MOCK_USER } from './src/mockFeed';
-import { MOCK_POST_PHOTOS, photoFor } from './src/postPhotos';
+import { MOCK_POST_PHOTOS, photoFor, photosFor } from './src/postPhotos';
 import { ComposeScreen } from './src/ComposeScreen';
 import { Navbar, type Screen } from './src/Navbar';
+import { PageTitle } from './src/PageTitle';
 import { Podium } from './src/Podium';
 import { ProfileScreen } from './src/ProfileScreen';
+import { RestaurantScreen } from './src/RestaurantScreen';
 import { SectionTitle } from './src/SectionTitle';
+import { MapScreen } from './src/MapScreen';
+import { NotificationScreen } from './src/NotificationScreen';
+import { SearchScreen } from './src/SearchScreen';
+import { SettingsScreen, type ThemeMode } from './src/SettingsScreen';
+import { UserProfileScreen } from './src/UserProfileScreen';
+import type { PlaceHit } from './src/api/types';
 import {
   ThemeContext,
   darkTheme,
@@ -38,36 +61,143 @@ import {
   lightTheme,
   palette,
   spacing,
+  useTheme,
   type Theme,
 } from './src/theme';
+import { friendlyApiError, resolvePhotoUrl, restaurantName } from './src/format';
 import { useFeed } from './src/useFeed';
+import { useSaves } from './src/useSaves';
+import { useSession } from './src/useSession';
 import type { Review, ReviewLayout } from './src/types';
 import type { ImageSourcePropType } from 'react-native';
-
-const USERS = ['user_1', 'user_2', 'mogli', 'dosso', 'lucas', MOCK_USER] as const;
 
 // Nota forte na escala 0-10: flair "chorei de tão bom" no máx. 1 por tela.
 const STRONG_NOTE = 9;
 
 export default function App() {
-  useFonts({
+  // Fontes da identidade na RAIZ (antes do login): sem isso o logo/título
+  // da tela de entrar caem na fonte do sistema.
+  const [fontsLoaded] = useFonts({
     BricolageGrotesque_700Bold,
     BricolageGrotesque_800ExtraBold,
     InstrumentSans_400Regular,
     InstrumentSans_500Medium,
     InstrumentSans_600SemiBold,
   });
+  const session = useSession();
 
+  if (!fontsLoaded || session.status === 'loading') {
+    return (
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+        <Text>carregando…</Text>
+      </View>
+    );
+  }
+
+  if (session.status === 'signed-out' || !session.user) {
+    return <AuthFlow signIn={session.signIn} signUp={session.signUp} />;
+  }
+
+  return <MainApp userId={session.user.id} onSignOut={session.signOut} />;
+}
+
+function MainApp({
+  userId,
+  onSignOut,
+}: {
+  userId: string;
+  onSignOut: () => Promise<void>;
+}) {
   const systemScheme = useColorScheme();
-  const [themeOverride, setThemeOverride] = useState<Theme['mode'] | null>(null);
+  // Navbar flutuante: some quando rola para baixo, volte quando sobe.
+  const navAnim = useRef(new Animated.Value(0)).current;
+  const lastScrollY = useRef(0);
+
+  const handleScroll = useCallback(
+    (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const currentY = e.nativeEvent.contentOffset.y;
+      const last = lastScrollY.current;
+      // Só anima se o scroll passou do limite (evita micro-tremores).
+      if (Math.abs(currentY - last) < 6) return;
+      Animated.timing(navAnim, {
+        toValue: currentY > last ? 1 : 0,
+        duration: 150,
+        easing: Easing.out(Easing.quad),
+        useNativeDriver: true,
+      }).start();
+      lastScrollY.current = currentY;
+    },
+    [navAnim],
+  );
+  // Escolha do usuário na tela de configurações: null = seguir o sistema.
+  const [themeMode, setThemeMode] = useState<ThemeMode>('system');
   const mode: Theme['mode'] =
-    themeOverride ?? (systemScheme === 'dark' ? 'dark' : 'light');
+    themeMode === 'system'
+      ? systemScheme === 'dark'
+        ? 'dark'
+        : 'light'
+      : themeMode;
   const theme = mode === 'dark' ? darkTheme : lightTheme;
-  const toggleTheme = () => setThemeOverride(mode === 'dark' ? 'light' : 'dark');
 
   const [screen, setScreen] = useState<Screen>('feed');
-  const [userId, setUserId] = useState<string>('user_1');
-  const { items, status, error, hasMore, refresh, loadMore } = useFeed(userId);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  // Edição do próprio perfil (MVP) + versão p/ forçar refetch ao salvar.
+  const [editProfileOpen, setEditProfileOpen] = useState(false);
+  const [profileVersion, setProfileVersion] = useState(0);
+  // Sub-páginas: página do restaurante (aberta no toque em card de feed)
+  // e local pré-selecionado na composição (botão "avaliar" do restaurante).
+  const [restaurantId, setRestaurantId] = useState<string | null>(null);
+  const [osmPlace, setOsmPlace] = useState<PlaceHit | null>(null);
+  const [profileUserId, setProfileUserId] = useState<string | null>(null);
+  const [composeCnpj, setComposeCnpj] = useState<string | null>(null);
+  // Review sendo editada (MVP): quando setada, o compose vira modo edição.
+  const [editingReview, setEditingReview] = useState<Review | null>(null);
+  // Lista "quero ir" (docs/10): persistida na API e compartilhada com
+  // o toggle da página do restaurante.
+  const saves = useSaves(userId);
+  const savedCnpjs = saves.ids;
+  // Thread de comentários (docs/12): review aberta pelo 💬 de um card.
+  const [commentReview, setCommentReview] = useState<Review | null>(null);
+  // Notificações (docs/09) saíram da navbar (o mock docs/16 pôs o mapa
+  // no lugar): viram camada aberta pelo sino no perfil.
+  const [notifOpen, setNotifOpen] = useState(false);
+  // Busca em modo picker (docs/16): "trocar" da avaliação abre a busca
+  // como camada; o resultado vira `composePickedCnpj`.
+  const [composePickerOpen, setComposePickerOpen] = useState(false);
+  const [composePickedCnpj, setComposePickedCnpj] = useState<string | null>(null);
+  const toggleSaved = (cnpj: string) => {
+    void saves.toggle(
+      cnpj,
+      restaurantName(cnpj) ?? cnpj,
+      savedCnpjs.includes(cnpj),
+    );
+  };
+  // Edição da própria review: abre o compose em modo edição (local travado).
+  const openEdit = (review: Review) => {
+    setEditingReview(review);
+    setComposeCnpj(null);
+    setComposePickedCnpj(null);
+    setScreen('compose');
+  };
+  // Apagar: confirma antes (ação destrutiva) e remove otimista no hook.
+  const confirmDelete = (review: Review) => {
+    Alert.alert(
+      'apagar avaliação',
+      'Sua avaliação sai do feed e do perfil. Não dá pra desfazer.',
+      [
+        { text: 'cancelar', style: 'cancel' },
+        {
+          text: 'apagar',
+          style: 'destructive',
+          onPress: () => void remove(review),
+        },
+      ],
+    );
+  };
+  const feedVisible =
+    screen === 'feed' && !restaurantId && !settingsOpen;
+  const { items, status, error, hasMore, refresh, loadMore, like, remove } =
+    useFeed(userId);
 
   const onEndReached = useCallback(() => {
     if (status !== 'loading-more' && status !== 'loading') {
@@ -84,18 +214,31 @@ export default function App() {
       Review['id'],
       {
         layout: ReviewLayout;
-        photo?: ImageSourcePropType;
+        photos?: ImageSourcePropType[];
         tone?: 'mostarda' | 'lambeLambe';
       }
     >();
     let quotes = 0;
     items.forEach((item, index) => {
-      const photo = photoFor(item, index);
+      const remotePhoto = item.photoUrl
+        ? { uri: resolvePhotoUrl(item.photoUrl) }
+        : null;
+      const isMock =
+        item.layout != null ||
+        item.photoIndex != null ||
+        item.photoIndexes != null;
+      const photo =
+        remotePhoto ?? (isMock ? photoFor(item, index) : null);
       const strong = item.rating != null && item.rating * 2 >= STRONG_NOTE;
       const layout: ReviewLayout =
         item.layout ?? (photo ? 'photo' : strong ? 'quote' : 'row');
       if (layout === 'photo') {
-        map.set(item.id, { layout, photo: photo ?? MOCK_POST_PHOTOS[0] });
+        // Foto remota da API vence; senão, 2+ fotos do mock viram carrossel.
+        const photos = remotePhoto ? [remotePhoto] : photosFor(item, index);
+        map.set(item.id, {
+          layout,
+          photos: photos.length > 0 ? photos : [MOCK_POST_PHOTOS[0]],
+        });
       } else if (layout === 'quote') {
         map.set(item.id, {
           layout,
@@ -109,149 +252,349 @@ export default function App() {
     return map;
   }, [items]);
 
+  // Só estados que pedem atenção; o feed vazio ganha um empty state
+  // próprio (abaixo), não o banner. Paginação não aparece mais.
   const banner =
     status === 'loading' && items.length === 0
       ? 'Carregando feed…'
       : status === 'error'
-        ? `Erro: ${error ?? 'desconhecido'}`
-        : status === 'empty'
-          ? 'Feed vazio para este usuário'
-          : status === 'loading-more'
-            ? 'Carregando mais…'
-            : !hasMore && items.length > 0
-              ? 'Fim do feed'
-              : null;
+        ? friendlyApiError(error, 'feed')
+        : null;
 
   return (
     <ThemeContext.Provider value={theme}>
+      <ErrorBoundary>
       <SafeAreaView style={[styles.root, { backgroundColor: theme.bg }]}>
         <StatusBar style={mode === 'dark' ? 'light' : 'dark'} />
+        {/* docs/16: a avaliação tem sub-cabeçalho próprio (cancelar /
+            nova avaliação / tim!) — o wordmark do app não aparece nela. */}
+        {screen === 'compose' ? null : (
         <View style={[styles.header, { borderBottomColor: theme.line }]}>
-          <View style={styles.headerRow}>
-            <Text style={[styles.word, { color: theme.ink }]}>
-              {screen === 'feed' ? (
-                <>
-                  t
-                  <Text style={{ color: palette.lambeLambe }}>im</Text>
-                </>
-              ) : screen === 'perfil' ? (
-                'perfil'
-              ) : (
-                'avaliar'
-              )}
-            </Text>
-            <Pressable
-              onPress={toggleTheme}
-              hitSlop={7}
-              style={[
-                styles.themeBtn,
-                { borderColor: theme.line },
-              ]}
-              accessibilityRole="button"
-              accessibilityLabel={mode === 'dark' ? 'Usar tema claro' : 'Usar tema escuro'}
+          <PageTitle>
+            {screen === 'feed' ? (
+              <>
+                t
+                <Text style={{ color: palette.lambeLambe }}>im</Text>
+              </>
+            ) : screen === 'busca' ? (
+              'busca'
+            ) : screen === 'mapa' ? (
+              'mapa'
+            ) : screen === 'perfil' ? (
+              'perfil'
+            ) : (
+              'avaliar'
+            )}
+          </PageTitle>
+          {feedVisible && banner ? (
+            <View
+              style={[styles.banner, { backgroundColor: theme.quietBg }]}
             >
-              <Text style={{ fontSize: 14 }}>{mode === 'dark' ? '☀️' : '🌙'}</Text>
-            </Pressable>
-          </View>
-
-          {screen === 'feed' ? (
-            <>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.chips}
-                style={styles.chipsScroll}
-              >
-                {USERS.map((u) => {
-                  const active = u === userId;
-                  return (
-                    <Pressable
-                      key={u}
-                      onPress={() => setUserId(u)}
-                      style={[
-                        styles.chip,
-                        { backgroundColor: theme.quietBg },
-                        active && { backgroundColor: theme.chipActiveBg },
-                      ]}
-                      accessibilityRole="button"
-                      accessibilityState={{ selected: active }}
-                    >
-                      <Text
-                        style={[
-                          styles.chipText,
-                          { color: active ? theme.chipActiveInk : theme.sub },
-                          active && styles.chipTextActive,
-                        ]}
-                      >
-                        {u}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
-              </ScrollView>
-              {banner ? (
-                <View style={[styles.banner, { backgroundColor: theme.quietBg }]}>
-                  <Text style={[styles.bannerText, { color: theme.sub }]}>{banner}</Text>
-                </View>
+              <Text style={[styles.bannerText, { color: theme.sub }]}>
+                {banner}
+              </Text>
+              {status === 'error' ? (
+                <Pressable
+                  onPress={() => void refresh()}
+                  hitSlop={6}
+                  accessibilityRole="button"
+                  accessibilityLabel="tentar carregar o feed de novo"
+                >
+                  <Text style={[styles.retryText, { color: palette.lambeLambe }]}>
+                    · tentar de novo
+                  </Text>
+                </Pressable>
               ) : null}
-            </>
+            </View>
+          ) : null}
+        </View>
+        )}
+
+        <View style={styles.content}>
+          {screen === 'busca' ? (
+            <SearchScreen
+              onOpenRestaurant={(cnpj) => {
+                setOsmPlace(null);
+                setRestaurantId(cnpj);
+              }}
+              onOpenPlace={(hit) => {
+                setOsmPlace(hit);
+                setRestaurantId(hit.id);
+              }}
+              onBack={() => setScreen('feed')}
+            />
+          ) : screen === 'mapa' ? (
+            <MapScreen onOpenRestaurant={(cnpj) => setRestaurantId(cnpj)} />
+          ) : screen === 'perfil' ? (
+            <ProfileScreen
+              key={profileVersion}
+              userId={userId}
+              onSettings={() => setSettingsOpen(true)}
+              onNotifications={() => setNotifOpen(true)}
+              savedCnpjs={savedCnpjs}
+              savedItems={saves.items}
+              onRemoveSaved={(cnpj) => {
+                void saves.toggle(
+                  cnpj,
+                  restaurantName(cnpj) ?? cnpj,
+                  true,
+                );
+              }}
+              onOpenRestaurant={(cnpj) => setRestaurantId(cnpj)}
+              onEditReview={openEdit}
+              onDeleteReview={confirmDelete}
+              onEditProfile={() => setEditProfileOpen(true)}
+            />
+          ) : (
+            <FlatList<Review>
+              data={items}
+              keyExtractor={(item) => String(item.id)}
+              ListHeaderComponent={
+                status === 'empty' ? undefined : (
+                  <View>
+                    {/* <Podium /> */}
+                    <SectionTitle>reviews recentes</SectionTitle>
+                  </View>
+                )
+              }
+              ListEmptyComponent={
+                status === 'empty' ? (
+                  <EmptyState
+                    emoji="🍽️"
+                    testID="feed-vazio"
+                    title="O feed tá quieto por aqui."
+                    subtitle="Siga gente que come bem ou avalie um lugar pra começar."
+                    actionLabel="avaliar um lugar"
+                    onAction={() => {
+                      setEditingReview(null);
+                      setComposeCnpj(null);
+                      setScreen('compose');
+                    }}
+                  />
+                ) : undefined
+              }
+              renderItem={({ item }) => {
+                const d = decorated.get(item.id);
+                const isOwn = String(item.userId) === String(userId);
+                const openPlace = () => {
+                  if (item.restaurantId) {
+                    setOsmPlace(null);
+                    setRestaurantId(String(item.restaurantId));
+                  }
+                };
+                const openComments = () => setCommentReview(item);
+                const ownerProps = isOwn
+                  ? {
+                      onEdit: () => openEdit(item),
+                      onDelete: () => confirmDelete(item),
+                    }
+                  : {};
+                if (d?.layout === 'photo' && d.photos) {
+                  return (
+                    <FeedPhoto
+                      review={item}
+                      photos={d.photos}
+                      onPress={openPlace}
+                      onComments={openComments}
+                      onLike={() => void like(item)}
+                      onAuthorPress={() => setProfileUserId(item.userId)}
+                      {...ownerProps}
+                    />
+                  );
+                }
+                if (d?.layout === 'quote') {
+                  return (
+                    <FeedQuote
+                      review={item}
+                      tone={d.tone}
+                      onPress={openPlace}
+                      onComments={openComments}
+                      onLike={() => void like(item)}
+                      onAuthorPress={() => setProfileUserId(item.userId)}
+                      {...ownerProps}
+                    />
+                  );
+                }
+                return (
+                  <FeedCard review={item} onPress={openPlace} onComments={openComments} onLike={() => void like(item)} onAuthorPress={() => setProfileUserId(item.userId)} {...ownerProps} />
+                );
+              }}
+              onEndReachedThreshold={0.4}
+              onEndReached={onEndReached}
+              onScroll={handleScroll}
+              scrollEventThrottle={16}
+              refreshControl={
+                <RefreshControl
+                  refreshing={status === 'loading'}
+                  onRefresh={() => void refresh()}
+                />
+              }
+            />
+          )}
+
+          {/* Sub-telas como camadas: o conteúdo principal fica montado
+              (feed preserva o scroll) e cada camada anima a entrada. */}
+          {profileUserId ? (
+            <LayerScreen>
+              <UserProfileScreen
+                userId={profileUserId}
+                viewerId={userId}
+                onBack={() => setProfileUserId(null)}
+                onOpenRestaurant={(id) => {
+                  setProfileUserId(null);
+                  setOsmPlace(null);
+                  setRestaurantId(id);
+                }}
+              />
+            </LayerScreen>
+          ) : null}
+          {restaurantId ? (
+            <LayerScreen>
+              <RestaurantScreen
+                cnpj={restaurantId}
+                userId={userId}
+                osmPlace={osmPlace ?? undefined}
+                onBack={() => {
+                  setOsmPlace(null);
+                  setRestaurantId(null);
+                }}
+                onEvaluate={() => {
+                  if (restaurantId.startsWith('osm:')) return;
+                  setEditingReview(null);
+                  setComposeCnpj(restaurantId);
+                  setScreen('compose');
+                }}
+                saved={
+                  !restaurantId.startsWith('osm:') &&
+                  savedCnpjs.includes(restaurantId)
+                }
+                onSaveToggle={
+                  restaurantId.startsWith('osm:')
+                    ? undefined
+                    : () => toggleSaved(restaurantId)
+                }
+                onEditReview={openEdit}
+                onDeleteReview={confirmDelete}
+              />
+            </LayerScreen>
+          ) : null}
+          {screen === 'compose' ? (
+            <LayerScreen>
+              <ComposeScreen
+                userId={userId}
+                initialCnpj={composeCnpj}
+                editReview={editingReview}
+                onChangePlace={() => setComposePickerOpen(true)}
+                pickedCnpj={composePickedCnpj}
+                onCancel={() => {
+                  // Vem da página do restaurante? Ela continua viva lá embaixo.
+                  setEditingReview(null);
+                  setComposeCnpj(null);
+                  setComposePickedCnpj(null);
+                  setComposePickerOpen(false);
+                  setScreen('feed');
+                }}
+                onPosted={() => {
+                  setEditingReview(null);
+                  setComposeCnpj(null);
+                  setComposePickedCnpj(null);
+                  setComposePickerOpen(false);
+                  setScreen('feed');
+                  void refresh();
+                }}
+              />
+            </LayerScreen>
+          ) : null}
+          {/* Busca em modo picker, por cima da avaliação (docs/16). */}
+          {composePickerOpen ? (
+            <LayerScreen>
+              <SearchScreen
+                onOpenRestaurant={() => {}}
+                onPick={(hit) => {
+                  setComposePickedCnpj(hit.cnpj);
+                  setComposePickerOpen(false);
+                }}
+                onBack={() => setComposePickerOpen(false)}
+              />
+            </LayerScreen>
+          ) : null}
+          {settingsOpen ? (
+            <LayerScreen>
+              <SettingsScreen
+                themeMode={themeMode}
+                onThemeChange={(m) => setThemeMode(m)}
+                onBack={() => setSettingsOpen(false)}
+                onSignOut={onSignOut}
+              />
+            </LayerScreen>
+          ) : null}
+          {commentReview ? (
+            <LayerScreen>
+              <CommentThreadScreen
+                review={commentReview}
+                authorId={userId}
+                onBack={() => setCommentReview(null)}
+              />
+            </LayerScreen>
+          ) : null}
+          {notifOpen ? (
+            <LayerScreen>
+              <NotificationScreen
+                userId={userId}
+                onOpenRestaurant={(cnpj) => {
+                  setNotifOpen(false);
+                  setRestaurantId(cnpj);
+                }}
+                onBack={() => setNotifOpen(false)}
+              />
+            </LayerScreen>
+          ) : null}
+          {editProfileOpen ? (
+            <LayerScreen>
+              <EditProfileScreen
+                userId={userId}
+                onBack={() => setEditProfileOpen(false)}
+                onSaved={() => {
+                  setEditProfileOpen(false);
+                  setProfileVersion((v) => v + 1);
+                }}
+              />
+            </LayerScreen>
           ) : null}
         </View>
 
-        {screen === 'feed' ? (
-          <FlatList<Review>
-            data={items}
-            keyExtractor={(item) => String(item.id)}
-            ListHeaderComponent={
-              <View>
-                {/* <Podium /> */}
-                <SectionTitle>reviews recentes</SectionTitle>
-              </View>
-            }
-            renderItem={({ item }) => {
-              const d = decorated.get(item.id);
-              if (d?.layout === 'photo' && d.photo) {
-                return <FeedPhoto review={item} photo={d.photo} />;
-              }
-              if (d?.layout === 'quote') {
-                return <FeedQuote review={item} tone={d.tone} />;
-              }
-              return <FeedCard review={item} />;
+        {settingsOpen || commentReview || notifOpen || composePickerOpen || editProfileOpen || screen === 'compose' || restaurantId || profileUserId ? null : (
+          <Navbar
+            active={screen}
+            navAnim={navAnim}
+            onNavigate={(s) => {
+              // Navegação pela navbar fecha sub-telas (ex.: restaurante).
+              setRestaurantId(null);
+              setScreen(s);
             }}
-            onEndReachedThreshold={0.4}
-            onEndReached={onEndReached}
-            refreshControl={
-              <RefreshControl
-                refreshing={status === 'loading'}
-                onRefresh={() => void refresh()}
-              />
-            }
-          />
-        ) : screen === 'perfil' ? (
-          <ProfileScreen />
-        ) : (
-          <ComposeScreen
-            userId={userId}
-            onCancel={() => setScreen('feed')}
-            onPosted={() => {
-              setScreen('feed');
-              void refresh();
+            onCompose={() => {
+              setEditingReview(null);
+              setComposeCnpj(null);
+              setScreen('compose');
             }}
           />
         )}
-
-        <Navbar
-          active={screen}
-          onNavigate={setScreen}
-          onCompose={() => setScreen('compose')}
-        />
       </SafeAreaView>
+      </ErrorBoundary>
     </ThemeContext.Provider>
   );
 }
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
+  content: { flex: 1 },
+  layer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
   header: {
     paddingTop: spacing.padrao,
     paddingHorizontal: spacing.padrao,
@@ -259,40 +602,51 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     gap: spacing.interno,
   },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  word: { fontFamily: fonts.display800, fontSize: 18 },
-  themeBtn: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    borderWidth: StyleSheet.hairlineWidth,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  chipsScroll: { flexGrow: 0 },
-  chips: {
-    flexDirection: 'row',
-    gap: spacing.interno,
-    paddingRight: spacing.padrao,
-  },
-  chip: {
-    minHeight: 44,
-    paddingHorizontal: spacing.padrao,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  chipText: { fontSize: 13, fontFamily: fonts.corpo500 },
-  chipTextActive: { fontWeight: '600' },
   banner: {
     borderRadius: 5,
     paddingHorizontal: spacing.interno,
     paddingVertical: spacing.micro,
     alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   bannerText: { fontSize: 12 },
+  retryText: { fontSize: 12, fontFamily: fonts.corpo600, fontWeight: '600' },
 });
+
+// Camada de sub-tela: absoluto sobre o conteúdo principal, com fade +
+// slide de 180ms na entrada (useNativeDriver). A saída é instantânea —
+// a camada unmounta e revela o que estava embaixo.
+function LayerScreen({ children }: { children: ReactNode }) {
+  const t = useTheme();
+  const anim = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.timing(anim, {
+      toValue: 1,
+      duration: 180,
+      easing: Easing.out(Easing.quad),
+      useNativeDriver: true,
+    }).start();
+  }, [anim]);
+  return (
+    <Animated.View
+      style={[
+        styles.layer,
+        {
+          backgroundColor: t.bg,
+          opacity: anim,
+          transform: [
+            {
+              translateY: anim.interpolate({
+                inputRange: [0, 1],
+                outputRange: [12, 0],
+              }),
+            },
+          ],
+        },
+      ]}
+    >
+      {children}
+    </Animated.View>
+  );
+}

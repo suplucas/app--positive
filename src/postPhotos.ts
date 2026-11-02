@@ -33,6 +33,22 @@ export function photoFor(
   return PHOTOS[1] ?? null;
 }
 
+// Lista de fotos de um review (docs/15): feeds mock podem fixar
+// `photoIndexes` com 2+ itens → carrossel; caso contrário, array de 1
+// foto pela regra atual (photoFor).
+export function photosFor(
+  review: { photoIndex?: number | null; photoIndexes?: number[] | null },
+  index: number,
+): ImageSourcePropType[] {
+  const multi = review.photoIndexes;
+  // 1+ índices fixos vencem a regra por posição; 2+ viram carrossel.
+  if (multi && multi.length > 0) {
+    return multi.map((i) => photoAt(i));
+  }
+  const single = photoFor(review, index);
+  return single ? [single] : [];
+}
+
 // Foto por índice (para favoritos/células do perfil)
 export function photoAt(index: number): ImageSourcePropType {
   return (

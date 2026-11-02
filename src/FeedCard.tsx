@@ -1,26 +1,51 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Avatar } from './Avatar';
+import { ExpandableText } from './ExpandableText';
 import { Flair } from './Flair';
 import { NoteBadge } from './NoteBadge';
 import { formatRelative, getNote, restaurantName } from './format';
-import { fonts, spacing, useTheme } from './theme';
+import { fonts, palette, spacing, useTheme } from './theme';
 import type { Review } from './types';
 
 // Linha do feed: texto-primeiro, avatar à esquerda, nota à direita
 // (protótipo app-mobile). `strong` marca flair forte (máx. 1 por tela,
-// decidido pelo App).
+// decidido pelo App). `onPress` (opcional) abre a página do restaurante.
 export function FeedCard({
   review,
   strong = false,
+  onPress,
+  onComments,
+  onLike,
+  onAuthorPress,
+  onEdit,
+  onDelete,
 }: {
   review: Review;
   strong?: boolean;
+  onPress?: () => void;
+  // docs/12: abre a thread de comentários (só quando o App passa o
+  // callback — ex.: cards da página do restaurante não têm thread).
+  onComments?: () => void;
+  onLike?: () => void;
+  // Abre o perfil do autor da review.
+  onAuthorPress?: () => void;
+  // Editar/apagar: só o App passa quando a review é do próprio usuário.
+  onEdit?: () => void;
+  onDelete?: () => void;
 }) {
   const t = useTheme();
-  const nome = restaurantName(review.restaurantCnpj);
-  return (
-    <View style={[s.row, { borderBottomColor: t.line }]} testID={`card-${review.id}`}>
-      <Avatar userId={review.userId} />
+  const nome = restaurantName(review.restaurantId);
+  const body = (
+    <>
+      <Pressable
+        testID={`author-${review.id}`}
+        onPress={onAuthorPress}
+        disabled={!onAuthorPress}
+        hitSlop={6}
+        accessibilityRole={onAuthorPress ? 'button' : undefined}
+      >
+        <Avatar userId={review.userId} />
+      </Pressable>
       <View style={s.body}>
         <View style={s.top}>
           <Text style={[s.uname, { color: t.ink }]}>{review.userId}</Text>
@@ -31,17 +56,87 @@ export function FeedCard({
           ) : null}
         </View>
         {review.comment ? (
-          <Text style={[s.caption, { color: t.ink }]}>{review.comment}</Text>
+          <ExpandableText
+            id={`card-${review.id}`}
+            text={review.comment}
+            style={[s.caption, { color: t.ink }]}
+            color={t.sub}
+          />
         ) : null}
         <View style={s.meta}>
-          <Text style={[s.metaText, { color: t.sub }]}>▲ {review.likes}</Text>
+          {onLike ? (
+            <Pressable
+              testID={`like-${review.id}`}
+              onPress={onLike}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel="curtir avaliação"
+            >
+              <Text style={[s.metaText, { color: t.sub }]}>▲ {review.likes}</Text>
+            </Pressable>
+          ) : (
+            <Text style={[s.metaText, { color: t.sub }]}>▲ {review.likes}</Text>
+          )}
           <Text style={[s.metaText, { color: t.sub }]}>
             {formatRelative(review.createdAt)}
           </Text>
-          <Flair strong={strong} />
+          {onComments ? (
+            <Pressable
+              testID={`comentar-card-${review.id}`}
+              onPress={onComments}
+              hitSlop={6}
+              accessibilityRole="button"
+              accessibilityLabel="abrir comentários"
+            >
+              <Text style={[s.metaText, { color: t.sub }]}>💬</Text>
+            </Pressable>
+          ) : null}
+          {review.flairs?.[0] ? (
+            <Flair label={review.flairs[0]} strong={strong} />
+          ) : null}
+          {onEdit ? (
+            <Pressable
+              testID={`editar-${review.id}`}
+              onPress={onEdit}
+              hitSlop={6}
+              accessibilityRole="button"
+              accessibilityLabel="editar avaliação"
+            >
+              <Text style={[s.metaText, { color: t.sub }]}>editar</Text>
+            </Pressable>
+          ) : null}
+          {onDelete ? (
+            <Pressable
+              testID={`apagar-${review.id}`}
+              onPress={onDelete}
+              hitSlop={6}
+              accessibilityRole="button"
+              accessibilityLabel="apagar avaliação"
+            >
+              <Text style={[s.metaText, { color: palette.lambeLambe }]}>
+                apagar
+              </Text>
+            </Pressable>
+          ) : null}
         </View>
       </View>
       <NoteBadge note={getNote(review.rating)} />
+    </>
+  );
+  const style = [s.row, { borderBottomColor: t.line }];
+  return onPress ? (
+    <Pressable
+      style={({ pressed }) => [...style, pressed && { opacity: 0.85 }]}
+      testID={`card-${review.id}`}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={`avaliações em ${nome ?? 'restaurante'}`}
+    >
+      {body}
+    </Pressable>
+  ) : (
+    <View style={style} testID={`card-${review.id}`}>
+      {body}
     </View>
   );
 }

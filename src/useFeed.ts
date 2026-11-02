@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { getFeed } from "./api";
-import { MOCK_FEED, MOCK_USER } from "./mockFeed";
+import { deleteReview, getFeed, likeReview } from "./api";
 import type { FeedStatus, Review } from "./types";
 
 const DEFAULT_LIMIT = 20;
@@ -19,7 +18,6 @@ export function useFeed(userId: string, limit: number = DEFAULT_LIMIT) {
 
   const loadPage = useCallback(
     async (page: number, mode: "replace" | "append") => {
-      if (userRef.current === MOCK_USER) return; // feed local, sem backend
       if (mode === "append" && busyRef.current) return;
       if (mode === "replace") genRef.current += 1;
       const gen = genRef.current;
@@ -52,7 +50,6 @@ export function useFeed(userId: string, limit: number = DEFAULT_LIMIT) {
   );
 
   const refresh = useCallback(async () => {
-    if (userRef.current === MOCK_USER) return;
     await loadPage(1, "replace");
   }, [loadPage]);
 
@@ -61,22 +58,52 @@ export function useFeed(userId: string, limit: number = DEFAULT_LIMIT) {
     await loadPage(pageRef.current + 1, "append");
   }, [hasMore, status, items.length, loadPage]);
 
+  // Like otimista: soma 1 na hora e desfaz se a API falhar.
+  const like = useCallback(
+    async (review: Review) => {
+      const bump = (delta: number) =>
+        setItems((prev) =>
+          prev.map((item) =>
+            item.id === review.id
+              ? { ...item, likes: Math.max(0, item.likes + delta) }
+              : item,
+          ),
+        );
+      bump(1);
+      try {
+        await likeReview(userId, review.id);
+      } catch {
+        bump(-1);
+      }
+    },
+    [userId],
+  );
+
   // initial load + reload on user change
   useEffect(() => {
     pageRef.current = 1;
     setHasMore(true);
     setError(null);
-    if (userId === MOCK_USER) {
-      // Feed de demonstração: só dados locais (assets/posts), sem fetch.
-      setItems(MOCK_FEED);
-      setHasMore(false);
-      setStatus("idle");
-      return;
-    }
     setItems([]);
     setStatus("loading");
     void loadPage(1, "replace");
   }, [userId, loadPage]);
 
-  return { items, status, error, hasMore, refresh, loadMore };
+  // Apaga a própria review: tira do feed na hora e desfaz se a API falhar.
+  const remove = useCallback(
+    async (review: Review) => {
+      const gen = genRef.current;
+      const snapshot = items;
+      setItems((prev) => prev.filter((item) => item.id !== review.id));
+      try {
+        await deleteReview(userId, review.id);
+      } catch (e) {
+        if (genRef.current === gen) setItems(snapshot);
+        throw e;
+      }
+    },
+    [items, userId],
+  );
+
+  return { items, status, error, hasMore, refresh, loadMore, like, remove };
 }

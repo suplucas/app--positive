@@ -1,5 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { getFeed, postReview } from "./api";
+import {
+  deleteReview,
+  getFeed,
+  likeReview,
+  postReview,
+  updateReview,
+} from "./api";
 
 const okBody = {
   page: 1,
@@ -8,7 +14,7 @@ const okBody = {
     {
       id: 1,
       userId: "user_1",
-      restaurantCnpj: "123",
+      restaurantId: "123",
       rating: 5,
       comment: "ok",
       likes: 0,
@@ -85,11 +91,31 @@ describe("getFeed", () => {
   });
 });
 
+describe("likeReview", () => {
+  it("faz POST /reviews/:id/like com x-user-id", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ id: 7, likes: 4 }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(likeReview("user_1", 7, "http://api.test")).resolves.toEqual({
+      id: 7,
+      likes: 4,
+    });
+    expect(fetchMock.mock.calls[0][0]).toBe("http://api.test/reviews/7/like");
+    expect(fetchMock.mock.calls[0][1]).toMatchObject({
+      method: "POST",
+      headers: expect.objectContaining({ "x-user-id": "user_1" }),
+    });
+  });
+});
+
 describe("postReview", () => {
   const created = {
     id: 99,
     userId: "user_19",
-    restaurantCnpj: "123",
+    restaurantId: "123",
     rating: 4,
     comment: "bom",
     likes: 0,
@@ -105,7 +131,7 @@ describe("postReview", () => {
 
     const r = await postReview(
       "user_19",
-      { restaurantCnpj: "123", rating: 4, comment: "bom" },
+      { restaurantId: "123", rating: 4, comment: "bom" },
       "http://api.test",
     );
 
@@ -118,7 +144,7 @@ describe("postReview", () => {
           "Content-Type": "application/json",
         }),
         body: JSON.stringify({
-          restaurantCnpj: "123",
+          restaurantId: "123",
           rating: 4,
           comment: "bom",
         }),
@@ -139,7 +165,7 @@ describe("postReview", () => {
     await expect(
       postReview(
         "user_1",
-        { restaurantCnpj: "1", rating: 3, comment: null },
+        { restaurantId: "1", rating: 3, comment: null },
         "http://api.test",
       ),
     ).rejects.toThrow(/400/);
@@ -156,9 +182,98 @@ describe("postReview", () => {
     await expect(
       postReview(
         "user_1",
-        { restaurantCnpj: "1", rating: 3, comment: null },
+        { restaurantId: "1", rating: 3, comment: null },
         "http://api.test",
       ),
     ).rejects.toThrow(/invalid payload/);
+  });
+});
+
+describe("updateReview", () => {
+  const updated = {
+    id: 99,
+    userId: "user_19",
+    restaurantId: "123",
+    rating: 3.5,
+    comment: "novo",
+    likes: 0,
+    createdAt: "2026-09-24T00:00:00.000Z",
+  };
+
+  it("faz PUT /reviews/:id com x-user-id e body", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => updated,
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const r = await updateReview(
+      "user_19",
+      99,
+      { rating: 3.5, comment: "novo" },
+      "http://api.test",
+    );
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "http://api.test/reviews/99",
+      expect.objectContaining({
+        method: "PUT",
+        headers: expect.objectContaining({
+          "x-user-id": "user_19",
+          "Content-Type": "application/json",
+        }),
+        body: JSON.stringify({ rating: 3.5, comment: "novo" }),
+      }),
+    );
+    expect(r.rating).toBe(3.5);
+  });
+
+  it("lança em non-2xx (ex.: 404 de outro usuário)", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 404,
+        json: async () => ({}),
+      }),
+    );
+    await expect(
+      updateReview("user_2", 99, { rating: 3 }, "http://api.test"),
+    ).rejects.toThrow(/404/);
+  });
+});
+
+describe("deleteReview", () => {
+  it("faz DELETE /reviews/:id com x-user-id", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 204,
+      json: async () => ({}),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await deleteReview("user_19", 99, "http://api.test");
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "http://api.test/reviews/99",
+      expect.objectContaining({
+        method: "DELETE",
+        headers: expect.objectContaining({ "x-user-id": "user_19" }),
+      }),
+    );
+  });
+
+  it("lança em non-2xx", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 404,
+        json: async () => ({}),
+      }),
+    );
+    await expect(deleteReview("user_2", 99, "http://api.test")).rejects.toThrow(
+      /404/,
+    );
   });
 });

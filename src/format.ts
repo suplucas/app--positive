@@ -1,7 +1,14 @@
 // Helpers de apresentação: nota na escala 0-10, tempo relativo,
 // cor de avatar por usuário e resolução de nome de restaurante.
 import { restaurantNames } from "./restaurantNames";
+import { apiBaseUrl } from "./api/client";
 import { palette } from "./theme";
+
+// URL de foto vinda da API: absoluta ou relativa ao backend.
+export function resolvePhotoUrl(url: string): string {
+  if (/^https?:\/\//i.test(url)) return url;
+  return `${apiBaseUrl()}${url.startsWith("/") ? "" : "/"}${url}`;
+}
 
 // API guarda rating 0-5; a marca (protótipo/identidade) usa notas 0-10.
 export function getNote(rating: number | null): string {
@@ -39,6 +46,24 @@ export function restaurantName(
 }
 
 export type RestaurantHit = { cnpj: string; nome: string };
+
+// Erros técnicos da API viram copy de produto (sem status/endpoint na
+// UI). Erro de rede é reconhecido na mensagem do fetch; o resto vira
+// texto genérico do contexto (feed x publicação).
+const OFFLINE_PATTERN =
+  /offline|network request failed|failed to fetch|enotfound|econnrefused|timeout/i;
+
+export function friendlyApiError(
+  technical: string | null,
+  context: "feed" | "publish",
+): string {
+  if (technical != null && OFFLINE_PATTERN.test(technical)) {
+    return "Sem conexão. Verifique a rede e tente de novo.";
+  }
+  return context === "feed"
+    ? "Não consegui carregar o feed."
+    : "Não consegui publicar sua avaliação.";
+}
 
 // Busca por nome na tela de composição (fonte: mesmo mapa do seed).
 export function searchRestaurants(

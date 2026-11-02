@@ -1,24 +1,40 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { fonts, spacing, useTheme } from './theme';
+import {
+  Animated,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
+import { fonts, palette, spacing, useTheme } from './theme';
 
-export type Screen = 'feed' | 'perfil' | 'compose';
+export type Screen = 'feed' | 'busca' | 'mapa' | 'perfil' | 'compose';
 
-// Navbar: ativo com cor plena + peso 600; inativo com opacidade 50%
-// (identidade §07). Alvo mínimo 44×44 (§09).
+// Navbar flutuante: some quando rola para baixo, volte quando sobe.
+// `navAnim` é um Animated.Value entre 0 (visível) e 1 (escondido).
 export function Navbar({
   active,
   onNavigate,
   onCompose,
+  navAnim,
 }: {
   active: Screen;
   onNavigate: (s: Screen) => void;
   onCompose: () => void;
+  navAnim: Animated.Value;
 }) {
   const t = useTheme();
   return (
-    <View style={[s.bar, { backgroundColor: t.bg, borderTopColor: t.line }]}>
+    <Animated.View
+      style={[
+        s.bar,
+        { backgroundColor: t.bg, borderTopColor: t.line },
+        {
+          transform: [{ translateY: navAnim.interpolate({ inputRange: [0, 1], outputRange: [0, 56] }) }],
+        },
+      ]}
+    >
       <NavItem label="feed" icon="⌂" active={active === 'feed'} onPress={() => onNavigate('feed')} />
-      <NavItem label="buscar" icon="⌕" active={false} onPress={() => {}} />
+      <NavItem label="buscar" icon="⌕" active={active === 'busca'} onPress={() => onNavigate('busca')} />
       <Pressable
         style={s.addHit}
         onPress={onCompose}
@@ -29,9 +45,9 @@ export function Navbar({
           <Text style={s.addIcon}>+</Text>
         </View>
       </Pressable>
-      <NavItem label="notif." icon="♡" active={false} onPress={() => {}} />
+      <NavItem label="mapa" icon="📍" active={active === 'mapa'} onPress={() => onNavigate('mapa')} />
       <NavItem label="perfil" icon="●" active={active === 'perfil'} onPress={() => onNavigate('perfil')} />
-    </View>
+    </Animated.View>
   );
 }
 
@@ -39,26 +55,30 @@ function NavItem({
   label,
   icon,
   active,
+  disabled = false,
   onPress,
 }: {
   label: string;
   icon: string;
   active: boolean;
+  disabled?: boolean;
   onPress: () => void;
 }) {
   const t = useTheme();
+  const opacity = disabled ? 0.3 : active ? 1 : 0.5;
   return (
     <Pressable
       style={s.item}
+      disabled={disabled}
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityState={{ selected: active }}
+      accessibilityState={{ selected: active, disabled }}
     >
-      <Text style={[s.itemIcon, { color: t.ink, opacity: active ? 1 : 0.5 }]}>{icon}</Text>
+      <Text style={[s.itemIcon, { color: t.ink, opacity }]}>{icon}</Text>
       <Text
         style={[
           s.itemLabel,
-          { color: t.ink, opacity: active ? 1 : 0.5, fontWeight: active ? '600' : '400' },
+          { color: t.ink, opacity, fontWeight: active ? '600' : '400' },
         ]}
       >
         {label}
@@ -72,10 +92,16 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
     borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: palette.berinjela,
     paddingTop: spacing.interno,
     paddingHorizontal: spacing.interno,
-    paddingBottom: spacing.interno,
+    paddingBottom: spacing.interno + 4, // espaço para barra de gestos do Android
+    backgroundColor: 'transparent',
   },
   item: {
     minWidth: 44,

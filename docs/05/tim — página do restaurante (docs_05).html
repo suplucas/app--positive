@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>tim — Boteco da Ana</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700;800&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FBF2E4; --ink:#241A22; --sub:rgba(36,26,34,0.58);
+    --mustard:#F2A93B; --pink:#E63E75; --pickle:#7A9A3D;
+    --line:rgba(36,26,34,0.10);
+    box-sizing:border-box;
+    padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{ margin:0; background:var(--ink); color:var(--ink); font-family:'Instrument Sans',sans-serif; -webkit-font-smoothing:antialiased; display:flex; justify-content:center; }
+  .disp{font-family:'Bricolage Grotesque';}
+
+  .phone{width:100%; max-width:400px; min-height:100%; background:var(--bg); position:relative; overflow-x:hidden;}
+
+  .topbar{
+    position:sticky; top:0; z-index:6; display:flex; justify-content:space-between; align-items:center;
+    padding:14px 14px; padding-top:calc(14px + env(safe-area-inset-top,0px));
+  }
+  .tbtn{
+    width:32px; height:32px; border-radius:50%; background:rgba(36,26,34,0.55); color:#fff;
+    display:flex; align-items:center; justify-content:center; font-size:14px; border:none; cursor:pointer;
+  }
+
+  .cover{height:220px; margin-top:-56px;}
+  .cover-note{
+    position:absolute; top:calc(56px + env(safe-area-inset-top,0px) + 14px); right:14px;
+    background:rgba(0,0,0,0.6); color:#fff; font-family:'Bricolage Grotesque'; font-weight:800; font-size:16px;
+    padding:4px 10px; border-radius:10px;
+  }
+
+  .info-block{padding:16px 16px 0;}
+  .r-name{font-family:'Bricolage Grotesque'; font-weight:800; font-size:21px; line-height:1.15;}
+  .r-sub{font-size:12.5px; color:var(--sub); margin-top:4px;}
+
+  .stats{display:flex; padding:16px 16px 16px; border-bottom:1px solid var(--line); margin-top:4px;}
+  .stat{flex:1; text-align:center;}
+  .stat .n{font-family:'Bricolage Grotesque'; font-weight:800; font-size:17px;}
+  .stat .l{font-size:11px; color:var(--sub); margin-top:1px;}
+
+  .actions{display:flex; gap:10px; padding:16px 16px 4px;}
+  .btn{
+    flex:1; font-family:'Bricolage Grotesque'; font-weight:700; font-size:13.5px; padding:11px; border-radius:14px;
+    text-align:center; cursor:pointer; border:1.5px solid var(--ink);
+  }
+  .btn.primary{background:var(--pink); color:var(--bg); border-color:var(--pink);}
+  .btn.secondary{background:none; color:var(--ink);}
+  .btn.secondary.saved{background:var(--ink); color:var(--bg);}
+
+  .social-proof{font-size:12.5px; color:var(--sub); padding:12px 16px 4px;}
+
+  .section-title{font-family:'Bricolage Grotesque'; font-weight:700; font-size:13px; color:var(--sub); padding:18px 16px 10px;}
+
+  .flair-summary{display:flex; gap:7px; flex-wrap:wrap; padding:0 16px 4px;}
+  .flair-chip{font-size:11.5px; font-weight:600; padding:5px 11px; border-radius:20px; background:rgba(122,154,61,0.20); color:#4C6027;}
+  .flair-chip.strong{background:var(--pickle); color:var(--bg);}
+
+  /* reviews reaproveitando componentes do feed */
+  .list{display:flex; flex-direction:column; border-top:1px solid var(--line); margin-top:10px;}
+  .row{display:flex; gap:11px; align-items:flex-start; padding:13px 16px; border-bottom:1px solid var(--line);}
+  .avatar{width:30px; height:30px; border-radius:50%; flex-shrink:0; margin-top:1px;}
+  .row-body{flex:1; min-width:0;}
+  .uname{font-family:'Bricolage Grotesque'; font-weight:700; font-size:13px;}
+  .caption{font-size:12.5px; line-height:1.45; margin-top:4px;}
+  .row-meta{display:flex; gap:10px; align-items:center; margin-top:5px; font-size:11px; color:var(--sub);}
+  .row-note{font-family:'Bricolage Grotesque'; font-weight:800; font-size:14px; flex-shrink:0; margin-top:1px;}
+
+  .feed-quote{margin:10px 16px; border-radius:16px; padding:14px 16px 16px; display:flex; flex-direction:column;}
+  .feed-quote-top{display:flex; align-items:center; gap:9px;}
+  .feed-quote-top .avatar{width:26px; height:26px;}
+  .feed-quote-top .uname{font-size:12.5px;}
+  .feed-quote-top .fq-note{margin-left:auto; font-family:'Bricolage Grotesque'; font-weight:800; font-size:13px;}
+  .feed-quote-text{font-family:'Bricolage Grotesque'; font-weight:700; font-size:17px; line-height:1.3; margin:12px 0 10px;}
+  .feed-quote-meta{display:flex; justify-content:space-between; font-size:11px; font-weight:600;}
+
+  footer.legend{padding:16px 16px 34px; font-size:12px; color:var(--sub); line-height:1.5;}
+
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){ --bg:#121212; --ink:#F2F0EF; --sub:rgba(242,240,239,0.55); --line:rgba(242,240,239,0.09); }
+  }
+  :root[data-theme="dark"]{ --bg:#121212; --ink:#F2F0EF; --sub:rgba(242,240,239,0.55); --line:rgba(242,240,239,0.09); }
+</style>
+</head>
+<body>
+<div class="phone">
+
+  <div class="topbar" style="position:relative; z-index:7;">
+    <button class="tbtn">←</button>
+    <div style="display:flex; gap:8px;">
+      <button class="tbtn">↗</button>
+    </div>
+  </div>
+
+  <div class="cover" style="background:linear-gradient(135deg,#C98A3F,#8A3550);"></div>
+  <div class="cover-note disp">9.1</div>
+
+  <div class="info-block">
+    <div class="r-name disp">Boteco da Ana</div>
+    <div class="r-sub">Boteco · Vila Madalena · $$ · a 1.2km de você</div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="n disp">9.1</div><div class="l">nota média</div></div>
+    <div class="stat"><div class="n disp">214</div><div class="l">avaliações</div></div>
+    <div class="stat"><div class="n disp">38</div><div class="l">quero ir</div></div>
+  </div>
+
+  <div class="actions">
+    <button class="btn primary disp">avaliar</button>
+    <button class="btn secondary disp" id="saveBtn" onclick="toggleSave()">☆ quero ir</button>
+  </div>
+  <div class="social-proof">12 pessoas que você segue já avaliaram aqui, incluindo <b>renatocritico</b> e <b>juu.talher</b>.</div>
+
+  <div class="section-title">o que a galera diz</div>
+  <div class="flair-summary">
+    <span class="flair-chip strong">volto sim · 61</span>
+    <span class="flair-chip">boa pra ir só · 24</span>
+    <span class="flair-chip">fila vale a pena · 19</span>
+    <span class="flair-chip">achado · 8</span>
+  </div>
+
+  <div class="section-title" style="padding-top:20px;">avaliações</div>
+  <div class="list">
+    <div class="row">
+      <div class="avatar" style="background:var(--pickle);"></div>
+      <div class="row-body">
+        <div class="uname disp">renatocritico</div>
+        <div class="caption">Atendimento rápido mesmo lotado, raro pra um lugar desse tamanho.</div>
+        <div class="row-meta"><span>▲ 42</span><span>💬 5</span><span>2 sem.</span></div>
+      </div>
+      <div class="row-note disp">8.8</div>
+    </div>
+  </div>
+
+  <div class="feed-quote" style="background:var(--mustard); color:var(--ink);">
+    <div class="feed-quote-top">
+      <div class="avatar" style="background:var(--pink);"></div>
+      <span class="uname disp">bea_come_tudo</span>
+      <span class="fq-note disp">9.1</span>
+    </div>
+    <div class="feed-quote-text">"Pedi o mesmo prato três vezes só pra confirmar que não foi acidente."</div>
+    <div class="feed-quote-meta"><span>há 2h</span><span>▲ 128 · 💬 14</span></div>
+  </div>
+
+  <div class="list" style="border-top:none; margin-top:0;">
+    <div class="row">
+      <div class="avatar" style="background:var(--mustard);"></div>
+      <div class="row-body">
+        <div class="uname disp">juu.talher</div>
+        <div class="caption">Voltei uma segunda vez só pra testar outro prato — não decepciona.</div>
+        <div class="row-meta"><span>▲ 19</span><span>💬 2</span><span>1 mês</span></div>
+      </div>
+      <div class="row-note disp">9.4</div>
+    </div>
+  </div>
+
+  <footer class="legend">Página reaproveita os mesmos componentes do feed (quote card, lista compacta) pra avaliação individual, e soma os flairs de todo mundo numa única prévia ("o que a galera diz") — resolve o problema de precisar ler 200 reviews pra entender o consenso. Botão "quero ir" alterna estado salvo/não salvo.</footer>
+
+</div>
+<script>
+  function toggleSave(){
+    var btn = document.getElementById('saveBtn');
+    var saved = btn.classList.toggle('saved');
+    btn.innerHTML = saved ? '★ salvo' : '☆ quero ir';
+  }
+</script>
+</body>
+</html>

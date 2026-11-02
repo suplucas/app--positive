@@ -14,6 +14,7 @@ export const RefreshControl = host('RefreshControl');
 export const SafeAreaView = host('SafeAreaView');
 export const Image = host('Image');
 export const StyleSheet = { create: (s) => s, hairlineWidth: 1 };
+export const useWindowDimensions = () => ({ width: 390, height: 844, scale: 2, fontScale: 1 });
 `;
 
 // React 19 test-renderer renders asynchronously; flush bare create() via act
@@ -41,6 +42,21 @@ const testStubs: Plugin = {
     if (path.endsWith("node_modules/react-native/index.js")) return rnStub;
     if (path.endsWith("node_modules/react-test-renderer/index.js"))
       return rtrStub;
+    // expo-image-picker não roda em Node: stub que "cancela" o picker
+    // (testes injetam o resultado via a seam `onPickPhoto`).
+    if (path.includes("/expo-image-picker/"))
+      return `export const launchImageLibraryAsync = async () => ({ canceled: true, assets: [] });`;
+    // expo-secure-store não roda em Node: stub em memória.
+    if (path.includes("/expo-secure-store/"))
+      return `const store = new Map();
+export const getItemAsync = async (k) => store.get(k) ?? null;
+export const setItemAsync = async (k, v) => { store.set(k, v); };
+export const deleteItemAsync = async (k) => { store.delete(k); };`;
+    // WebView é nativo: stub de host que preserva props p/ testar source
+    // (HTML do mapa) e onMessage (ponte pin → restaurante).
+    if (path.includes("/react-native-webview/"))
+      return `import { createElement } from 'react';
+export const WebView = (props) => createElement('WebView', props, props.children);`;
   },
 };
 

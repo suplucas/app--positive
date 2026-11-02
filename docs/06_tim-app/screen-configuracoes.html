@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>tim — configurações</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700;800&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#FBF2E4; --ink:#241A22; --sub:rgba(36,26,34,0.58);
+      --mustard:#F2A93B; --pink:#E63E75; --pickle:#7A9A3D;
+      --line:rgba(36,26,34,0.10);
+      box-sizing:border-box;
+      padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+    }
+    *{box-sizing:border-box;}
+    html,body{height:100%;}
+    body{
+      margin:0; background:var(--bg); color:var(--ink);
+      font-family:'Instrument Sans',sans-serif; -webkit-font-smoothing:antialiased;
+      display:flex; justify-content:center;
+    }
+    .disp{font-family:'Bricolage Grotesque';}
+
+    .phone{width:100%; max-width:400px; background:var(--bg); position:relative; overflow-x:hidden; padding:32px 24px 48px;}
+
+    .content{max-width:920px; width:100%;}
+
+    .screen{
+      background:var(--bg); border-radius:20px; padding:32px; margin:24px 0;
+      box-shadow:0 12px 40px rgba(36,26,34,0.18);
+    }
+
+    h1{
+      font-family:'Bricolage Grotesque'; font-weight:800; font-size:22px; color:var(--ink);
+      margin:0 0 24px;
+      text-align:center;
+    }
+
+    .back-btn{
+      position:absolute; top:32px; left:32px;
+      background:none; border:none; cursor:pointer; color:var(--sub); font-size:14px;
+    }
+
+    .section{
+      margin-bottom:24px;
+    }
+
+    .section-title{
+      font-family:'Bricolage Grotesque'; font-weight:700; font-size:12px; color:var(--sub);
+      text-transform:uppercase; letter-spacing:1px; margin-bottom:16px; padding-bottom:8px;
+      border-bottom:1px solid var(--line);
+    }
+
+    .user-item{
+      display:flex; align-items:center; gap:14px; padding:12px 16px;
+      background:var(--bg); border-radius:12px; margin-bottom:8px;
+      cursor:pointer; border:1px solid var(--line);
+    }
+    .user-item.selected{
+      border-color:var(--pink);
+    }
+    .user-avatar{
+      width:40px; height:40px; border-radius:50%; background:var(--pink);
+      flex-shrink:0; display:flex; align-items:center; justify-content:center;
+      font-weight:700; font-size:14px; color:var(--ink);
+    }
+    .user-info{flex:1;}
+    .user-name{font-family:'Bricolage Grotesque'; font-weight:700; font-size:14px;}
+    .user-handle{font-size:11px; color:var(--sub); margin-top:2px;}
+    .user-chevron{color:var(--sub); font-size:12px;}
+
+    .theme-option{
+      display:flex; align-items:center; gap:14px; padding:12px 16px;
+      background:var(--bg); border-radius:12px; margin-bottom:8px; cursor:pointer;
+    }
+    .theme-option.selected{border:1px solid var(--pink); margin:0 -16px;}
+    .theme-label{font-size:14px; color:var(--sub);}
+    .theme-dot{
+      width:20px; height:20px; border-radius:50%; flex-shrink:0;
+      background:var(--line); border:2px solid var(--sub);
+    }
+    .theme-dot.claro{border-color:var(--mustard); background:var(--mustard);}
+    .theme-dot.escuro{border-color:var(--pink); background:var(--pink);}
+
+    footer{
+      margin-top:32px; padding-top:24px; border-top:1px solid var(--line);
+      font-size:11px; color:var(--sub); text-align:center;
+    }
+
+    .nav-link{
+      text-align:center; font-size:12px; color:var(--sub);
+      text-decoration:none; margin-top:16px; display:block;
+    }
+
+    @media (prefers-color-scheme: dark){
+      :root:not([data-theme="light"]){ --bg:#121212; --ink:#F2F0EF; --sub:rgba(242,240,239,0.55); --line:rgba(242,240,239,0.09); }
+    }
+    :root[data-theme="dark"]{ --bg:#121212; --ink:#F2F0EF; --sub:rgba(242,240,239,0.55); --line:rgba(242,240,239,0.09); }
+  </style>
+</head>
+<body>
+  <button class="back-btn" onclick="window.history.back()">← Voltar</button>
+
+  <div class="content">
+    <h1>Configurações</h1>
+
+    <div class="section">
+      <div class="section-title">CONTA</div>
+
+      <div class="user-item selected" onclick="setUser('bea_come_tudo')">
+        <div class="user-avatar">BF</div>
+        <div class="user-info">
+          <div class="user-name">Bea Ferraz</div>
+          <div class="user-handle">@bea_come_tudo</div>
+        </div>
+        <span class="user-chevron">▶</span>
+      </div>
+
+      <div class="user-item" onclick="setUser('juu_talher')">
+        <div class="user-avatar">JT</div>
+        <div class="user-info">
+          <div class="user-name">Júlia</div>
+          <div class="user-handle">@juu_talher</div>
+        </div>
+        <span class="user-chevron">▶</span>
+      </div>
+
+      <div class="user-item" onclick="setUser('renato_critico')">
+        <div class="user-avatar">RC</div>
+        <div class="user-info">
+          <div class="user-name">Renato</div>
+          <div class="user-handle">@renato_critico</div>
+        </div>
+        <span class="user-chevron">▶</span>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">APARÊNCIA</div>
+
+      <div class="theme-option selected" onclick="setTheme('light')">
+        <span class="theme-label">claro</span>
+        <div class="theme-dot claro"></div>
+      </div>
+
+      <div class="theme-option" onclick="setTheme('dark')">
+        <span class="theme-label">escuro</span>
+        <div class="theme-dot escuro"></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">SOBRE</div>
+
+      <div style="padding:16px; background:var(--bg); border-radius:12px; margin-bottom:16px;">
+        <div style="font-family:'Bricolage Grotesque'; font-size:13px; color:var(--sub);">tim - aplicativo de descoberta gastronômica</div>
+        <div style="font-size:11px; color:var(--sub); margin-top:4px;">Versão 0.1.0 do mock</div>
+      </div>
+
+      <a href="#" class="nav-link">versão completa do app</a>
+    </div>
+  </div>
+
+<script>
+  // Estado global
+  const appState = {
+    currentUser: localStorage.getItem("tim-currentUser") || "bea_come_tudo",
+    theme: localStorage.getItem("tim-theme") || "light"
+  };
+
+  // Funções
+  function loadAppState() {
+    const saved = localStorage.getItem("tim-app-state");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.currentUser && parsed.currentUser in {bea_come_tudo: 1, juu_talher: 1, renato_critico: 1}) {
+          appState.currentUser = parsed.currentUser;
+        }
+        if (parsed.theme) appState.theme = parsed.theme;
+      } catch (e) {}
+    }
+    applyState();
+  }
+
+  function saveAppState() {
+    localStorage.setItem("tim-app-state", JSON.stringify({
+      currentUser: appState.currentUser,
+      theme: appState.theme
+    }));
+  }
+
+  function setUser(userId) {
+    appState.currentUser = userId;
+    saveAppState();
+    // Recarregar página com novo usuário (simulado - em app real troca apenas o estado)
+    document.dispatchEvent(new Event('userChanged'));
+  }
+
+  function setTheme(theme) {
+    appState.theme = theme;
+    applyTheme();
+    saveAppState();
+    applyTheme();
+  }
+
+  function applyTheme() {
+    document.documentElement.setAttribute("data-theme", appState.theme);
+    document.querySelectorAll('.theme-option').forEach(opt => {
+      opt.classList.toggle('selected', opt.dataset.theme === appState.theme);
+    });
+    document.querySelector('.theme-dot').classList.toggle('claro', appState.theme === 'light');
+    document.querySelector('.theme-dot').classList.toggle('escuro', appState.theme === 'dark');
+  }
+
+  function applyState() {
+    applyTheme();
+    document.querySelectorAll('.user-item').forEach(item => {
+      item.classList.toggle('selected', item.dataset.user === appState.currentUser);
+    });
+    document.getElementById('currentUserName').textContent = 
+      {bea_come_tudo: 'Bea Ferraz', juu_talher: 'Júlia', renato_critico: 'Renato'}[appState.currentUser] || 'Bea Ferraz';
+  }
+
+  // Inicializar ao carregar
+  document.addEventListener('DOMContentLoaded', function() {
+    loadAppState();
+  });
+
+  // Evento de troca de usuário
+  document.addEventListener('userChanged', function() {
+    applyState();
+  });
+</script>
+</body>
+</html>

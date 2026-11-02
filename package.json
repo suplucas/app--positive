@@ -5,14 +5,17 @@
   "dependencies": {
     "@expo-google-fonts/bricolage-grotesque": "^0.4.1",
     "@expo-google-fonts/instrument-sans": "^0.4.2",
-    "expo": "~57.0.24",
-    "expo-font": "~57.0.4",
-    "expo-status-bar": "~57.0.1",
-    "react": "19.2.3",
-    "react-native": "0.86.3"
+    "expo": "~58.0.0",
+    "expo-font": "~58.0.11",
+    "expo-image-picker": "~58.0.10",
+    "expo-secure-store": "~58.0.2",
+    "expo-status-bar": "~58.0.4",
+    "react": "19.3.0",
+    "react-native": "0.88.1",
+    "react-native-webview": "14.0.1"
   },
   "devDependencies": {
-    "@types/react": "~19.2.2",
+    "@types/react": "~19.3.0",
     "@types/react-test-renderer": "^19.3.0",
     "react-test-renderer": "^19.2.3",
     "typescript": "~6.0.3",

@@ -5,7 +5,27 @@ import {
   avatarColor,
   restaurantName,
   searchRestaurants,
+  friendlyApiError,
+  resolvePhotoUrl,
 } from "./format";
+
+describe("resolvePhotoUrl", () => {
+  it("mantém URL absoluta", () => {
+    expect(resolvePhotoUrl("https://cdn.test/a.jpg")).toBe(
+      "https://cdn.test/a.jpg",
+    );
+  });
+
+  it("prefixa URL relativa com a base da API", () => {
+    const prev = process.env.EXPO_PUBLIC_API_URL;
+    process.env.EXPO_PUBLIC_API_URL = "http://api.test";
+    expect(resolvePhotoUrl("/uploads/a.jpg")).toBe(
+      "http://api.test/uploads/a.jpg",
+    );
+    if (prev === undefined) delete process.env.EXPO_PUBLIC_API_URL;
+    else process.env.EXPO_PUBLIC_API_URL = prev;
+  });
+});
 
 describe("getNote", () => {
   it("converte rating 0-5 da API para nota 0-10 (1 casa)", () => {
@@ -16,6 +36,35 @@ describe("getNote", () => {
 
   it("rating ausente vira traço", () => {
     expect(getNote(null)).toBe("—");
+  });
+});
+
+describe("friendlyApiError", () => {
+  it("erro de rede/offline vira copy de conexão", () => {
+    expect(friendlyApiError("Network request failed", "feed")).toBe(
+      "Sem conexão. Verifique a rede e tente de novo.",
+    );
+    expect(friendlyApiError("TypeError: Failed to fetch", "publish")).toBe(
+      "Sem conexão. Verifique a rede e tente de novo.",
+    );
+  });
+
+  it("erro de servidor vira copy genérica do contexto (sem status/endpoint)", () => {
+    expect(friendlyApiError("GET /feed failed: 500", "feed")).toBe(
+      "Não consegui carregar o feed.",
+    );
+    expect(friendlyApiError("POST /reviews failed: 500", "publish")).toBe(
+      "Não consegui publicar sua avaliação.",
+    );
+  });
+
+  it("erro desconhecido (null) ainda mostra copy do contexto", () => {
+    expect(friendlyApiError(null, "feed")).toBe(
+      "Não consegui carregar o feed.",
+    );
+    expect(friendlyApiError(null, "publish")).toBe(
+      "Não consegui publicar sua avaliação.",
+    );
   });
 });
 

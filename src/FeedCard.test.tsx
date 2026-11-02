@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { create, ReactTestRenderer } from 'react-test-renderer';
+import { describe, it, expect, vi } from 'vitest';
+import { create, ReactTestRenderer, act } from 'react-test-renderer';
 import { createElement } from 'react';
 import { FeedCard } from './FeedCard';
 import type { Review } from './types';
@@ -7,11 +7,12 @@ import type { Review } from './types';
 const baseReview: Review = {
   id: 1,
   userId: 'user_1',
-  restaurantCnpj: '123',
+  restaurantId: '123',
   rating: 5,
   comment: 'ótimo',
   likes: 0,
   createdAt: '2026-01-01T00:00:00.000Z',
+  flairs: ['boa pra ir só'],
 };
 
 function render(props: Partial<Parameters<typeof FeedCard>[0]> = {}) {
@@ -21,7 +22,38 @@ function render(props: Partial<Parameters<typeof FeedCard>[0]> = {}) {
   return { r, text: JSON.stringify(r.toJSON()) };
 }
 
+describe('FeedCard (comentários, docs/12)', () => {
+  it('com onComments: botão 💬 abre a thread', () => {
+    const onComments = vi.fn();
+    const { r } = render({ onComments });
+    act(() => {
+      r.root.findByProps({ testID: 'comentar-card-1' }).props.onPress();
+    });
+    expect(onComments).toHaveBeenCalled();
+  });
+
+  it('sem onComments: sem botão de comentário', () => {
+    const { r } = render();
+    expect(r.root.findAllByProps({ testID: 'comentar-card-1' })).toHaveLength(0);
+  });
+});
+
 describe('FeedCard', () => {
+  it('texto longo ganha "continuar lendo" e expande/recolhe', () => {
+    const longReview: Review = {
+      ...baseReview,
+      comment: 'b'.repeat(200),
+    };
+    const r: ReactTestRenderer = create(
+      createElement(FeedCard, { review: longReview }),
+    );
+    expect(JSON.stringify(r.toJSON())).toContain('continuar lendo');
+    act(() => {
+      r.root.findByProps({ testID: 'expand-card-1' }).props.onPress();
+    });
+    expect(JSON.stringify(r.toJSON())).toContain('ver menos');
+  });
+
   it('renderiza campos do review', () => {
     const { text } = render();
     expect(text).toContain('user_1');
@@ -47,13 +79,81 @@ describe('FeedCard', () => {
   });
 
   it('flair forte quando marcado (máx 1 por tela é responsabilidade de App)', () => {
-    const { text } = render({ strong: true });
-    expect(text).toContain('chorei de tão bom');
+    const r: ReactTestRenderer = create(
+      createElement(FeedCard, {
+        review: { ...baseReview, flairs: ['chorei de tão bom'] },
+        strong: true,
+      }),
+    );
+    expect(JSON.stringify(r.toJSON())).toContain('chorei de tão bom');
+  });
+
+  it('sem flairs: nenhum chip aparece', () => {
+    const r: ReactTestRenderer = create(
+      createElement(FeedCard, {
+        review: { ...baseReview, flairs: [] },
+      }),
+    );
+    expect(JSON.stringify(r.toJSON())).not.toContain('boa pra ir só');
   });
 
   it('sem flair forte não usa cor cheia', () => {
     const { r } = render();
     const strong = r.root.findAllByProps({ testID: 'flair-forte' });
     expect(strong).toHaveLength(0);
+  });
+
+  it('dispara onPress quando recebido (abre página do restaurante)', () => {
+    const onPress = vi.fn();
+    const { r } = render({ onPress });
+    act(() => {
+      r.root.findByProps({ testID: 'card-1' }).props.onPress();
+    });
+    expect(onPress).toHaveBeenCalled();
+  });
+
+  it('sem onPress, o card não expõe ação', () => {
+    const { r } = render();
+    expect(r.root.findByProps({ testID: 'card-1' }).props.onPress).toBeUndefined();
+  });
+
+  it('like chama onLike quando recebido', () => {
+    const onLike = vi.fn();
+    const { r } = render({ onLike });
+    act(() => {
+      r.root.findByProps({ testID: 'like-1' }).props.onPress();
+    });
+    expect(onLike).toHaveBeenCalled();
+  });
+
+  it('sem onLike, o número de likes não é botão', () => {
+    const { r } = render();
+    expect(r.root.findAllByProps({ testID: 'like-1' })).toHaveLength(0);
+  });
+});
+
+describe('FeedCard (editar/apagar review própria)', () => {
+  it('com onEdit: botão "editar" dispara o callback', () => {
+    const onEdit = vi.fn();
+    const { r } = render({ onEdit });
+    act(() => {
+      r.root.findByProps({ testID: 'editar-1' }).props.onPress();
+    });
+    expect(onEdit).toHaveBeenCalled();
+  });
+
+  it('com onDelete: botão "apagar" dispara o callback', () => {
+    const onDelete = vi.fn();
+    const { r } = render({ onDelete });
+    act(() => {
+      r.root.findByProps({ testID: 'apagar-1' }).props.onPress();
+    });
+    expect(onDelete).toHaveBeenCalled();
+  });
+
+  it('sem onEdit/onDelete: nenhum botão de dono aparece', () => {
+    const { r } = render();
+    expect(r.root.findAllByProps({ testID: 'editar-1' })).toHaveLength(0);
+    expect(r.root.findAllByProps({ testID: 'apagar-1' })).toHaveLength(0);
   });
 });

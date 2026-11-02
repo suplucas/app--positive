@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>tim — nova avaliação</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700;800&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FBF2E4; --ink:#241A22; --sub:rgba(36,26,34,0.58);
+    --mustard:#F2A93B; --pink:#E63E75; --pickle:#7A9A3D;
+    --line:rgba(36,26,34,0.12);
+    box-sizing:border-box;
+    padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{ margin:0; background:var(--ink); color:var(--ink); font-family:'Instrument Sans',sans-serif; -webkit-font-smoothing:antialiased; display:flex; justify-content:center; }
+  .disp{font-family:'Bricolage Grotesque';}
+
+  .phone{width:100%; max-width:400px; min-height:100%; background:var(--bg); position:relative; overflow-x:hidden;}
+
+  header{
+    position:sticky; top:0; z-index:5; background:var(--bg);
+    padding:14px 16px; padding-top:calc(14px + env(safe-area-inset-top,0px));
+    display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--line);
+  }
+  .hbtn{background:none; border:none; font-size:13px; font-weight:600; color:var(--sub); cursor:pointer; padding:0;}
+  .htitle{font-family:'Bricolage Grotesque'; font-weight:800; font-size:14px;}
+  .publish-btn{
+    font-family:'Bricolage Grotesque'; font-weight:700; font-size:13px; color:var(--bg);
+    background:var(--pink); border:none; border-radius:16px; padding:7px 16px; cursor:pointer;
+  }
+
+  .field{padding:16px;}
+  .label{font-family:'Bricolage Grotesque'; font-weight:700; font-size:11.5px; color:var(--sub); text-transform:uppercase; letter-spacing:0.03em; margin-bottom:8px;}
+
+  .place-picker{
+    display:flex; align-items:center; gap:10px; border:1.5px solid var(--line); border-radius:14px; padding:12px 14px; cursor:pointer;
+  }
+  .place-picker .pin{font-size:16px;}
+  .place-picker .pname{font-family:'Bricolage Grotesque'; font-weight:700; font-size:14px;}
+  .place-picker .paddr{font-size:11.5px; color:var(--sub);}
+  .place-picker .trocar{margin-left:auto; font-size:12px; font-weight:600; color:var(--pink);}
+
+  .note-field{border-top:1px solid var(--line); border-bottom:1px solid var(--line); padding:18px 0 16px;}
+  .note-value{font-family:'Bricolage Grotesque'; font-weight:800; font-size:40px; line-height:1; text-align:center;}
+
+  .note-scroll-wrap{
+    position:relative; width:100%; overflow-x:auto; overflow-y:hidden; scroll-snap-type:x mandatory;
+    -ms-overflow-style:none; scrollbar-width:none; margin-top:10px;
+  }
+  .note-scroll-wrap::-webkit-scrollbar{display:none;}
+  .note-track{display:flex; align-items:flex-end; height:46px;}
+  .tick{
+    width:34px; flex-shrink:0; scroll-snap-align:center; display:flex; flex-direction:column; align-items:center;
+    justify-content:flex-end; gap:4px; opacity:0.35; transform:scale(0.85); transition:opacity 0.1s, transform 0.1s;
+  }
+  .tick.active{opacity:1; transform:scale(1);}
+  .tick .ticknum{font-family:'Bricolage Grotesque'; font-weight:700; font-size:11px; color:var(--ink); height:13px;}
+  .tick .tickline{width:2px; background:var(--ink); border-radius:1px;}
+  .tick .tickline{height:14px;}
+  .tick.major .tickline{height:22px; width:2.5px;}
+  .note-center-mark{
+    position:absolute; left:50%; top:0; bottom:0; width:2px; background:var(--pink); transform:translateX(-50%);
+    pointer-events:none;
+  }
+
+  .photo-upload{
+    border:1.5px dashed var(--line); border-radius:14px; height:110px; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:6px; color:var(--sub); cursor:pointer;
+  }
+  .photo-upload .cam{font-size:22px;}
+  .photo-upload .txt{font-size:12.5px; font-weight:600;}
+  .photo-upload .sub{font-size:11px; opacity:0.8;}
+
+  .caption-box{
+    width:100%; border:1.5px solid var(--line); border-radius:14px; padding:12px 14px; font-family:'Instrument Sans';
+    font-size:14px; color:var(--ink); background:var(--bg); resize:none; min-height:84px;
+  }
+  .caption-box:focus{outline:none; border-color:var(--pink);}
+
+  .flair-row{display:flex; gap:8px; flex-wrap:wrap;}
+  .flair-opt{
+    font-size:12px; font-weight:600; padding:7px 12px; border-radius:20px; border:1.5px solid var(--line);
+    color:var(--sub); background:none; cursor:pointer;
+  }
+  .flair-opt.on{background:var(--pickle); color:var(--bg); border-color:var(--pickle);}
+
+  .preview-wrap{padding:0 16px 24px;}
+  .preview-card{
+    border-radius:16px; padding:16px; display:flex; flex-direction:column; min-height:120px;
+    background:var(--mustard); color:var(--ink); transition:background 0.15s;
+  }
+  .preview-card .pmeta{display:flex; justify-content:space-between; font-size:10px; font-weight:600; margin-bottom:auto;}
+  .preview-card .ptext{font-family:'Bricolage Grotesque'; font-weight:700; font-size:16px; line-height:1.3; margin-top:10px;}
+  .preview-label{font-size:11px; color:var(--sub); margin-top:8px;}
+
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){ --bg:#121212; --ink:#F2F0EF; --sub:rgba(242,240,239,0.55); --line:rgba(242,240,239,0.14); }
+  }
+  :root[data-theme="dark"]{ --bg:#121212; --ink:#F2F0EF; --sub:rgba(242,240,239,0.55); --line:rgba(242,240,239,0.14); }
+</style>
+</head>
+<body>
+<div class="phone">
+
+  <header>
+    <button class="hbtn">cancelar</button>
+    <div class="htitle disp">nova avaliação</div>
+    <button class="publish-btn disp">tim!</button>
+  </header>
+
+  <div class="field">
+    <div class="label">onde você comeu</div>
+    <div class="place-picker">
+      <span class="pin">📍</span>
+      <div>
+        <div class="pname disp">Boteco da Ana</div>
+        <div class="paddr">Vila Madalena, São Paulo</div>
+      </div>
+      <span class="trocar">trocar</span>
+    </div>
+  </div>
+
+  <div class="note-field">
+    <div class="label" style="text-align:center;">nota</div>
+    <div class="note-value disp" id="noteValue">8.0</div>
+    <div class="note-scroll-wrap" id="noteScrollWrap">
+      <div class="note-center-mark"></div>
+      <div class="note-track" id="noteTrack"></div>
+    </div>
+  </div>
+
+  <div class="field">
+    <div class="label">foto (opcional)</div>
+    <div class="photo-upload">
+      <span class="cam">📷</span>
+      <span class="txt">adicionar foto</span>
+      <span class="sub">sem foto, vira um quote card</span>
+    </div>
+  </div>
+
+  <div class="field">
+    <div class="label">o que achou?</div>
+    <textarea class="caption-box" id="captionInput" placeholder="Como foi? Seja direto." oninput="updatePreview()">Pedi o mesmo prato três vezes só pra confirmar que não foi acidente.</textarea>
+  </div>
+
+  <div class="field">
+    <div class="label">flair (até 2)</div>
+    <div class="flair-row" id="flairRow">
+      <button class="flair-opt on" onclick="toggleFlair(this)">volto sim</button>
+      <button class="flair-opt" onclick="toggleFlair(this)">prato pequeno</button>
+      <button class="flair-opt" onclick="toggleFlair(this)">fila vale a pena</button>
+      <button class="flair-opt" onclick="toggleFlair(this)">boa pra ir só</button>
+      <button class="flair-opt" onclick="toggleFlair(this)">achado</button>
+    </div>
+  </div>
+
+  <div class="field" style="padding-top:4px;">
+    <div class="label">preview — como fica sem foto</div>
+  </div>
+  <div class="preview-wrap">
+    <div class="preview-card" id="previewCard">
+      <div class="pmeta"><span>Boteco da Ana</span><span class="disp" id="previewNote">8.0</span></div>
+      <div class="ptext" id="previewText">"Pedi o mesmo prato três vezes só pra confirmar que não foi acidente."</div>
+    </div>
+    <div class="preview-label">Esse é o quote card que aparece no feed e no grid do perfil se nenhuma foto for adicionada.</div>
+  </div>
+
+</div>
+<script>
+  var ITEM_W = 34, STEPS = 20; // 0.0 a 10.0 em passos de 0.5
+  var wrap = document.getElementById('noteScrollWrap');
+  var track = document.getElementById('noteTrack');
+  var ticksHtml = '';
+  for(var i=0;i<=STEPS;i++){
+    var v = (i*0.5).toFixed(1);
+    var major = (i % 2 === 0);
+    ticksHtml += '<div class="tick' + (major?' major':'') + '" data-v="' + v + '">' +
+      '<span class="ticknum">' + (major ? parseInt(v,10) : '') + '</span>' +
+      '<span class="tickline"></span></div>';
+  }
+  track.innerHTML = ticksHtml;
+  var ticks = track.querySelectorAll('.tick');
+
+  function layoutTrack(){
+    var pad = Math.max(0, (wrap.clientWidth - ITEM_W) / 2);
+    track.style.paddingLeft = pad + 'px';
+    track.style.paddingRight = pad + 'px';
+  }
+  function setNoteFromIndex(idx, instant){
+    idx = Math.max(0, Math.min(STEPS, idx));
+    var v = (idx * 0.5).toFixed(1);
+    document.getElementById('noteValue').textContent = v;
+    document.getElementById('previewNote').textContent = v;
+    ticks.forEach(function(t,i){ t.classList.toggle('active', i === idx); });
+    if(instant){ wrap.scrollLeft = idx * ITEM_W; }
+  }
+  var scrollTicking = false;
+  wrap.addEventListener('scroll', function(){
+    if(scrollTicking) return;
+    scrollTicking = true;
+    requestAnimationFrame(function(){
+      var idx = Math.round(wrap.scrollLeft / ITEM_W);
+      setNoteFromIndex(idx, false);
+      scrollTicking = false;
+    });
+  }, {passive:true});
+
+  layoutTrack();
+  setNoteFromIndex(16, true); // comeca em 8.0
+  function updatePreview(){
+    var v = document.getElementById('captionInput').value || 'Como foi? Seja direto.';
+    document.getElementById('previewText').textContent = '"' + v + '"';
+  }
+  function toggleFlair(btn){
+    var selected = document.querySelectorAll('.flair-opt.on');
+    if(!btn.classList.contains('on') && selected.length >= 2){ selected[0].classList.remove('on'); }
+    btn.classList.toggle('on');
+  }
+</script>
+</body>
+</html>

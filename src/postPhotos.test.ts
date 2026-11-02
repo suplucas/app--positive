@@ -3,6 +3,7 @@ import {
   MOCK_POST_PHOTOS,
   MOCK_PROFILE_PHOTO,
   photoFor,
+  photosFor,
   photoAt,
 } from "./postPhotos";
 
@@ -23,6 +24,19 @@ describe("postPhotos", () => {
     expect(photoFor({}, 1)).toBe(MOCK_POST_PHOTOS[1]);
     expect(photoFor({}, 2)).toBe(MOCK_POST_PHOTOS[0]);
     expect(photoFor({}, 3)).toBe(MOCK_POST_PHOTOS[1]);
+  });
+
+  it("photosFor: photoIndexes com >1 vira carrossel determinístico", () => {
+    expect(photosFor({ photoIndexes: [0, 2] }, 99)).toEqual([
+      MOCK_POST_PHOTOS[0],
+      MOCK_POST_PHOTOS[2],
+    ]);
+  });
+
+  it("photosFor: sem photoIndexes (ou com 1) → array de 1 foto (regra atual)", () => {
+    expect(photosFor({ photoIndex: 3 }, 5)).toEqual([MOCK_POST_PHOTOS[3]]);
+    expect(photosFor({}, 1)).toEqual([MOCK_POST_PHOTOS[1]]);
+    expect(photosFor({ photoIndexes: [1] }, 0)).toEqual([MOCK_POST_PHOTOS[1]]);
   });
 
   it("photoAt usa o índice informado", () => {

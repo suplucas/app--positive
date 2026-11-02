@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { create, ReactTestRenderer } from 'react-test-renderer';
+import { describe, it, expect, vi } from 'vitest';
+import { create, ReactTestRenderer, act } from 'react-test-renderer';
 import { createElement } from 'react';
 import { FeedQuote } from './FeedQuote';
 import type { Review } from './types';
@@ -7,7 +7,7 @@ import type { Review } from './types';
 const baseReview: Review = {
   id: 7,
   userId: 'bea_come_tudo',
-  restaurantCnpj: '123',
+  restaurantId: '123',
   rating: 4.5,
   comment: 'volto sempre',
   likes: 12,
@@ -21,7 +21,42 @@ function render(props: Partial<Parameters<typeof FeedQuote>[0]> = {}) {
   return { r, text: JSON.stringify(r.toJSON()) };
 }
 
+describe('FeedQuote (comentários, docs/12)', () => {
+  it('com onComments: botão 💬 abre a thread', () => {
+    const onComments = vi.fn();
+    const { r } = render({ onComments });
+    act(() => {
+      r.root.findByProps({ testID: 'comentar-quote-7' }).props.onPress();
+    });
+    expect(onComments).toHaveBeenCalled();
+  });
+
+  it('sem onComments: sem botão de comentário', () => {
+    const { r } = render();
+    expect(r.root.findAllByProps({ testID: 'comentar-quote-7' })).toHaveLength(0);
+  });
+});
+
 describe('FeedQuote', () => {
+  it('texto longo ganha "continuar lendo" e expande/recolhe', () => {
+    const longReview: Review = {
+      ...baseReview,
+      comment: 'a'.repeat(200),
+    };
+    const r: ReactTestRenderer = create(
+      createElement(FeedQuote, { review: longReview }),
+    );
+    expect(JSON.stringify(r.toJSON())).toContain('continuar lendo');
+    act(() => {
+      r.root.findByProps({ testID: 'expand-quote-7' }).props.onPress();
+    });
+    expect(JSON.stringify(r.toJSON())).toContain('ver menos');
+    act(() => {
+      r.root.findByProps({ testID: 'expand-quote-7' }).props.onPress();
+    });
+    expect(JSON.stringify(r.toJSON())).toContain('continuar lendo');
+  });
+
   it('renderiza autor, comentário entre aspas e restaurante', () => {
     const { text } = render();
     expect(text).toContain('bea_come_tudo');
@@ -42,5 +77,40 @@ describe('FeedQuote', () => {
   it('usa o container sem depender de props de tema', () => {
     const { r } = render({ tone: 'lambeLambe' });
     expect(r.toJSON()).toBeTruthy();
+  });
+
+  it('dispara onPress quando recebido (abre página do restaurante)', () => {
+    const onPress = vi.fn();
+    const { r } = render({ onPress });
+    act(() => {
+      r.root.findByProps({ testID: 'quote-7' }).props.onPress();
+    });
+    expect(onPress).toHaveBeenCalled();
+  });
+});
+
+describe('FeedQuote (editar/apagar review própria)', () => {
+  it('com onEdit: botão "editar" dispara o callback', () => {
+    const onEdit = vi.fn();
+    const { r } = render({ onEdit });
+    act(() => {
+      r.root.findByProps({ testID: 'editar-7' }).props.onPress();
+    });
+    expect(onEdit).toHaveBeenCalled();
+  });
+
+  it('com onDelete: botão "apagar" dispara o callback', () => {
+    const onDelete = vi.fn();
+    const { r } = render({ onDelete });
+    act(() => {
+      r.root.findByProps({ testID: 'apagar-7' }).props.onPress();
+    });
+    expect(onDelete).toHaveBeenCalled();
+  });
+
+  it('sem onEdit/onDelete: nenhum botão de dono aparece', () => {
+    const { r } = render();
+    expect(r.root.findAllByProps({ testID: 'editar-7' })).toHaveLength(0);
+    expect(r.root.findAllByProps({ testID: 'apagar-7' })).toHaveLength(0);
   });
 });

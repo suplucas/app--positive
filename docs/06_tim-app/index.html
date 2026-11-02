@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>tim — protótipo navegado</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700;800&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --ink:#241A22; --bg:#FBF2E4; --sub:rgba(36,26,34,0.58);
+      --pink:#E63E75; --line:rgba(36,26,34,0.10);
+    }
+    *{box-sizing:border-box;}
+    body{
+      margin:0; min-height:100vh; background:var(--bg); color:var(--ink);
+      font-family:'Instrument Sans',sans-serif; -webkit-font-smoothing:antialiased;
+      display:flex; justify-content:center; padding:48px 20px;
+    }
+    .grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:24px; max-width:1200px; margin:0 auto;}
+    .card{
+      background:var(--bg); border-radius:16px; padding:32px; text-align:center;
+      box-shadow:0 12px 40px rgba(36,26,34,0.15);
+      transition: transform 0.2s;
+    }
+    .card:hover{transform: translateY(-4px);}
+    .card .icon{font-size:48px; color:var(--pink); margin-bottom:12px;}
+    .card h2{font-family:'Bricolage Grotesque'; font-weight:800; font-size:20px; margin-bottom:8px;}
+    .card .desc{font-size:13px; color:var(--sub); line-height:1.5;}
+    .card .nav{position:absolute; top:16px; right:16px; background:none; border:none; color:var(--sub); font-size:12px; cursor:pointer;}
+  </style>
+</head>
+<body>
+  <div class="head" style="text-align:center; margin-bottom:32px;">
+    <div style="font-family:'Bricolage Grotesque'; font-size:32px;">tim</div>
+    <div style="font-size:13px; color:var(--sub); margin-top:8px;">protótipo navegado</div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <div class="icon">⌂</div>
+      <h2>Feed</h2>
+      <div class="desc">Posts e reviews do usuário atual. Ao trocar de usuário, os dados são filtrados automaticamente.</div>
+      <button class="nav" onclick="window.location='screen-feed.html'">Abrir</button>
+    </div>
+
+    <div class="card">
+      <div class="icon">👤</div>
+      <h2>Perfil</h2>
+      <div class="desc">Informações do usuário, diário, listas e "quero ir". Cada seção filtra pelo usuário selecionado.</div>
+      <button class="nav" onclick="window.location='screen-perfil.html'">Abrir</button>
+    </div>
+
+    <div class="card">
+      <div class="icon">⚙️</div>
+      <h2>Configurações</h2>
+      <div class="desc">Ajuste de tema (light/dark) e troca de usuário global. Alterações são persistidas.</div>
+      <button class="nav" onclick="window.location='screen-configuracoes.html'">Abrir</button>
+    </div>
+
+    <div class="card">
+      <div class="icon">🔍</div>
+      <h2>Buscar</h2>
+      <div class="desc">Localizar restaurantes e usuários.</div>
+      <button class="nav" onclick="window.location='screen-buscar.html'">Abrir</button>
+    </div>
+
+    <div class="card">
+      <div class="icon">+</div>
+      <h2>Criar</h2>
+      <div class="desc">Nova avaliação ou lista.</div>
+      <button class="nav" onclick="window.location='screen-criar.html'">Abrir</button>
+    </div>
+
+    <div class="card">
+      <div class="icon">♡</div>
+      <h2>Notificações</h2>
+      <div class="desc">Alertas de novas avaliações e atualizações.</div>
+      <button class="nav" onclick="window.location='screen-notif.html'">Abrir</button>
+    </div>
+  </div>
+
+  <div class="hint" style="margin-top:48px; font-size:11px; color:var(--sub); text-align:center;">
+    <div>Estado global appState: <code>currentUser</code> e <code>theme</code> são compartilhados entre todas as telas.</div>
+    <div style="margin-top:8px;">Persistência via localStorage: <code>tim-app-state</code></div>
+    <div style="margin-top:8px;">Dados mockados em mockDB inline.</div>
+  </div>
+</body>
+</html>

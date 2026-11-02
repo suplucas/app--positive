@@ -2,13 +2,18 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { act, create, ReactTestRenderer } from "react-test-renderer";
 import { createElement } from "react";
 import { useFeed } from "./useFeed";
-import { MOCK_FEED, MOCK_USER } from "./mockFeed";
-import { getFeed } from "./api";
+import { getFeed, likeReview, deleteReview } from "./api";
 import type { FeedResponse } from "./types";
 
-vi.mock("./api.js", () => ({ getFeed: vi.fn() }));
+vi.mock("./api.js", () => ({
+  getFeed: vi.fn(),
+  likeReview: vi.fn(),
+  deleteReview: vi.fn(),
+}));
 
 const getFeedMock = vi.mocked(getFeed);
+const likeReviewMock = vi.mocked(likeReview);
+const deleteReviewMock = vi.mocked(deleteReview);
 
 const page20 = (page: number) => ({
   page,
@@ -16,7 +21,7 @@ const page20 = (page: number) => ({
   results: Array.from({ length: 20 }, (_, i) => ({
     id: page * 100 + i,
     userId: "u",
-    restaurantCnpj: null,
+    restaurantId: null,
     rating: 5,
     comment: null,
     likes: 0,
@@ -114,7 +119,7 @@ describe("useFeed", () => {
       results: Array.from({ length: 20 }, (_, i) => ({
         id: 900 + i,
         userId: "user_slow",
-        restaurantCnpj: null,
+        restaurantId: null,
         rating: 5,
         comment: null,
         likes: 0,
@@ -127,7 +132,7 @@ describe("useFeed", () => {
       results: Array.from({ length: 20 }, (_, i) => ({
         id: 100 + i,
         userId: "user_fast",
-        restaurantCnpj: null,
+        restaurantId: null,
         rating: 5,
         comment: null,
         likes: 0,
@@ -241,34 +246,52 @@ describe("useFeed", () => {
     expect(h.get().status).toBe("idle");
   });
 
-  it("usuário mock usa feed local e nunca chama o backend", async () => {
-    const h = renderHook(MOCK_USER);
+  it("like otimista soma 1 e chama a API", async () => {
+    getFeedMock.mockResolvedValue(page20(1));
+    likeReviewMock.mockResolvedValue({ id: 100, likes: 1 });
+    const h = renderHook("user_1");
     await act(async () => {});
-    expect(getFeedMock).not.toHaveBeenCalled();
-    expect(h.get().items).toHaveLength(MOCK_FEED.length);
-    expect(h.get().status).toBe("idle");
-    expect(h.get().hasMore).toBe(false);
-    expect(h.get().items.some((r) => r.layout === "photo")).toBe(true);
-    expect(h.get().items.some((r) => r.layout === "quote")).toBe(true);
-    expect(h.get().items.some((r) => r.layout === "row")).toBe(true);
-    // refresh/loadMore são no-op no modo mock (sem fetch)
+    const first = h.get().items[0]!;
     await act(async () => {
-      await h.get().refresh();
+      await h.get().like(first);
     });
-    await act(async () => {
-      await h.get().loadMore();
-    });
-    expect(getFeedMock).not.toHaveBeenCalled();
+    expect(h.get().items[0]!.likes).toBe(1);
+    expect(likeReviewMock).toHaveBeenCalledWith("user_1", first.id);
   });
 
-  it("sair do mock para usuário real volta a buscar no backend", async () => {
+  it("usuário mock não é mais especial: busca no backend", async () => {
     getFeedMock.mockResolvedValue(page20(1));
-    const h = renderHook(MOCK_USER);
+    const h = renderHook("mock");
     await act(async () => {});
-    expect(getFeedMock).not.toHaveBeenCalled();
-    h.setUser("user_1");
+    expect(getFeedMock).toHaveBeenCalledWith("mock", 1, 20);
+    expect(h.get().items).toHaveLength(20);
+  });
+
+  it("remove otimista tira o item e chama a API", async () => {
+    getFeedMock.mockResolvedValue(page20(1));
+    deleteReviewMock.mockResolvedValue(undefined);
+    const h = renderHook("user_1");
     await act(async () => {});
-    expect(getFeedMock).toHaveBeenCalledWith("user_1", 1, 20);
-    expect(h.get().items.every((r) => r.userId === "u")).toBe(true);
+    const target = h.get().items[3]!;
+    await act(async () => {
+      await h.get().remove(target);
+    });
+    expect(h.get().items.some((r) => r.id === target.id)).toBe(false);
+    expect(deleteReviewMock).toHaveBeenCalledWith("user_1", target.id);
+  });
+
+  it("restaura o item se a API de delete falhar", async () => {
+    getFeedMock.mockResolvedValue(page20(1));
+    deleteReviewMock.mockRejectedValue(new Error("404"));
+    const h = renderHook("user_1");
+    await act(async () => {});
+    const target = h.get().items[3]!;
+    await act(async () => {
+      await h
+        .get()
+        .remove(target)
+        .catch(() => {});
+    });
+    expect(h.get().items.some((r) => r.id === target.id)).toBe(true);
   });
 });
