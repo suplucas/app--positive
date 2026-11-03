@@ -221,6 +221,7 @@ export function ComposeV2({
           isRemote,
           selected: selected?.cnpj,
           rating: note / 2,
+          uri: uri ?? null,
         }),
       );
 

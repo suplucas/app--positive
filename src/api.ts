@@ -149,6 +149,8 @@ async function uploadPhoto(
       path,
       baseUrl: baseUrl ?? apiBaseUrl(),
       uri,
+      uriType: typeof uri,
+      uriStartsWith: uri?.slice(0, 20),
     }),
   );
 
