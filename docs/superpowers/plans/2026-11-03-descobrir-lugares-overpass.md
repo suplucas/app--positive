@@ -253,7 +253,7 @@ function make(opts: { cached?: string | null; slot?: string | null; places?: unk
   const get = vi.fn().mockResolvedValue(opts.cached ?? null);
   // mesmo `set` serve cache (args[2]='EX') e rate-limit (args[4]='NX')
   const set = vi.fn().mockImplementation(async (...args: unknown[]) =>
-    args[4] === 'NX' ? (opts.slot ?? 'OK') : 'OK',
+    args[4] === 'NX' ? (opts.slot === undefined ? 'OK' : opts.slot) : 'OK',
   );
   const redis = { get, set } as never;
   const around = vi.fn();
