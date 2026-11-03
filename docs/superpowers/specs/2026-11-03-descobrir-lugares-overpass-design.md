@@ -126,7 +126,7 @@ Query (POST no `baseUrl`, `data=`):
 ```
 [out:json][timeout:{s}];
 nwr["amenity"~"^(restaurant|cafe|bar)$"]({minLat},{minLng},{maxLat},{maxLng});
-out center tags;
+out center;
 ```
 Parser: node → `lat/lon`; way/relation → `center.lat/lng`; **ignora sem
 `tags.name` ou sem coordenada**; dedupe por `id`; `categoria = tags.amenity`.

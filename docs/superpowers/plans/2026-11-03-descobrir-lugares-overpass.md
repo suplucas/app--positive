@@ -132,7 +132,7 @@ Expected: FAIL — módulo `./OverpassClient.js` não existe.
 ```
 [out:json][timeout:{floor(timeoutMs/1000)}];
 nwr["amenity"~"^({amenities})$"]({minLat},{minLng},{maxLat},{maxLng});
-out center tags;
+out center;
 ```
 faz `fetch(baseUrl, { method: 'POST', headers: { 'User-Agent', 'Content-Type': 'application/x-www-form-urlencoded' }, body: 'data=' + encodeURIComponent(query), signal: AbortSignal.timeout(timeoutMs) })`; se `!res.ok` lança `Overpass failed: {status}`; lê `{ elements }`; para cada elemento: `lat/lng` de `element.lat/lon` (node) ou `element.center.lat/lng` (way/relation); `nome = tags.name?.trim()`; **pula** se `!nome` ou coords não finitas; `id = osm:${type}/${id}`; `categoria = tags.amenity ?? null`; dedupe por `id`. `elements` ausente/não-array → `[]`.
 
