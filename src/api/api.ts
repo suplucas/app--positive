@@ -163,7 +163,7 @@ async function uploadPhoto(
 
   const res = await fetch(`${baseUrl ?? apiBaseUrl()}${path}`, {
     method: "POST",
-    headers: { "x-user-id": userId, Accept: "application/json" },
+    headers: { "x-user-id": userId },
     body: form,
   });
 
