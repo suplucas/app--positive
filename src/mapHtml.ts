@@ -15,6 +15,22 @@ function jsonForScript(value: unknown): string {
     .replace(/\u2029/g, "\\u2029");
 }
 
+// String JS entre aspas simples. Preserva as aspas duplas do markup do
+// pin (`class="pin"`), ao contrário do JSON, e escapa `<` para que
+// `</script>` nunca feche o bloco.
+function jsString(value: string): string {
+  return (
+    "'" +
+    value
+      .replace(/\\/g, "\\\\")
+      .replace(/'/g, "\\'")
+      .replace(/</g, "\\u003c")
+      .replace(/\u2028/g, "\\u2028")
+      .replace(/\u2029/g, "\\u2029") +
+    "'"
+  );
+}
+
 export function buildMapHtml({
   places,
   mode,
@@ -50,16 +66,36 @@ export function buildMapHtml({
       : "invert(1) hue-rotate(180deg) brightness(0.85) saturate(0.65)"
     : "sepia(0.22) saturate(0.72) brightness(1.03) contrast(0.96)";
 
-  const pins = places.map((p) => ({
-    cnpj: p.cnpj,
-    nome: p.nome,
-    nota: p.nota.toFixed(1),
-    cor: p.cor,
+  // Duas camadas: pin social (com nota, número) e pin de descoberta
+  // (sem nota, bolinha neutra sem número). O markup é resolvido aqui,
+  // não no runtime, para o HTML conter só o estilo de cada lugar.
+  const pins = places.map((p) => {
+    const desc = p.nota == null;
     // Contraste do número: tinta escura no mostarda, papel nos demais.
-    text: p.cor === palette.mostarda ? palette.berinjela : palette.papel,
-    lat: p.lat,
-    lng: p.lng,
-  }));
+    const text = p.cor === palette.mostarda ? palette.berinjela : palette.papel;
+    const html = desc
+      ? '<div class="pin-desc"></div>'
+      : `<div class="pin" style="--c:${p.cor};--ink-pin:${text}"><span>${p.nota!.toFixed(1)}</span></div>`;
+    const size = desc ? [24, 24] : [38, 38];
+    const anchor = desc ? [12, 12] : [19, 45];
+    return {
+      cnpj: p.cnpj,
+      nome: p.nome,
+      lat: p.lat,
+      lng: p.lng,
+      desc,
+      html,
+      size,
+      anchor,
+    };
+  });
+
+  const placesJs = `[${pins
+    .map(
+      (p) =>
+        `{cnpj:${jsString(p.cnpj)},nome:${jsString(p.nome)},lat:${p.lat},lng:${p.lng},desc:${p.desc},html:${jsString(p.html)},size:[${p.size[0]},${p.size[1]}],anchor:[${p.anchor[0]},${p.anchor[1]}]}`,
+    )
+    .join(",")}]`;
 
   return `<!DOCTYPE html>
 <html lang="pt-BR">
@@ -93,6 +129,13 @@ export function buildMapHtml({
     font-weight:800; font-size:12px; line-height:1;
     color:var(--ink-pin);
   }
+  .pin-desc {
+    width:24px; height:24px; box-sizing:border-box;
+    border-radius:50%;
+    background:${palette.berinjela};
+    border:3px solid rgba(251,242,228,0.92);
+    box-shadow:0 3px 8px rgba(0,0,0,0.28);
+  }
   .voce {
     width:22px; height:22px; box-sizing:border-box;
     border-radius:50%;
@@ -121,7 +164,7 @@ export function buildMapHtml({
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 (function () {
-  var places = ${jsonForScript(pins)};
+  var places = ${placesJs};
   var center = ${jsonForScript(MAP_CENTER)};
 
   function post(message) {
@@ -156,13 +199,12 @@ export function buildMapHtml({
 
     places.forEach(function (p) {
       points.push([p.lat, p.lng]);
+      // Ambos os estilos abrem o mesmo lugar; só muda o desenho do pin.
       var icon = L.divIcon({
         className: 'pin-wrap',
-        html:
-          '<div class="pin" style="--c:' + p.cor + ';--ink-pin:' + p.text + '">' +
-          '<span>' + p.nota + '</span></div>',
-        iconSize: [38, 38],
-        iconAnchor: [19, 45],
+        html: p.html,
+        iconSize: p.size,
+        iconAnchor: p.anchor,
       });
       L.marker([p.lat, p.lng], { icon: icon, title: p.nome, keyboard: false })
         .on('click', function () {
@@ -190,6 +232,22 @@ export function buildMapHtml({
       maxZoom: 15,
     });
     map.invalidateSize();
+
+    // A cada movimento, o app refaz o GET /places pela bbox visível.
+    function postBounds() {
+      var b = map.getBounds();
+      post({
+        type: 'bounds',
+        bbox: {
+          minLng: b.getWest(),
+          minLat: b.getSouth(),
+          maxLng: b.getEast(),
+          maxLat: b.getNorth(),
+        },
+      });
+    }
+    map.on('moveend', postBounds);
+    postBounds();
   }
 
   if (document.readyState === 'complete') init();

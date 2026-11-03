@@ -9,8 +9,34 @@ describe("buildMapHtml (mapa OSM/Leaflet)", () => {
     const html = buildMapHtml({ places, mode: "light" });
     for (const p of places) {
       expect(html).toContain(p.cnpj);
-      expect(html).toContain(p.nota.toFixed(1));
+      if (p.nota != null) expect(html).toContain(p.nota.toFixed(1));
     }
+  });
+
+  it("nota null vira pin de descoberta (sem número)", () => {
+    const discovery = {
+      ...places[0]!,
+      cnpj: "osm:node/9",
+      nome: "Café Novo",
+      nota: null,
+    };
+    const html = buildMapHtml({ places: [discovery], mode: "light" });
+    expect(html).toContain("pin-desc");
+    expect(html).toContain("osm:node/9");
+    expect(html).not.toContain('class="pin"');
+  });
+
+  it("social mantém o pin com número", () => {
+    const social = { ...places[0]!, cnpj: "seed-1", nota: 9.5 };
+    const html = buildMapHtml({ places: [social], mode: "light" });
+    expect(html).toContain('class="pin"');
+    expect(html).toContain("9.5");
+  });
+
+  it("emite bounds no moveend", () => {
+    const html = buildMapHtml({ places, mode: "light" });
+    expect(html).toContain("on('moveend'");
+    expect(html).toContain("'bounds'");
   });
 
   it("sem key cai no OSM padrão (dev) com atribuição", () => {

@@ -33,6 +33,7 @@ describe("usePlaces", () => {
         lng: -46.6,
         nota: 9,
         bairro: "Pinheiros",
+        source: "local",
       },
     ]);
     const h = renderHook();

@@ -25,6 +25,7 @@ export type PlacePin = {
   lng: number;
   nota: number | null;
   bairro: string | null;
+  source: string;
 };
 
 export async function getPlaces(
@@ -52,8 +53,8 @@ export async function importPlace(
   },
   baseUrl?: string,
 ): Promise<{ id: string }> {
-  return apiFetch<{ id: string }>('/places/import', {
-    method: 'POST',
+  return apiFetch<{ id: string }>("/places/import", {
+    method: "POST",
     baseUrl,
     body: {
       id: hit.id,

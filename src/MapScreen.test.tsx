@@ -14,6 +14,7 @@ const pins = [
     lng: -46.63,
     nota: 9,
     bairro: 'Pinheiros',
+    source: 'local',
   },
   {
     id: '2',
@@ -22,6 +23,7 @@ const pins = [
     lng: -46.64,
     nota: 7.5,
     bairro: 'Moema',
+    source: 'local',
   },
 ];
 

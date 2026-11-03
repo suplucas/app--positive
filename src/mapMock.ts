@@ -10,7 +10,7 @@ import { palette } from "./theme";
 export type MapPlace = {
   cnpj: string;
   nome: string;
-  nota: number; // 0-10
+  nota: number | null; // 0-10; null = descoberta (sem review social)
   bairro: string;
   distanciaKm: number;
   x: number; // 0.1–0.9 (fração da largura)

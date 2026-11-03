@@ -36,14 +36,14 @@ export function MapScreen({
       pins.map((pin) => ({
         cnpj: pin.id,
         nome: pin.nome,
-        nota: pin.nota ?? 0,
+        nota: pin.nota,
         bairro: pin.bairro ?? '',
         distanciaKm: 0,
         x: 0,
         y: 0,
         lat: pin.lat,
         lng: pin.lng,
-        cor: pinColor(pin.nota ?? 0),
+        cor: pin.nota == null ? palette.berinjela : pinColor(pin.nota),
       })),
     [pins],
   );
@@ -154,7 +154,7 @@ export function MapScreen({
                 <View style={[s.cardPhoto, { backgroundColor: p.cor }]}>
                   <View style={s.cardNote}>
                     <Text style={s.cardNoteText}>
-                      {p.nota > 0 ? p.nota.toFixed(1) : "—"}
+                      {p.nota != null && p.nota > 0 ? p.nota.toFixed(1) : "—"}
                     </Text>
                   </View>
                 </View>
