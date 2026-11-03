@@ -94,6 +94,10 @@ function allText(r: ReactTestRenderer): string {
     .join(' ');
 }
 
+function byID(r: ReactTestRenderer, id: string) {
+  return r.root.findByProps({ testID: id });
+}
+
 beforeEach(() => {
   injected.length = 0;
   vi.mocked(getPlaces).mockReset();
@@ -343,5 +347,14 @@ describe('MapScreen (mapa OSM/Leaflet)', () => {
       )
       .map((n) => n.props.testID);
     expect(ids).toEqual(['mapa-card-social', 'mapa-card-desc']);
+  });
+
+  it('erro do mapa com onBack: mostra botão voltar', async () => {
+    vi.mocked(getPlaces).mockRejectedValue(new Error('offline'));
+    const onBack = vi.fn();
+    const { r } = await render({ onBack });
+    expect(byID(r, 'mapa-voltar-erro')).toBeTruthy();
+    act(() => byID(r, 'mapa-voltar-erro').props.onPress());
+    expect(onBack).toHaveBeenCalled();
   });
 });

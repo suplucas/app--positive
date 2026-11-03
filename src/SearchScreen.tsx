@@ -112,9 +112,26 @@ export function SearchScreen({
       ) : status === 'loading' ? (
         <Text style={[s.empty, { color: t.sub }]}>buscando…</Text>
       ) : status === 'error' ? (
-        <Text style={[s.empty, { color: t.sub }]}>
-          Não consegui buscar agora. Tente de novo.
-        </Text>
+        <View style={s.emptyWrap}>
+          <Text style={[s.empty, { color: t.sub }]}>
+            Não consegui buscar agora. Tente de novo.
+          </Text>
+          {onBack ? (
+            <Pressable
+              testID="busca-voltar-erro"
+              onPress={onBack}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel="voltar"
+              style={[
+                s.retry,
+                { backgroundColor: palette.lambeLambe },
+              ]}
+            >
+              <Text style={s.retryText}>voltar</Text>
+            </Pressable>
+          ) : null}
+        </View>
       ) : hits.length === 0 ? (
         <Text testID="busca-vazio" style={[s.empty, { color: t.sub }]}>
           Não encontramos “{query}” por aqui. Tente outro nome ou bairro.
@@ -195,6 +212,13 @@ const s = StyleSheet.create({
     paddingHorizontal: spacing.padrao,
     paddingTop: spacing.interno,
   },
+  emptyWrap: {
+    alignItems: 'center',
+    gap: spacing.interno,
+    paddingHorizontal: spacing.bloco,
+    paddingTop: spacing.bloco,
+    paddingBottom: spacing.bloco,
+  },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -208,4 +232,10 @@ const s = StyleSheet.create({
   name: { fontFamily: fonts.display700, fontSize: 14 },
   meta: { fontSize: 12, marginTop: 2 },
   note: { fontFamily: fonts.display800, fontSize: 14, flexShrink: 0 },
+  retry: {
+    borderRadius: 14,
+    paddingHorizontal: spacing.padrao,
+    paddingVertical: 10,
+  },
+  retryText: { color: palette.papel, fontSize: 13, fontWeight: '600' },
 });

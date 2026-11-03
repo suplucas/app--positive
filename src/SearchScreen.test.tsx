@@ -45,6 +45,10 @@ function input(r: ReactTestRenderer, value: string) {
   });
 }
 
+function byID(r: ReactTestRenderer, id: string) {
+  return r.root.findByProps({ testID: id });
+}
+
 function allText(r: ReactTestRenderer): string {
   return r.root
     .findAll((n) => String(n.type) === 'Text')
@@ -139,6 +143,17 @@ describe('SearchScreen (busca integrada)', () => {
     act(() => {
       r.root.findByProps({ testID: 'busca-voltar' }).props.onPress();
     });
+    expect(onBack).toHaveBeenCalled();
+  });
+
+  it('erro de busca com onBack: mostra botão voltar', async () => {
+    vi.mocked(searchPlaces).mockRejectedValue(new Error('offline'));
+    const onBack = vi.fn();
+    const { r } = await render({ onBack });
+    input(r, 'kyoto');
+    await flush();
+    expect(byID(r, 'busca-voltar-erro')).toBeTruthy();
+    act(() => byID(r, 'busca-voltar-erro').props.onPress());
     expect(onBack).toHaveBeenCalled();
   });
 });

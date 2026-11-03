@@ -66,8 +66,10 @@ function isTooLarge(b: Bbox): boolean {
 
 export function MapScreen({
   onOpenRestaurant,
+  onBack,
 }: {
   onOpenRestaurant: (cnpj: string) => void;
+  onBack?: () => void;
 }) {
   const t = useTheme();
   const [bbox, setBbox] = useState<Bbox>(DEFAULT_BBOX);
@@ -217,16 +219,26 @@ export function MapScreen({
         <View style={s.sheetHead}>
           <Text style={[s.sheetTitle, { color: t.ink }]}>nessa área</Text>
           {status === "error" ? (
-            <Pressable
-              testID="mapa-retry"
-              onPress={() => void refresh()}
-              hitSlop={8}
-              accessibilityRole="button"
-            >
-              <Text style={[s.sheetMeta, { color: palette.lambeLambe }]}>
-                tentar de novo
-              </Text>
-            </Pressable>
+            <View style={s.actions}>
+              <Pressable
+                testID="mapa-voltar-erro"
+                onPress={onBack}
+                hitSlop={8}
+                accessibilityRole="button"
+                accessibilityLabel="voltar"
+              >
+                <Text style={s.sheetMeta}>voltar</Text>
+              </Pressable>
+              <Pressable
+                testID="mapa-retry"
+                onPress={() => void refresh()}
+                hitSlop={8}
+                accessibilityRole="button"
+                style={[s.retry, { backgroundColor: palette.lambeLambe }]}
+              >
+                <Text style={s.sheetMeta}>tentar de novo</Text>
+              </Pressable>
+            </View>
           ) : (
             <Text style={[s.sheetMeta, { color: t.sub }]}>
               {status === "loading" ? "carregando…" : "posições aproximadas"}
@@ -342,6 +354,11 @@ const s = StyleSheet.create({
     paddingHorizontal: spacing.padrao,
     marginBottom: spacing.interno + 2,
   },
+  actions: {
+    flexDirection: 'row',
+    gap: spacing.interno,
+    marginTop: spacing.interno,
+  },
   sheetTitle: { fontFamily: fonts.display700, fontSize: 15 },
   sheetMeta: { fontSize: 10.5 },
   empty: {
@@ -379,4 +396,9 @@ const s = StyleSheet.create({
     marginTop: 6,
   },
   cardMeta: { fontSize: 11, marginTop: 1 },
+  retry: {
+    borderRadius: 14,
+    paddingHorizontal: spacing.padrao,
+    paddingVertical: 10,
+  },
 });
