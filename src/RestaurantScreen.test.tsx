@@ -166,7 +166,9 @@ describe('RestaurantScreen (docs_05)', () => {
     expect(getRestaurant).toHaveBeenCalledWith(cnpjExemplo, undefined);
   });
 
-  it('resultado OSM abre o template sem chamar a API de restaurante', async () => {
+  it('resultado OSM usa o hit como fallback quando a API falha', async () => {
+    vi.mocked(getRestaurant).mockRejectedValue(new Error('offline'));
+    vi.mocked(getRestaurantReviews).mockRejectedValue(new Error('offline'));
     const r = create(
       createElement(RestaurantScreen, {
         cnpj: 'osm:node/1',
@@ -189,6 +191,37 @@ describe('RestaurantScreen (docs_05)', () => {
     const text = JSON.stringify(r.toJSON());
     expect(text).toContain('Pizza do OSM');
     expect(text).toContain('0');
-    expect(getRestaurant).not.toHaveBeenCalled();
+    expect(getRestaurant).toHaveBeenCalledWith('osm:node/1', undefined);
+  });
+
+  it('id osm: busca na API em vez de mostrar "não encontrei"', async () => {
+    vi.mocked(getRestaurant).mockResolvedValue({
+      id: 'osm:node/1',
+      cnpj: null,
+      nome: 'Café Novo',
+      categoria: 'cafe',
+      bairro: null,
+      municipio: 'São Paulo',
+      preco: null,
+      endereco: null,
+      lat: null,
+      lng: null,
+      notaMedia: null,
+      totalAvaliacoes: 0,
+      queroIr: 0,
+      flairs: [],
+      seguemAvaliaram: [],
+    });
+    vi.mocked(getRestaurantReviews).mockResolvedValue({
+      page: 1,
+      limit: 20,
+      total: 0,
+      results: [],
+    });
+
+    const r = render({ cnpj: 'osm:node/1', data: undefined });
+    await act(async () => {});
+    expect(getRestaurant).toHaveBeenCalledWith('osm:node/1', undefined);
+    expect(JSON.stringify(r.toJSON())).toContain('Café Novo');
   });
 });

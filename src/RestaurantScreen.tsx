@@ -53,19 +53,12 @@ export function RestaurantScreen({
 }) {
   const t = useTheme();
   const isOsm = cnpj.startsWith('osm:');
-  const remote = useRestaurant(cnpj, userId, !injected && !isOsm);
+  // POIs OSM descobertos também são persistidos no catálogo (`osm:<tipo>/<id>`),
+  // então a tela busca na API como qualquer restaurante. `osmPlace` fica só
+  // como fallback quando a API falha (ex.: offline).
+  const remote = useRestaurant(cnpj, userId, !injected);
 
-  if (!injected && isOsm && !osmPlace) {
-    return (
-      <View style={[s.center, { backgroundColor: t.bg }]}>
-        <Text style={[s.message, { color: t.ink }]}>
-          Não encontrei os dados desse lugar no OpenStreetMap.
-        </Text>
-      </View>
-    );
-  }
-
-  if (!injected && !isOsm && remote.status === 'loading') {
+  if (!injected && remote.status === 'loading') {
     return (
       <View style={[s.center, { backgroundColor: t.bg }]}>
         <Text style={[s.message, { color: t.sub }]}>carregando…</Text>
@@ -73,7 +66,18 @@ export function RestaurantScreen({
     );
   }
 
-  if (!injected && !isOsm && (remote.status === 'error' || !remote.data)) {
+  // Sem dados da API e sem fallback OSM: para `osm:` avisa que o lugar não
+  // foi encontrado; para os demais, oferece retry.
+  if (!injected && !osmPlace && (remote.status === 'error' || !remote.data)) {
+    if (isOsm) {
+      return (
+        <View style={[s.center, { backgroundColor: t.bg }]}>
+          <Text style={[s.message, { color: t.ink }]}>
+            Não encontrei os dados desse lugar no OpenStreetMap.
+          </Text>
+        </View>
+      );
+    }
     return (
       <View style={[s.center, { backgroundColor: t.bg }]}>
         <Text style={[s.message, { color: t.ink }]}>
@@ -94,7 +98,7 @@ export function RestaurantScreen({
 
   const data: RestaurantProfileData = injected
     ? injected
-    : isOsm && osmPlace
+    : osmPlace && !remote.data
       ? {
           cnpj,
           nome: osmPlace.nome,
