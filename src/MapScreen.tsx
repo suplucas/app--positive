@@ -11,6 +11,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from 'react-native';
 import { WebView, type WebViewMessageEvent } from 'react-native-webview';
@@ -18,6 +19,8 @@ import { buildMapHtml, buildPinData, jsonForScript } from './mapHtml';
 import { pinColor, type MapPlace } from './mapMock';
 import { fonts, palette, spacing, useTheme } from './theme';
 import { usePlaces, DEFAULT_BBOX, type Bbox } from './usePlaces';
+import { searchPlaces } from './api/place';
+import type { PlaceHit } from './api/types';
 
 // Aba Mapa (docs/16): mapa real OSM/CARTO via WebView + Leaflet,
 // full-bleed (sem margem) entre o header e a navbar. O HTML e os pins
@@ -75,6 +78,11 @@ export function MapScreen({
   const [bbox, setBbox] = useState<Bbox>(DEFAULT_BBOX);
   const [pendingBbox, setPendingBbox] = useState<Bbox | null>(null);
   const { pins, status, refresh } = usePlaces(bbox);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<PlaceHit[]>([]);
+  const [searchStatus, setSearchStatus] = useState<'idle' | 'loading' | 'error'>(
+    'idle'
+  );
 
   // A fonte do WebView é estável (não embute os lugares): os pins são
   // injetados via `window.setPins`, então uma nova resposta de /places
@@ -94,6 +102,43 @@ export function MapScreen({
     const id = setTimeout(() => setBbox(pendingBbox), BBOX_DEBOUNCE_MS);
     return () => clearTimeout(id);
   }, [pendingBbox]);
+
+  const handleSearch = async (q: string) => {
+    if (!q.trim()) {
+      setSearchResults([]);
+      setSearchStatus('idle');
+      return;
+    }
+    setSearchStatus('loading');
+    try {
+      const results = await searchPlaces(q);
+      setSearchResults(results);
+      setSearchStatus('idle');
+    } catch {
+      setSearchResults([]);
+      setSearchStatus('error');
+    }
+  };
+
+  const selectResult = (hit: PlaceHit) => {
+    setSearchQuery('');
+    setSearchResults([]);
+    setSearchStatus('idle');
+    // Se o hit tem coordenadas, centraliza o mapa nele
+    if (hit.lat != null && hit.lng != null) {
+      setBbox({
+        minLng: hit.lng - 0.01,
+        minLat: hit.lat - 0.01,
+        maxLng: hit.lng + 0.01,
+        maxLat: hit.lat + 0.01,
+      });
+    }
+    // Se é resultado OSM (sem CNPJ), usa onOpenPlace... mas MapScreen só
+    // tem onOpenRestaurant. Para resultados locais (com CNPJ), abre direto.
+    if (hit.source === 'local' && hit.id) {
+      onOpenRestaurant(hit.id);
+    }
+  };
 
   const places = useMemo<MapPlace[]>(() => {
     const toPlace = (pin: (typeof pins)[number]): MapPlace => ({
@@ -179,6 +224,80 @@ export function MapScreen({
 
   return (
     <View testID="mapa-tela" style={[s.root, { backgroundColor: t.bg }]}>
+      {/* Barra de busca sobreposta ao mapa */}
+      <View style={s.searchWrap}>
+        <View style={s.searchBar}>
+          <Pressable
+            testID="mapa-busca-voltar"
+            onPress={onBack}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel="voltar"
+          >
+            <Text style={[s.searchBack, { color: t.sub }]}>‹</Text>
+          </Pressable>
+          <TextInput
+            testID="mapa-busca-input"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            onSubmitEditing={(e) => {
+              const text = e.nativeEvent.text;
+              setSearchQuery(text);
+              handleSearch(text);
+            }}
+            placeholder="buscar restaurante, bairro…"
+            placeholderTextColor={t.sub}
+            style={[s.searchInput, { backgroundColor: t.bg, color: t.ink }]}
+            accessibilityLabel="buscar restaurante no mapa"
+          />
+          {searchQuery.trim() !== '' && (
+            <Pressable
+              testID="mapa-busca-limpar"
+              onPress={() => {
+                setSearchQuery('');
+                setSearchResults([]);
+                setSearchStatus('idle');
+              }}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel="limpar busca"
+            >
+              <Text style={[s.searchClear, { color: t.sub }]}>×</Text>
+            </Pressable>
+          )}
+          {searchStatus === 'loading' ? (
+            <Text style={[s.searchLoading, { color: t.sub }]}>buscando…</Text>
+          ) : null}
+        </View>
+        {searchStatus === 'error' ? (
+          <View style={s.searchErrorWrap}>
+            <Text style={[s.searchError, { color: t.sub }]}>
+              Não consegui buscar agora. Tente de novo.
+            </Text>
+          </View>
+        ) : null}
+        {searchResults.length > 0 && searchQuery.trim() !== '' ? (
+          <View style={s.resultsWrap}>
+            {searchResults.map((hit) => (
+              <Pressable
+                key={hit.id}
+                testID={`mapa-busca-${hit.id}`}
+                onPress={() => selectResult(hit)}
+                style={s.resultRow}
+                accessibilityRole="button"
+                accessibilityLabel={`abrir ${hit.nome}`}
+              >
+                <Text style={[s.resultName, { color: t.ink }]}>{hit.nome}</Text>
+                <Text style={[s.resultMeta, { color: t.sub }]}>
+                  {[hit.categoria, hit.bairro ?? hit.endereco]
+                    .filter(Boolean)
+                    .join(' · ')} + (hit.source === 'osm' ? ' · osm' : '')
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+        ) : null}
+      </View>
       <WebView
         ref={webRef}
         testID="mapa-webview"
@@ -400,5 +519,53 @@ const s = StyleSheet.create({
     borderRadius: 14,
     paddingHorizontal: spacing.padrao,
     paddingVertical: 10,
+  },
+  // Barra de busca sobreposta ao mapa
+  searchWrap: {
+    paddingHorizontal: spacing.padrao,
+    paddingTop: spacing.interno + 2,
+    paddingBottom: spacing.interno,
+  },
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FBF2E4',
+    borderRadius: 22,
+    paddingHorizontal: spacing.interno,
+    paddingVertical: spacing.interno - 2,
+  },
+  searchBack: { fontSize: 18, marginRight: 8 },
+  searchInput: {
+    flex: 1,
+    fontSize: 14,
+    fontFamily: fonts.corpo,
+  },
+  searchClear: { fontSize: 18 },
+  searchLoading: { fontSize: 12, marginLeft: 8 },
+  searchErrorWrap: {
+    alignItems: 'center',
+    paddingHorizontal: spacing.padrao,
+    paddingBottom: spacing.interno,
+  },
+  searchError: { fontSize: 12, color: '#241A22' },
+  resultsWrap: {
+    maxHeight: 260,
+    paddingHorizontal: spacing.padrao,
+    paddingBottom: spacing.interno,
+  },
+  resultRow: {
+    flexDirection: 'row',
+    gap: spacing.interno,
+    paddingVertical: spacing.interno,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  resultName: {
+    fontSize: 14,
+    fontFamily: fonts.corpo500,
+    flex: 1,
+  },
+  resultMeta: {
+    fontSize: 12,
+    color: '#241A22',
   },
 });
