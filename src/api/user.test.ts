@@ -8,7 +8,7 @@ afterEach(() => {
 const profile = {
   id: "user_1",
   name: "Bea Nova",
-  handle: "bea",
+  username: "bea",
   bio: "bio nova",
   photoUrl: "/uploads/a.jpg",
   isFollowing: false,

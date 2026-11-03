@@ -32,27 +32,27 @@ import {
   InstrumentSans_600SemiBold,
 } from '@expo-google-fonts/instrument-sans';
 import { useFonts } from 'expo-font';
-import { CommentThreadScreen } from './src/CommentThreadScreen';
-import { AuthFlow } from './src/AuthFlow';
-import { EditProfileScreen } from './src/EditProfileScreen';
-import { EmptyState } from './src/EmptyState';
-import { ErrorBoundary } from './src/ErrorBoundary';
-import { FeedCard } from './src/FeedCard';
-import { FeedPhoto } from './src/FeedPhoto';
-import { FeedQuote } from './src/FeedQuote';
-import { MOCK_POST_PHOTOS, photoFor, photosFor } from './src/postPhotos';
-import { ComposeScreen } from './src/ComposeScreen';
-import { Navbar, type Screen } from './src/Navbar';
-import { PageTitle } from './src/PageTitle';
-import { Podium } from './src/Podium';
-import { ProfileScreen } from './src/ProfileScreen';
-import { RestaurantScreen } from './src/RestaurantScreen';
-import { SectionTitle } from './src/SectionTitle';
-import { MapScreen } from './src/MapScreen';
-import { NotificationScreen } from './src/NotificationScreen';
-import { SearchScreen } from './src/SearchScreen';
-import { SettingsScreen, type ThemeMode } from './src/SettingsScreen';
-import { UserProfileScreen } from './src/UserProfileScreen';
+import { CommentThreadScreen } from './src/comments/CommentThreadScreen';
+import { AuthFlow } from './src/auth/AuthFlow';
+import { EditProfileScreen } from './src/profile/EditProfileScreen';
+import { EmptyState } from './src/common/EmptyState';
+import { ErrorBoundary } from './src/common/ErrorBoundary';
+import { FeedCard } from './src/feed/FeedCard';
+import { FeedPhoto } from './src/feed/FeedPhoto';
+import { FeedQuote } from './src/feed/FeedQuote';
+import { MOCK_POST_PHOTOS, photoFor, photosFor } from './src/feed/postPhotos';
+import { ComposeScreen } from './src/compose/ComposeScreen';
+import { Navbar, type Screen } from './src/common/Navbar';
+import { PageTitle } from './src/common/PageTitle';
+import { Podium } from './src/common/Podium';
+import { ProfileScreen } from './src/profile/ProfileScreen';
+import { RestaurantScreen } from './src/restaurant/RestaurantScreen';
+import { SectionTitle } from './src/common/SectionTitle';
+import { MapScreen } from './src/map/MapScreen';
+import { NotificationScreen } from './src/settings/NotificationScreen';
+import { SearchScreen } from './src/map/SearchScreen';
+import { SettingsScreen, type ThemeMode } from './src/settings/SettingsScreen';
+import { UserProfileScreen } from './src/profile/UserProfileScreen';
 import type { PlaceHit } from './src/api/types';
 import {
   ThemeContext,
@@ -63,12 +63,12 @@ import {
   spacing,
   useTheme,
   type Theme,
-} from './src/theme';
-import { friendlyApiError, resolvePhotoUrl, restaurantName } from './src/format';
-import { useFeed } from './src/useFeed';
-import { useSaves } from './src/useSaves';
-import { useSession } from './src/useSession';
-import type { Review, ReviewLayout } from './src/types';
+} from './src/common/theme';
+import { friendlyApiError, resolvePhotoUrl, restaurantName } from './src/common/format';
+import { useFeed } from './src/feed/useFeed';
+import { useSaves } from './src/restaurant/useSaves';
+import { useSession } from './src/auth/useSession';
+import type { Review, ReviewLayout } from './src/common/types';
 import type { ImageSourcePropType } from 'react-native';
 
 // Nota forte na escala 0-10: flair "chorei de tão bom" no máx. 1 por tela.
@@ -268,7 +268,7 @@ function MainApp({
         <StatusBar style={mode === 'dark' ? 'light' : 'dark'} />
         {/* docs/16: a avaliação tem sub-cabeçalho próprio (cancelar /
             nova avaliação / tim!) — o wordmark do app não aparece nela. */}
-        {screen === 'compose' ? null : (
+        {screen === 'compose' || screen === 'mapa' || screen === 'perfil' ? null : (
         <View style={[styles.header, { borderBottomColor: theme.line }]}>
           <PageTitle>
             {screen === 'feed' ? (
@@ -278,8 +278,6 @@ function MainApp({
               </>
             ) : screen === 'busca' ? (
               'busca'
-            ) : screen === 'mapa' ? (
-              'mapa'
             ) : screen === 'perfil' ? (
               'perfil'
             ) : (
@@ -317,9 +315,14 @@ function MainApp({
                 setOsmPlace(null);
                 setRestaurantId(cnpj);
               }}
-              onOpenPlace={(hit) => {
-                setOsmPlace(hit);
-                setRestaurantId(hit.id);
+              onOpenReview={(reviewId) => {
+                setRestaurantId(null);
+                setOsmPlace(null);
+                // Abre a review: define como comentando essa review
+                setCommentReview(items.find((i) => String(i.id) === String(reviewId)) ?? null);
+              }}
+              onOpenProfile={(userId) => {
+                setProfileUserId(userId);
               }}
               onBack={() => setScreen('feed')}
             />
@@ -509,6 +512,7 @@ function MainApp({
           {composePickerOpen ? (
             <LayerScreen>
               <SearchScreen
+                placesOnly
                 onOpenRestaurant={() => {}}
                 onPick={(hit) => {
                   setComposePickedCnpj(hit.cnpj);

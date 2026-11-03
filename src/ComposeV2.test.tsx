@@ -1,12 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { create, ReactTestRenderer, act } from 'react-test-renderer';
 import { createElement } from 'react';
-import { ComposeV2 } from './ComposeV2';
-import { postReview, updateReview, uploadReviewPhoto } from './api';
-import { restaurantNames } from './restaurantNames';
-import type { Review } from './types';
+import { ComposeV2 } from './compose/ComposeV2';
+import { postReview, updateReview, uploadReviewPhoto } from './api/api';
+import { restaurantNames } from './restaurant/restaurantNames';
+import type { Review } from './common/types';
 
-vi.mock('./api', () => ({
+vi.mock('./api/api', () => ({
   postReview: vi.fn(),
   uploadReviewPhoto: vi.fn(),
   updateReview: vi.fn(),

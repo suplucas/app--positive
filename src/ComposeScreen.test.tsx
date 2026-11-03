@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { create } from 'react-test-renderer';
 import { createElement } from 'react';
-import { ComposeScreen } from './ComposeScreen';
+import { ComposeScreen } from './compose/ComposeScreen';
 
 function render() {
   return create(

@@ -20,7 +20,7 @@ export async function getUser(id: string, viewerId?: string, baseUrl?: string) {
 export type UserProfileEdit = {
   name?: string;
   bio?: string | null;
-  handle?: string | null;
+  username?: string | null;
   photoUrl?: string | null;
 };
 

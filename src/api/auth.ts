@@ -3,6 +3,7 @@ import { apiFetch } from "./client";
 export type AuthUser = {
   id: string;
   name: string;
+  username: string;
   email: string | null;
 };
 
@@ -12,6 +13,7 @@ export async function register(input: {
   email: string;
   password: string;
   name: string;
+  username: string;
   inviteCode?: string;
 }): Promise<AuthResponse> {
   return apiFetch<AuthResponse>("/auth/register", {

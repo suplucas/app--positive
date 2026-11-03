@@ -1,0 +1,123 @@
+// Dados mock onde a API ainda não alcança: pódio da semana e tela de
+// perfil. Substituir por endpoints reais quando existirem.
+export type PodioEntry = {
+  place: 1 | 2 | 3;
+  medal: string;
+  name: string;
+  note: string;
+};
+
+// Ordem visual: 2º, 1º, 3º (estilo pódio).
+export const PODIO: PodioEntry[] = [
+  { place: 2, medal: "🥈", name: "Sushi Kaza", note: "8.9" },
+  { place: 1, medal: "🥇", name: "Boteco da Ana", note: "9.4" },
+  { place: 3, medal: "🥉", name: "Empório Real", note: "8.2" },
+];
+
+// Célula do diário: quadrado só com a nota, quote card largo com opinião
+// em destaque, ou uma foto real (photoIndex em assets/posts). `cor` é o
+// fundo (usado atrás da foto e no chip de nota).
+export type DiaryCell =
+  | { kind: "note"; cor: string; nota: string; photoIndex?: number }
+  | { kind: "photo"; cor: string; nota: string; photoIndex: number }
+  | { kind: "quote"; cor: string; nota: string; place: string; text: string };
+
+// Item da estante de favoritos: cor sólida ou foto real (photoIndex).
+export type FavoriteItem = { cor: string; nota: string; photoIndex?: number };
+
+// Identidade de usuário ativo no perfil (N5): nome exibível por
+// handle conhecido; desconhecidos ganham nome derivado
+// deterministicamente (sempre legível, nunca vazio).
+const NOME_POR_USUARIO: Record<string, string> = {
+  bea_come_tudo: "Bea Ferraz",
+  renatocritico: "Renato Crítico",
+  "caio.garfo": "Caio Garfo",
+  "isa.mastiga": "Isa Mastiga",
+  "juu.talher": "Juu Talher",
+  bruce: "Bruce",
+  mogli: "Mogli",
+  dosso: "Dosso",
+  lucas: "Lucas",
+  mock: "Mock",
+};
+
+export function displayName(userId: string): string {
+  if (NOME_POR_USUARIO[userId]) return NOME_POR_USUARIO[userId]!;
+  // "user_1" -> "User 1", "caio.x" -> "Caio X"
+  return userId
+    .replace(/[._]+/g, " ")
+    .split(" ")
+    .filter(Boolean)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+}
+
+export function bioFor(userId: string): string {
+  return userId === "bea_come_tudo"
+    ? PERFIL.bio
+    : "Comendo a cidade, um post de cada vez.";
+}
+
+export const PERFIL = {
+  userId: "bea_come_tudo",
+  nome: "Bea Ferraz",
+  username: "bea_come_tudo",
+  bio: "Crítica de fim de semana. Se a fila for grande, provavelmente eu tô nela.",
+  stats: [
+    { n: "184", l: "avaliações" },
+    { n: "92", l: "seguidores" },
+    { n: "76", l: "seguindo" },
+    { n: "9.1", l: "média" },
+  ],
+  favoritos: [
+    { cor: "#C98A3F", nota: "9.6", photoIndex: 0 }, // foto real (exemplo)
+    { cor: "#8A3550", nota: "9.4", photoIndex: 1 }, // foto real (exemplo)
+    { cor: "#5A6B3A", nota: "9.2", photoIndex: 2 }, // foto real (exemplo)
+  ] as FavoriteItem[],
+  diario: [
+    { kind: "note", cor: "#C98A3F", nota: "9.1", photoIndex: 0 },
+    { kind: "note", cor: "#5A6B3A", nota: "4.6", photoIndex: 1 },
+    {
+      kind: "quote",
+      cor: "#F2A93B",
+      nota: "8.2",
+      place: "Empório Real",
+      text: "Fila valeu cada minuto, sem exagero.",
+    },
+    { kind: "note", cor: "#8A3550", nota: "7.8", photoIndex: 3 },
+    { kind: "note", cor: "#3E5C78", nota: "8.4", photoIndex: 4 },
+    { kind: "note", cor: "#7A5A3E", nota: "6.9", photoIndex: 5 },
+    {
+      kind: "quote",
+      cor: "#E63E75",
+      nota: "9.6",
+      place: "Boteco da Ana",
+      text: "Chorei de tão bom, sem exagero nenhum.",
+    },
+    { kind: "note", cor: "#5E3E6B", nota: "9.6", photoIndex: 6 },
+  ] as DiaryCell[],
+  // Curadorias do usuário (aba "listas" do perfil v2). `cores` alimenta o
+  // colagem 2×2 do card (a 1ª ocupa a coluna inteira).
+  listas: [
+    {
+      title: "Melhores pizzarias de SP",
+      meta: "12 lugares · atualizada há 3 dias",
+      cores: ["#C98A3F", "#8A3550", "#5A6B3A"],
+    },
+    {
+      title: "Pra ir sozinho sem graça",
+      meta: "7 lugares · atualizada há 1 semana",
+      cores: ["#3E5C78", "#7A5A3E", "#5E3E6B"],
+    },
+    {
+      title: "Café bom de verdade",
+      meta: "9 lugares · atualizada há 2 semanas",
+      cores: ["#8A6B3E", "#3E6B5E", "#6B4A3E"],
+    },
+    {
+      title: "Levar visita de fora",
+      meta: "15 lugares · atualizada ontem",
+      cores: ["#5A6B3A", "#C98A3F", "#8A3550"],
+    },
+  ],
+};
