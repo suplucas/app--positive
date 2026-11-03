@@ -247,18 +247,23 @@ const cfg = {
 };
 const bbox = { minLng: -46.701, minLat: -23.602, maxLng: -46.651, maxLat: -23.552 };
 
-function make(opts: { cached?: string | null; slot?: string | null; places?: unknown[]; around?: Error } = {}) {
+function make(opts: { cached?: string | null; slot?: string | null; places?: unknown[]; around?: Error; maxWaitMs?: number } = {}) {
   const upsert = vi.fn().mockResolvedValue(undefined);
   const restaurants = { upsert } as never;
   const get = vi.fn().mockResolvedValue(opts.cached ?? null);
-  const set = vi.fn().mockResolvedValue('OK');
-  const nxs = vi.fn().mockResolvedValue(opts.slot === undefined ? 'OK' : opts.slot);
-  const redis = { get, set, set: nxs } as never; // set usado p/ cache e p/ NX
+  // mesmo `set` serve cache (args[2]='EX') e rate-limit (args[4]='NX')
+  const set = vi.fn().mockImplementation(async (...args: unknown[]) =>
+    args[4] === 'NX' ? (opts.slot ?? 'OK') : 'OK',
+  );
+  const redis = { get, set } as never;
   const around = vi.fn();
   if (opts.around) around.mockRejectedValue(opts.around);
   else around.mockResolvedValue(opts.places ?? []);
-  const service = new PlaceDiscoveryService(restaurants, { around } as never, redis, cfg);
-  return { service, upsert, get, nxs, around, setCache: redis as unknown as { set: ReturnType<typeof vi.fn> } };
+  const service = new PlaceDiscoveryService(restaurants, { around } as never, redis, {
+    ...cfg,
+    maxWaitMs: opts.maxWaitMs ?? cfg.maxWaitMs,
+  });
+  return { service, upsert, get, set, around };
 }
 
 describe('snapBbox', () => {
@@ -277,20 +282,19 @@ describe('PlaceDiscoveryService.refreshArea', () => {
 
   it('cache miss: chama Overpass, faz upsert e cacheia com TTL', async () => {
     const places = [{ id: 'osm:node/1', nome: 'Pizza', categoria: 'restaurant', lat: -23.55, lng: -46.63 }];
-    const { service, upsert, around, setCache } = make({ places });
+    const { service, upsert, around, set } = make({ places });
     await service.refreshArea(bbox);
     expect(around).toHaveBeenCalled();
     expect(upsert).toHaveBeenCalledWith(
       [expect.objectContaining({ id: 'osm:node/1', source: 'overpass', osmId: 'osm:node/1' })],
       ['id'],
     );
-    expect(setCache.set).toHaveBeenCalledWith(expect.stringContaining('osm:overpass:'), expect.any(String), 'EX', 86400);
+    expect(set).toHaveBeenCalledWith(expect.stringContaining('osm:overpass:'), expect.any(String), 'EX', 86400);
   });
 
   it('sem slot de rate-limit: pula o Overpass', async () => {
-    const { service, around } = make({ slot: null });
-    // maxWaitMs 1200 → para o teste, cfg com maxWaitMs 0
-    await new PlaceDiscoveryService({ upsert: vi.fn() } as never, { around } as never, { get: vi.fn().mockResolvedValue(null), set: vi.fn().mockResolvedValue(null) } as never, { ...cfg, maxWaitMs: 0 }).refreshArea(bbox);
+    const { service, around } = make({ slot: null, maxWaitMs: 0 });
+    await service.refreshArea(bbox);
     expect(around).not.toHaveBeenCalled();
   });
 
@@ -527,12 +531,19 @@ git commit -m "fix: rota /restaurants/:id resolve o parâmetro (osm: inclusive)"
 - [ ] **Step 1: Write the failing test** — adicionar ao `mapHtml.test.ts`:
 
 ```ts
-it('nota null vira pin de descoberta (sem número); social mantém o número', () => {
+it('nota null vira pin de descoberta (sem número)', () => {
   const discovery = { ...places[0]!, cnpj: 'osm:node/9', nome: 'Café Novo', nota: null };
-  const html = buildMapHtml({ places: [discovery, places[1]!], mode: 'light' });
+  const html = buildMapHtml({ places: [discovery], mode: 'light' });
   expect(html).toContain('pin-desc');
-  expect(html).not.toContain('>8.5<'); // número do social-1 não deve aparecer p/ o discovery
   expect(html).toContain('osm:node/9');
+  expect(html).not.toContain('class="pin"');
+});
+
+it('social mantém o pin com número', () => {
+  const social = { ...places[0]!, cnpj: 'seed-1', nota: 9.5 };
+  const html = buildMapHtml({ places: [social], mode: 'light' });
+  expect(html).toContain('class="pin"');
+  expect(html).toContain('9.5');
 });
 
 it('emite bounds no moveend', () => {
@@ -541,6 +552,8 @@ it('emite bounds no moveend', () => {
   expect(html).toContain("'bounds'");
 });
 ```
+
+> Ajuste também o teste existente "um pin por lugar, com cnpj e nota": `nota` agora é `number | null`, então use `p.nota != null ? p.nota.toFixed(1) : ''` (ou filtre os de descoberta).
 
 - [ ] **Step 2: Run test to verify it fails**
 
