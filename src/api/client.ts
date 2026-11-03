@@ -27,6 +27,10 @@ const DEFAULT_TIMEOUT_MS = 15_000;
 // Token da sessão, setado pelo useSession; evita threading em cada hook.
 let authToken: string | null = null;
 
+export function getAuthToken(): string | null {
+  return authToken;
+}
+
 export function setAuthToken(token: string | null): void {
   authToken = token;
 }

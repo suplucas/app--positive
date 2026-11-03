@@ -1,4 +1,4 @@
-import { ApiError, apiBaseUrl, apiFetch } from "./client";
+import { ApiError, apiBaseUrl, apiFetch, getAuthToken } from "./client";
 import type { FeedResponse, Review } from "../common/types";
 
 export async function getFeed(
@@ -152,9 +152,13 @@ async function uploadPhoto(
     }),
   );
 
+  const bearer = getAuthToken();
   const res = await fetch(`${baseUrl ?? apiBaseUrl()}${path}`, {
     method: "POST",
-    headers: { "x-user-id": userId },
+    headers: {
+      "x-user-id": userId,
+      ...(bearer ? { Authorization: `Bearer ${bearer}` } : {}),
+    },
     body: form,
   });
 
