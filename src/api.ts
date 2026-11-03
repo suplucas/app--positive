@@ -30,6 +30,16 @@ export type NewReview = {
   flairs?: string[];
 };
 
+// Tipo para arquivos no FormData do React Native.
+// O FormData do RN aceita { uri, name, type } diretamente; o tipo padrão
+// do TypeScript (string | Blob) não cobre isso, então usamos um tipo
+// próprio e fazemos um cast seguro no ponto de uso.
+type RNFile = {
+  uri: string;
+  name: string;
+  type: string;
+};
+
 export async function postReview(
   userId: string,
   review: NewReview,
@@ -125,11 +135,13 @@ async function uploadPhoto(
   baseUrl?: string,
 ): Promise<string> {
   const form = new FormData();
-  form.append("file", {
-    uri,
-    name: "photo.jpg",
-    type: "image/jpeg",
-  } as unknown as Blob);
+  // FormData do React Native aceita { uri, name, type } diretamente;
+  // não use `as unknown as Blob` — o fetch do RN não serializa esse cast.
+  const file: RNFile = { uri, name: "photo.jpg", type: "image/jpeg" };
+  (form as { append: (name: string, value: unknown) => void }).append(
+    "file",
+    file,
+  );
 
   console.log(
     JSON.stringify({

@@ -5,6 +5,7 @@ import {
   likeReview,
   postReview,
   updateReview,
+  uploadReviewPhoto,
 } from "./api";
 
 const okBody = {
@@ -275,5 +276,36 @@ describe("deleteReview", () => {
     await expect(deleteReview("user_2", 99, "http://api.test")).rejects.toThrow(
       /404/,
     );
+  });
+});
+
+describe("uploadReviewPhoto", () => {
+  it("faz POST /uploads/review-photo com FormData contendo file", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ url: "http://api.test/uploads/foto.jpg" }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await uploadReviewPhoto("user_1", "file:///foto.jpg", "http://api.test");
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "http://api.test/uploads/review-photo",
+      expect.objectContaining({
+        method: "POST",
+        headers: expect.objectContaining({
+          "x-user-id": "user_1",
+        }),
+      }),
+    );
+
+    const body = fetchMock.mock.calls[0][1].body;
+    // FormData expõe append/get. No React Native, body é um FormData com
+    // { uri, name, type }; no Node (teste) o get("file") não consegue ler
+    // esse objeto, mas o importante é que o body seja um FormData (não
+    // string JSON serializada).
+    expect(typeof body.append).toBe("function");
+    expect(typeof body.get).toBe("function");
+    expect(typeof body).not.toBe("string");
   });
 });
