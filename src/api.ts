@@ -131,11 +131,30 @@ async function uploadPhoto(
     type: "image/jpeg",
   } as unknown as Blob);
 
+  console.log(
+    JSON.stringify({
+      event: "uploadPhoto.start",
+      path,
+      baseUrl: baseUrl ?? apiBaseUrl(),
+      uri,
+    }),
+  );
+
   const res = await fetch(`${baseUrl ?? apiBaseUrl()}${path}`, {
     method: "POST",
     headers: { "x-user-id": userId, Accept: "application/json" },
     body: form,
   });
+
+  console.log(
+    JSON.stringify({
+      event: "uploadPhoto.response",
+      path,
+      status: res.status,
+      ok: res.ok,
+    }),
+  );
+
   if (!res.ok) {
     throw new ApiError(res.status, path);
   }
@@ -143,5 +162,12 @@ async function uploadPhoto(
   if (typeof data?.url !== "string") {
     throw new Error(`POST ${path}: invalid payload`);
   }
+  console.log(
+    JSON.stringify({
+      event: "uploadPhoto.done",
+      path,
+      url: data.url,
+    }),
+  );
   return data.url;
 }

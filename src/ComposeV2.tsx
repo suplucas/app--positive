@@ -213,6 +213,17 @@ export function ComposeV2({
       const isRemote = !!uri && /^https?:\/\//i.test(uri);
       const comment = caption.trim() === "" ? null : caption.trim();
 
+      console.log(
+        JSON.stringify({
+          event: 'submit.start',
+          editReview: !!editReview,
+          hasUri: !!uri,
+          isRemote,
+          selected: selected?.cnpj,
+          rating: note / 2,
+        }),
+      );
+
       if (editReview) {
         // Edição: sempre envia notch/comment/flairs; a foto só entra se
         // mudou (removida → null; nova → upload; remota → mantém).
@@ -224,14 +235,19 @@ export function ComposeV2({
         if (!uri) {
           body.photoUrl = null;
         } else if (!isRemote) {
+          console.log(JSON.stringify({ event: 'submit.upload.start', editReview: true }));
           body.photoUrl = await uploadReviewPhoto(userId, uri);
+          console.log(JSON.stringify({ event: 'submit.upload.done', editReview: true, photoUrl: body.photoUrl }));
         }
         await updateReview(userId, editReview.id, body);
+        console.log(JSON.stringify({ event: 'submit.updateReview.done', editReview: true }));
         onPosted();
         return;
       }
 
+      console.log(JSON.stringify({ event: 'submit.upload.start', editReview: false }));
       const photoUrl = uri ? await uploadReviewPhoto(userId, uri) : null;
+      console.log(JSON.stringify({ event: 'submit.upload.done', editReview: false, photoUrl }));
 
       await postReview(userId, {
         restaurantId: selected.cnpj,
@@ -240,8 +256,15 @@ export function ComposeV2({
         ...(photoUrl ? { photoUrl } : {}),
         ...(flairs.length > 0 ? { flairs } : {}),
       });
+      console.log(JSON.stringify({ event: 'submit.postReview.done', photoUrl }));
       onPosted();
     } catch (e) {
+      console.error(
+        JSON.stringify({
+          event: 'submit.error',
+          error: e instanceof Error ? e.message : String(e),
+        }),
+      );
       setError(e instanceof Error ? e.message : String(e));
       setSending(false);
     }
