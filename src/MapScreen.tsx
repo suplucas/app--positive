@@ -81,6 +81,10 @@ export function MapScreen({
   // Fit só na carga: o primeiro resultado não-vazio enquadra o mapa;
   // depois disso o enquadramento é do usuário.
   const hasFitRef = useRef(false);
+  // O documento do WebView carrega o Leaflet de um CDN; `injectJavaScript`
+  // não enfileira, então um fit injetado antes de `window.fitToBounds`
+  // existir vira no-op. Só enquadramos depois do `onLoadEnd`.
+  const loadedRef = useRef(false);
 
   // Um drag dispara muitos `bounds`; só o último (após a pausa) vale.
   useEffect(() => {
@@ -124,7 +128,7 @@ export function MapScreen({
       wv.injectJavaScript(
         `window.setPins && window.setPins(${jsonForScript(list)}); true;`,
       );
-      if (fit && !hasFitRef.current && list.length > 0) {
+      if (fit && loadedRef.current && !hasFitRef.current && list.length > 0) {
         hasFitRef.current = true;
         wv.injectJavaScript(
           `window.fitToBounds && window.fitToBounds(${jsonForScript(list)}); true;`,
@@ -138,6 +142,7 @@ export function MapScreen({
   // pode acontecer de novo — mas nunca a cada atualização de `places`.
   useEffect(() => {
     hasFitRef.current = false;
+    loadedRef.current = false;
   }, [html]);
 
   useEffect(() => {
@@ -185,7 +190,10 @@ export function MapScreen({
         overScrollMode="never"
         setSupportMultipleWindows={false}
         onMessage={onMessage}
-        onLoadEnd={() => applyPins(true)}
+        onLoadEnd={() => {
+          loadedRef.current = true;
+          applyPins(true);
+        }}
         onShouldStartLoadWithRequest={shouldLoad}
         accessibilityLabel="mapa de restaurantes por perto"
       />

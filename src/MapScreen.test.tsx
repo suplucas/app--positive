@@ -72,6 +72,13 @@ function receive(r: ReactTestRenderer, data: string) {
   });
 }
 
+// Simula o fim do carregamento do documento (Leaflet disponível no CDN).
+function loadEnd(r: ReactTestRenderer) {
+  act(() => {
+    webview(r).props.onLoadEnd();
+  });
+}
+
 const setPinsCalls = () => injected.filter((js) => js.includes('window.setPins'));
 const fitCalls = () => injected.filter((js) => js.includes('window.fitToBounds'));
 const lastSetPins = () => setPinsCalls().at(-1) ?? '';
@@ -148,22 +155,47 @@ describe('MapScreen (mapa OSM/Leaflet)', () => {
     }
   });
 
-  it('faz fitBounds só uma vez (primeira lista não-vazia)', async () => {
+  it('não faz fitBounds antes do documento carregar', async () => {
+    const { r } = await render();
+    // Pins já chegaram, mas o Leaflet do CDN ainda não: não injeta fit.
+    expect(setPinsCalls().length).toBeGreaterThan(0);
+    expect(fitCalls()).toHaveLength(0);
+    loadEnd(r);
+    // onLoadEnd: primeiro enquadramento, uma única vez.
+    expect(fitCalls()).toHaveLength(1);
+  });
+
+  it('faz fitBounds só uma vez, mesmo com nova lista de pins', async () => {
     vi.useFakeTimers();
     try {
       const { r } = await render();
+      loadEnd(r);
       expect(fitCalls()).toHaveLength(1);
+      vi.mocked(getPlaces).mockResolvedValue([
+        {
+          id: 'outro',
+          nome: 'Outro',
+          lat: -23.55,
+          lng: -46.63,
+          nota: 8,
+          bairro: 'Centro',
+          source: 'local',
+        },
+      ]);
+      // bbox válida (span < 0.25°) para forçar um novo GET e novos pins.
       const bbox = {
-        minLng: -46.8,
-        minLat: -23.7,
-        maxLng: -46.5,
-        maxLat: -23.4,
+        minLng: -46.7,
+        minLat: -23.6,
+        maxLng: -46.6,
+        maxLat: -23.5,
       };
       receive(r, JSON.stringify({ type: 'bounds', bbox }));
       await act(async () => {
         vi.advanceTimersByTime(700);
       });
       await act(async () => {});
+      expect(lastSetPins()).toContain('outro');
+      // A segunda lista re-injeta os pins, mas nunca reenquadra.
       expect(fitCalls()).toHaveLength(1);
     } finally {
       vi.useRealTimers();
