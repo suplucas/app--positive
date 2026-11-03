@@ -1,5 +1,18 @@
 import { ApiError, apiBaseUrl, apiFetch } from "./client";
 import type { FeedResponse, Review } from "../common/types";
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+
+// Cliente S3 direto para upload de imagens (bucket Railway / t3.storageapi.dev).
+// Credenciais vêm de EXPO_PUBLIC_S3_* (definidas no app.config / .env do Expo).
+const s3Client = new S3Client({
+  region: "us-east-1",
+  endpoint: process.env.EXPO_PUBLIC_S3_ENDPOINT,
+  forcePathStyle: true, // necessário p/ endpoints S3-compatíveis (t3.storageapi.dev)
+  credentials: {
+    accessKeyId: process.env.EXPO_PUBLIC_S3_ACCESS_KEY_ID ?? "",
+    secretAccessKey: process.env.EXPO_PUBLIC_S3_SECRET_ACCESS_KEY ?? "",
+  },
+});
 
 export async function getFeed(
   userId: string,
@@ -28,16 +41,6 @@ export type NewReview = {
   comment: string | null;
   photoUrl?: string | null;
   flairs?: string[];
-};
-
-// Tipo para arquivos no FormData do React Native.
-// O FormData do RN aceita { uri, name, type } diretamente; o tipo padrão
-// do TypeScript (string | Blob) não cobre isso, então usamos um tipo
-// próprio e fazemos um cast seguro no ponto de uso.
-type RNFile = {
-  uri: string;
-  name: string;
-  type: string;
 };
 
 export async function postReview(
@@ -141,79 +144,30 @@ async function uploadPhoto(
       : ext === ".png"
         ? "image/png"
         : "image/jpeg";
-  const name = `photo${ext}`;
-  const file: RNFile = { uri, name, type: mime };
+  const key = `uploads/${userId}/${path.replace(/^\//, "")}/${Date.now()}${ext}`;
 
-  // Upload direto para o S3 via presigned URL (evita passar o binário pelo
-  // backend Railway). Quando EXPO_PUBLIC_S3_DIRECT_UPLOAD não está setado,
-  // continua usando POST /uploads/avatar (proxy pelo backend).
-  if (process.env.EXPO_PUBLIC_S3_DIRECT_UPLOAD === "1") {
-    const presigned = await apiFetch<{ url: string }>("/uploads/presigned", {
-      method: "POST",
-      userId,
-      baseUrl,
-      body: { path, mime, name },
-    });
-    // React Native não aceita {uri,name,type} como body de fetch direto;
-    // busca o arquivo como blob e envia PUT cru para o S3.
-    const blobRes = await fetch(uri);
-    const blob = await blobRes.blob();
-    const res = await fetch(presigned.url, {
-      method: "PUT",
-      headers: { "Content-Type": mime },
-      body: blob,
-    });
-    if (!res.ok) {
-      throw new ApiError(res.status, path);
-    }
-    return `${process.env.EXPO_PUBLIC_S3_ENDPOINT ?? ""}/${process.env.EXPO_PUBLIC_S3_BUCKET ?? ""}/${name}`;
-  }
+  // React Native não aceita {uri,name,type} como body de fetch direto;
+  // busca o arquivo como blob e envia PUT via SDK do S3.
+  const blobRes = await fetch(uri);
+  const blob = await blobRes.blob();
 
-  const form = new FormData();
-  (form as { append: (name: string, value: unknown) => void }).append(
-    "file",
-    file,
-  );
-
-  console.log(
-    JSON.stringify({
-      event: "uploadPhoto.start",
-      path,
-      baseUrl: baseUrl ?? apiBaseUrl(),
-      uri,
-      uriType: typeof uri,
-      uriStartsWith: uri?.slice(0, 20),
+  await s3Client.send(
+    new PutObjectCommand({
+      Bucket: process.env.EXPO_PUBLIC_S3_BUCKET ?? "",
+      Key: key,
+      Body: blob,
+      ContentType: mime,
     }),
   );
 
-  const res = await fetch(`${baseUrl ?? apiBaseUrl()}${path}`, {
-    method: "POST",
-    headers: { "x-user-id": userId, Accept: "application/json" },
-    body: form,
-  });
-
-  console.log(
-    JSON.stringify({
-      event: "uploadPhoto.response",
-      path,
-      status: res.status,
-      ok: res.ok,
-    }),
-  );
-
-  if (!res.ok) {
-    throw new ApiError(res.status, path);
-  }
-  const data = (await res.json()) as { url?: unknown };
-  if (typeof data?.url !== "string") {
-    throw new Error(`POST ${path}: invalid payload`);
-  }
   console.log(
     JSON.stringify({
       event: "uploadPhoto.done",
       path,
-      url: data.url,
+      key,
+      bucket: process.env.EXPO_PUBLIC_S3_BUCKET,
     }),
   );
-  return data.url;
+
+  return `${process.env.EXPO_PUBLIC_S3_ENDPOINT ?? ""}/${process.env.EXPO_PUBLIC_S3_BUCKET ?? ""}/${key}`;
 }
