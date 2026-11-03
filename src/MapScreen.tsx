@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Pressable,
   ScrollView,
@@ -10,7 +10,7 @@ import { WebView, type WebViewMessageEvent } from 'react-native-webview';
 import { buildMapHtml } from './mapHtml';
 import { pinColor, type MapPlace } from './mapMock';
 import { fonts, palette, spacing, useTheme } from './theme';
-import { usePlaces } from './usePlaces';
+import { usePlaces, DEFAULT_BBOX, type Bbox } from './usePlaces';
 
 // Aba Mapa (docs/16): mapa real OSM/CARTO via WebView + Leaflet,
 // full-bleed (sem margem) entre o header e a navbar. O HTML e os pins
@@ -18,7 +18,26 @@ import { usePlaces } from './usePlaces';
 // chega aqui em `onMessage`. O bottom sheet "nessa área" flutua sobre o
 // mapa e é o caminho acessível (os pins do WebView não são lidos por
 // leitores de tela).
-type MapMessage = { type?: unknown; cnpj?: unknown };
+type MapMessage = { type?: unknown; cnpj?: unknown; bbox?: unknown };
+
+// Acompanha o mapa: o WebView emite `bounds` a cada `moveend`; a bbox
+// só vira requisição depois do usuário parar de arrastar (debounce).
+const BBOX_DEBOUNCE_MS = 700;
+
+function isBbox(value: unknown): value is Bbox {
+  if (typeof value !== 'object' || value === null) return false;
+  const b = value as Record<string, unknown>;
+  return (
+    typeof b.minLng === 'number' &&
+    Number.isFinite(b.minLng) &&
+    typeof b.minLat === 'number' &&
+    Number.isFinite(b.minLat) &&
+    typeof b.maxLng === 'number' &&
+    Number.isFinite(b.maxLng) &&
+    typeof b.maxLat === 'number' &&
+    Number.isFinite(b.maxLat)
+  );
+}
 
 function isExternal(url: string): boolean {
   return /^https?:\/\//i.test(url);
@@ -30,23 +49,37 @@ export function MapScreen({
   onOpenRestaurant: (cnpj: string) => void;
 }) {
   const t = useTheme();
-  const { pins, status, refresh } = usePlaces();
-  const places = useMemo<MapPlace[]>(
-    () =>
-      pins.map((pin) => ({
-        cnpj: pin.id,
-        nome: pin.nome,
-        nota: pin.nota,
-        bairro: pin.bairro ?? '',
-        distanciaKm: 0,
-        x: 0,
-        y: 0,
-        lat: pin.lat,
-        lng: pin.lng,
-        cor: pin.nota == null ? palette.berinjela : pinColor(pin.nota),
-      })),
-    [pins],
-  );
+  const [bbox, setBbox] = useState<Bbox>(DEFAULT_BBOX);
+  const [pendingBbox, setPendingBbox] = useState<Bbox | null>(null);
+  const { pins, status, refresh } = usePlaces(bbox);
+
+  // Um drag dispara muitos `bounds`; só o último (após a pausa) vale.
+  useEffect(() => {
+    if (pendingBbox === null) return;
+    const id = setTimeout(() => setBbox(pendingBbox), BBOX_DEBOUNCE_MS);
+    return () => clearTimeout(id);
+  }, [pendingBbox]);
+
+  const places = useMemo<MapPlace[]>(() => {
+    const toPlace = (pin: (typeof pins)[number]): MapPlace => ({
+      cnpj: pin.id,
+      nome: pin.nome,
+      nota: pin.nota,
+      bairro: pin.bairro ?? '',
+      distanciaKm: 0,
+      x: 0,
+      y: 0,
+      lat: pin.lat,
+      lng: pin.lng,
+      cor: pin.nota == null ? palette.berinjela : pinColor(pin.nota),
+    });
+    // Rail social-first: quem tem nota (avaliação) vem antes da
+    // descoberta (pins neutros sem número).
+    return [
+      ...pins.filter((p) => p.nota != null).map(toPlace),
+      ...pins.filter((p) => p.nota == null).map(toPlace),
+    ];
+  }, [pins]);
   const html = useMemo(
     () =>
       buildMapHtml({
@@ -63,6 +96,8 @@ export function MapScreen({
         const data = JSON.parse(event.nativeEvent.data) as MapMessage;
         if (data.type === 'open-restaurant' && typeof data.cnpj === 'string') {
           onOpenRestaurant(data.cnpj);
+        } else if (data.type === 'bounds' && isBbox(data.bbox)) {
+          setPendingBbox(data.bbox);
         }
       } catch {
         // Mensagem de terceiros/HTML inválido: não derruba o mapa.

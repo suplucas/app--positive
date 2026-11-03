@@ -34,7 +34,8 @@ export function usePlaces(bbox: Bbox = DEFAULT_BBOX) {
       setStatus("idle");
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
-      setPins([]);
+      // Mantém os pins anteriores: a última área carregada continua no
+      // mapa enquanto a nova tentativa falha (só o status muda).
       setStatus("error");
     }
   }, [minLng, minLat, maxLng, maxLat]);

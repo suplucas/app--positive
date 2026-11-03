@@ -135,4 +135,75 @@ describe('MapScreen (mapa OSM/Leaflet)', () => {
       shouldLoad({ url: 'https://www.openstreetmap.org/copyright' }),
     ).toBe(false);
   });
+
+  it('bounds do mapa refazem o GET com a bbox, após o debounce', async () => {
+    vi.useFakeTimers();
+    try {
+      const { r } = await render();
+      vi.mocked(getPlaces).mockClear();
+      const bbox = { minLng: 1, minLat: 2, maxLng: 3, maxLat: 4 };
+      receive(r, JSON.stringify({ type: 'bounds', bbox }));
+      expect(getPlaces).not.toHaveBeenCalled();
+      await act(async () => {
+        vi.advanceTimersByTime(699);
+      });
+      expect(getPlaces).not.toHaveBeenCalled();
+      await act(async () => {
+        vi.advanceTimersByTime(1);
+      });
+      expect(getPlaces).toHaveBeenCalledWith(bbox);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('ignora bounds com bbox inválida', async () => {
+    vi.useFakeTimers();
+    try {
+      const { r } = await render();
+      vi.mocked(getPlaces).mockClear();
+      receive(
+        r,
+        JSON.stringify({ type: 'bounds', bbox: { minLng: 1, minLat: 2 } }),
+      );
+      await act(async () => {
+        vi.advanceTimersByTime(1000);
+      });
+      expect(getPlaces).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('rail social-first: nota != null antes da descoberta', async () => {
+    vi.mocked(getPlaces).mockResolvedValue([
+      {
+        id: 'desc',
+        nome: 'Descoberta',
+        lat: -23.55,
+        lng: -46.63,
+        nota: null,
+        bairro: null,
+        source: 'overpass',
+      },
+      {
+        id: 'social',
+        nome: 'Social',
+        lat: -23.56,
+        lng: -46.64,
+        nota: 8,
+        bairro: 'Moema',
+        source: 'local',
+      },
+    ]);
+    const { r } = await render();
+    const ids = r.root
+      .findAll(
+        (n) =>
+          typeof n.props.testID === 'string' &&
+          n.props.testID.startsWith('mapa-card-'),
+      )
+      .map((n) => n.props.testID);
+    expect(ids).toEqual(['mapa-card-social', 'mapa-card-desc']);
+  });
 });
