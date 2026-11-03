@@ -113,6 +113,12 @@ function MainApp({
   const navAnim = useRef(new Animated.Value(0)).current;
   const lastScrollY = useRef(0);
 
+  // Garante que a navbar apareça imediatamente no carregamento inicial,
+  // sem depender do primeiro scroll para aplicar o valor do Animated.Value.
+  useEffect(() => {
+    navAnim.setValue(0);
+  }, []);
+
   const handleScroll = useCallback(
     (e: NativeSyntheticEvent<NativeScrollEvent>) => {
       const currentY = e.nativeEvent.contentOffset.y;

@@ -224,4 +224,34 @@ describe('RestaurantScreen (docs_05)', () => {
     expect(getRestaurant).toHaveBeenCalledWith('osm:node/1', undefined);
     expect(JSON.stringify(r.toJSON())).toContain('Café Novo');
   });
+
+  it('API falha: mostra "tentar de novo" E botão "voltar"', async () => {
+    vi.mocked(getRestaurant).mockRejectedValue(new Error('offline'));
+    vi.mocked(getRestaurantReviews).mockRejectedValue(new Error('offline'));
+    const onBack = vi.fn();
+    const r = render({ cnpj: cnpjExemplo, data: undefined, onBack });
+    await act(async () => {});
+    expect(byID(r, 'restaurante-retry')).toBeTruthy();
+    expect(byID(r, 'restaurante-voltar')).toBeTruthy();
+    act(() => byID(r, 'restaurante-voltar').props.onPress());
+    expect(onBack).toHaveBeenCalled();
+  });
+
+  it('id osm: API falha sem osmPlace: mostra erro + voltar', async () => {
+    vi.mocked(getRestaurant).mockRejectedValue(new Error('offline'));
+    vi.mocked(getRestaurantReviews).mockRejectedValue(new Error('offline'));
+    const onBack = vi.fn();
+    const r = render({
+      cnpj: 'osm:node/1',
+      data: undefined,
+      onBack,
+    });
+    await act(async () => {});
+    expect(JSON.stringify(r.toJSON())).toContain(
+      'Não encontrei os dados desse lugar no OpenStreetMap.',
+    );
+    expect(byID(r, 'restaurante-voltar')).toBeTruthy();
+    act(() => byID(r, 'restaurante-voltar').props.onPress());
+    expect(onBack).toHaveBeenCalled();
+  });
 });

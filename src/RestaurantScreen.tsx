@@ -67,7 +67,7 @@ export function RestaurantScreen({
   }
 
   // Sem dados da API e sem fallback OSM: para `osm:` avisa que o lugar não
-  // foi encontrado; para os demais, oferece retry.
+  // foi encontrado; para os demais, oferece retry e um botão de voltar.
   if (!injected && !osmPlace && (remote.status === 'error' || !remote.data)) {
     if (isOsm) {
       return (
@@ -75,6 +75,18 @@ export function RestaurantScreen({
           <Text style={[s.message, { color: t.ink }]}>
             Não encontrei os dados desse lugar no OpenStreetMap.
           </Text>
+          <View style={s.actions}>
+            <Pressable
+              testID="restaurante-voltar"
+              onPress={onBack}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel="voltar"
+              style={[s.retry, { backgroundColor: palette.lambeLambe }]}
+            >
+              <Text style={s.retryText}>voltar</Text>
+            </Pressable>
+          </View>
         </View>
       );
     }
@@ -83,15 +95,28 @@ export function RestaurantScreen({
         <Text style={[s.message, { color: t.ink }]}>
           Não consegui carregar o restaurante.
         </Text>
-        <Pressable
-          testID="restaurante-retry"
-          onPress={() => void remote.refresh()}
-          hitSlop={8}
-          accessibilityRole="button"
-          style={[s.retry, { backgroundColor: palette.lambeLambe }]}
-        >
-          <Text style={s.retryText}>tentar de novo</Text>
-        </Pressable>
+        <View style={s.actions}>
+          <Pressable
+            testID="restaurante-voltar"
+            onPress={onBack}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel="voltar"
+            style={[s.retry, { backgroundColor: palette.lambeLambe }]}
+          >
+            <Text style={s.retryText}>voltar</Text>
+          </Pressable>
+          <Pressable
+            testID="restaurante-retry"
+            onPress={() => void remote.refresh()}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel="tentar carregar de novo"
+            style={[s.retry, { backgroundColor: palette.lambeLambe }]}
+          >
+            <Text style={s.retryText}>tentar de novo</Text>
+          </Pressable>
+        </View>
       </View>
     );
   }
@@ -157,6 +182,11 @@ const s = StyleSheet.create({
     borderRadius: 14,
     paddingHorizontal: spacing.padrao,
     paddingVertical: 10,
+  },
+  actions: {
+    flexDirection: 'row',
+    gap: spacing.interno,
+    marginTop: spacing.interno,
   },
   retryText: { color: palette.papel, fontSize: 13, fontWeight: '600' },
 });
