@@ -8,15 +8,6 @@ import {
   uploadReviewPhoto,
 } from "./api";
 
-vi.mock("@aws-sdk/client-s3", () => ({
-  S3Client: vi.fn(() => ({
-    send: vi.fn().mockResolvedValue({}),
-  })),
-  PutObjectCommand: vi.fn((input) => input),
-}));
-
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
-
 const okBody = {
   page: 1,
   limit: 20,
@@ -289,25 +280,32 @@ describe("deleteReview", () => {
 });
 
 describe("uploadReviewPhoto", () => {
-  it("faz upload direto para o S3 via SDK da AWS", async () => {
-    const fetchMock = vi
-      .fn()
-      .mockResolvedValue(new Response(new Blob(["fake"]), { status: 200 }));
+  it("faz POST /uploads/review-photo com FormData contendo file", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ url: "http://api.test/uploads/foto.jpg" }),
+    });
     vi.stubGlobal("fetch", fetchMock);
-
-    const sendMock = vi.fn().mockResolvedValue({});
-    vi.mocked(S3Client).mockImplementation(() => ({ send: sendMock }));
 
     await uploadReviewPhoto("user_1", "file:///foto.jpg", "http://api.test");
 
-    // fetch lê o arquivo local como blob
-    expect(fetchMock).toHaveBeenCalledWith("file:///foto.jpg");
-    // S3Client.send é chamado com PutObjectCommand
-    expect(sendMock).toHaveBeenCalledTimes(1);
-    const cmd = sendMock.mock.calls[0][0];
-    expect(cmd).toBeInstanceOf(PutObjectCommand);
-    expect(cmd.input.Bucket).toBeDefined();
-    expect(cmd.input.Key).toContain("user_1");
-    expect(cmd.input.ContentType).toBe("image/jpeg");
+    expect(fetchMock).toHaveBeenCalledWith(
+      "http://api.test/uploads/review-photo",
+      expect.objectContaining({
+        method: "POST",
+        headers: expect.objectContaining({
+          "x-user-id": "user_1",
+        }),
+      }),
+    );
+
+    const body = fetchMock.mock.calls[0][1].body;
+    // FormData expõe append/get. No React Native, body é um FormData com
+    // { uri, name, type }; no Node (teste) o get("file") não consegue ler
+    // esse objeto, mas o importante é que o body seja um FormData (não
+    // string JSON serializada).
+    expect(typeof body.append).toBe("function");
+    expect(typeof body.get).toBe("function");
+    expect(typeof body).not.toBe("string");
   });
 });
