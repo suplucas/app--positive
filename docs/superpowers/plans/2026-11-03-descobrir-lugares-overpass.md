@@ -730,9 +730,11 @@ git commit -m "feat: página do restaurante abre POIs osm: persistidos"
       - nominatim_data:/var/lib/postgresql/16/main
       - nominatim_flatnode:/nominatim/flatnode
     shm_size: 1gb
+    networks:
+      - app-network
 ```
 
-adicionar `nominatim_data:` e `nominatim_flatnode:` em `volumes:`. Documentar no `.env.example`: `OSM_BASE_URL=http://nominatim:8080` e as duas `NOMINATIM_*`.
+adicionar `nominatim_data:` e `nominatim_flatnode:` em `volumes:`. **O serviço precisa de `networks: [app-network]`** para o container `api` resolver `http://nominatim:8080`. Documentar no `.env.example`: `OSM_BASE_URL=http://nominatim:8080` e as duas `NOMINATIM_*`.
 
 - [ ] **Step 2: Validar o compose**
 
