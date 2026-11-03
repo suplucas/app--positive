@@ -6,6 +6,23 @@ import { getPlaces } from './api/place';
 
 vi.mock('./api/place.js', () => ({ getPlaces: vi.fn() }));
 
+// WebView é nativo: stub com ref para capturar os `injectJavaScript`
+// (setPins/fitToBounds) e conferir o comportamento sem reload.
+const injected = vi.hoisted(() => [] as string[]);
+
+vi.mock('react-native-webview', async () => {
+  const React = await import('react');
+  const WebView = React.forwardRef(
+    (props: Record<string, unknown>, ref: unknown) => {
+      React.useImperativeHandle(ref as never, () => ({
+        injectJavaScript: (js: string) => injected.push(js),
+      }));
+      return React.createElement('WebView', props);
+    },
+  );
+  return { WebView };
+});
+
 const pins = [
   {
     id: '1',
@@ -55,6 +72,10 @@ function receive(r: ReactTestRenderer, data: string) {
   });
 }
 
+const setPinsCalls = () => injected.filter((js) => js.includes('window.setPins'));
+const fitCalls = () => injected.filter((js) => js.includes('window.fitToBounds'));
+const lastSetPins = () => setPinsCalls().at(-1) ?? '';
+
 function allText(r: ReactTestRenderer): string {
   return r.root
     .findAll((n) => String(n.type) === 'Text')
@@ -67,6 +88,7 @@ function allText(r: ReactTestRenderer): string {
 }
 
 beforeEach(() => {
+  injected.length = 0;
   vi.mocked(getPlaces).mockReset();
   vi.mocked(getPlaces).mockResolvedValue(pins);
 });
@@ -86,9 +108,66 @@ describe('MapScreen (mapa OSM/Leaflet)', () => {
     });
   });
 
-  it('HTML recebe os pins da API', async () => {
+  it('injeta os pins da API no mapa, sem embutir no HTML', async () => {
     const { r } = await render();
-    for (const pin of pins) expect(html(r)).toContain(pin.id);
+    for (const pin of pins) expect(lastSetPins()).toContain(pin.id);
+    for (const pin of pins) expect(html(r)).not.toContain(pin.nome);
+  });
+
+  it('source estável: nova resposta de /places não recarrega o WebView', async () => {
+    vi.useFakeTimers();
+    try {
+      const { r } = await render();
+      const before = html(r);
+      vi.mocked(getPlaces).mockResolvedValue([
+        {
+          id: 'novo',
+          nome: 'Novo',
+          lat: -23.55,
+          lng: -46.63,
+          nota: 8,
+          bairro: 'Centro',
+          source: 'local',
+        },
+      ]);
+      const bbox = {
+        minLng: -46.7,
+        minLat: -23.6,
+        maxLng: -46.6,
+        maxLat: -23.5,
+      };
+      receive(r, JSON.stringify({ type: 'bounds', bbox }));
+      await act(async () => {
+        vi.advanceTimersByTime(700);
+      });
+      await act(async () => {});
+      expect(html(r)).toBe(before);
+      expect(lastSetPins()).toContain('novo');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('faz fitBounds só uma vez (primeira lista não-vazia)', async () => {
+    vi.useFakeTimers();
+    try {
+      const { r } = await render();
+      expect(fitCalls()).toHaveLength(1);
+      const bbox = {
+        minLng: -46.8,
+        minLat: -23.7,
+        maxLng: -46.5,
+        maxLat: -23.4,
+      };
+      receive(r, JSON.stringify({ type: 'bounds', bbox }));
+      await act(async () => {
+        vi.advanceTimersByTime(700);
+      });
+      await act(async () => {});
+      expect(fitCalls()).toHaveLength(1);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('ponte: pin tocado abre a página do restaurante', async () => {
@@ -141,7 +220,12 @@ describe('MapScreen (mapa OSM/Leaflet)', () => {
     try {
       const { r } = await render();
       vi.mocked(getPlaces).mockClear();
-      const bbox = { minLng: 1, minLat: 2, maxLng: 3, maxLat: 4 };
+      const bbox = {
+        minLng: -46.7,
+        minLat: -23.6,
+        maxLng: -46.6,
+        maxLat: -23.5,
+      };
       receive(r, JSON.stringify({ type: 'bounds', bbox }));
       expect(getPlaces).not.toHaveBeenCalled();
       await act(async () => {
@@ -152,6 +236,28 @@ describe('MapScreen (mapa OSM/Leaflet)', () => {
         vi.advanceTimersByTime(1);
       });
       expect(getPlaces).toHaveBeenCalledWith(bbox);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('ignora bounds largos demais (span > 0.25°) sem 400', async () => {
+    vi.useFakeTimers();
+    try {
+      const { r } = await render();
+      vi.mocked(getPlaces).mockClear();
+      // ~0.3° em ambos os eixos: acima do default da API.
+      const bbox = {
+        minLng: -46.8,
+        minLat: -23.7,
+        maxLng: -46.5,
+        maxLat: -23.4,
+      };
+      receive(r, JSON.stringify({ type: 'bounds', bbox }));
+      await act(async () => {
+        vi.advanceTimersByTime(1000);
+      });
+      expect(getPlaces).not.toHaveBeenCalled();
     } finally {
       vi.useRealTimers();
     }

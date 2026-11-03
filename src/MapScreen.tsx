@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ComponentRef,
+} from 'react';
 import {
   Pressable,
   ScrollView,
@@ -7,7 +14,7 @@ import {
   View,
 } from 'react-native';
 import { WebView, type WebViewMessageEvent } from 'react-native-webview';
-import { buildMapHtml } from './mapHtml';
+import { buildMapHtml, buildPinData, jsonForScript } from './mapHtml';
 import { pinColor, type MapPlace } from './mapMock';
 import { fonts, palette, spacing, useTheme } from './theme';
 import { usePlaces, DEFAULT_BBOX, type Bbox } from './usePlaces';
@@ -23,6 +30,12 @@ type MapMessage = { type?: unknown; cnpj?: unknown; bbox?: unknown };
 // Acompanha o mapa: o WebView emite `bounds` a cada `moveend`; a bbox
 // só vira requisição depois do usuário parar de arrastar (debounce).
 const BBOX_DEBOUNCE_MS = 700;
+
+// O GET /places rejeita bbox com span acima do default da API (0.25°).
+// Acima disso, ignoramos o novo enquadramento e mantemos os pins atuais
+// (degradação suave em vez de um 400 silencioso). Zooms menores que o
+// limite ainda se comportam normalmente.
+const MAX_BBOX_SPAN_DEG = 0.25;
 
 function isBbox(value: unknown): value is Bbox {
   if (typeof value !== 'object' || value === null) return false;
@@ -43,6 +56,14 @@ function isExternal(url: string): boolean {
   return /^https?:\/\//i.test(url);
 }
 
+// Guarda contra bbox larga demais: a API responde 400 para span > limite.
+function isTooLarge(b: Bbox): boolean {
+  return (
+    b.maxLng - b.minLng > MAX_BBOX_SPAN_DEG ||
+    b.maxLat - b.minLat > MAX_BBOX_SPAN_DEG
+  );
+}
+
 export function MapScreen({
   onOpenRestaurant,
 }: {
@@ -52,6 +73,14 @@ export function MapScreen({
   const [bbox, setBbox] = useState<Bbox>(DEFAULT_BBOX);
   const [pendingBbox, setPendingBbox] = useState<Bbox | null>(null);
   const { pins, status, refresh } = usePlaces(bbox);
+
+  // A fonte do WebView é estável (não embute os lugares): os pins são
+  // injetados via `window.setPins`, então uma nova resposta de /places
+  // não recarrega o documento nem reseta o viewport do usuário.
+  const webRef = useRef<ComponentRef<typeof WebView>>(null);
+  // Fit só na carga: o primeiro resultado não-vazio enquadra o mapa;
+  // depois disso o enquadramento é do usuário.
+  const hasFitRef = useRef(false);
 
   // Um drag dispara muitos `bounds`; só o último (após a pausa) vale.
   useEffect(() => {
@@ -80,15 +109,40 @@ export function MapScreen({
       ...pins.filter((p) => p.nota == null).map(toPlace),
     ];
   }, [pins]);
+
+  const tileKey = process.env.EXPO_PUBLIC_MAP_TILES_KEY;
   const html = useMemo(
-    () =>
-      buildMapHtml({
-        places,
-        mode: t.mode,
-        tileKey: process.env.EXPO_PUBLIC_MAP_TILES_KEY,
-      }),
-    [places, t.mode],
+    () => buildMapHtml({ mode: t.mode, tileKey }),
+    [t.mode, tileKey],
   );
+
+  const applyPins = useCallback(
+    (fit: boolean) => {
+      const list = buildPinData(places);
+      const wv = webRef.current;
+      if (!wv) return;
+      wv.injectJavaScript(
+        `window.setPins && window.setPins(${jsonForScript(list)}); true;`,
+      );
+      if (fit && !hasFitRef.current && list.length > 0) {
+        hasFitRef.current = true;
+        wv.injectJavaScript(
+          `window.fitToBounds && window.fitToBounds(${jsonForScript(list)}); true;`,
+        );
+      }
+    },
+    [places],
+  );
+
+  // Novo documento (tema/tiles): o mapa recarrega, então o fit inicial
+  // pode acontecer de novo — mas nunca a cada atualização de `places`.
+  useEffect(() => {
+    hasFitRef.current = false;
+  }, [html]);
+
+  useEffect(() => {
+    applyPins(true);
+  }, [applyPins, html]);
 
   const onMessage = useCallback(
     (event: WebViewMessageEvent) => {
@@ -97,6 +151,9 @@ export function MapScreen({
         if (data.type === 'open-restaurant' && typeof data.cnpj === 'string') {
           onOpenRestaurant(data.cnpj);
         } else if (data.type === 'bounds' && isBbox(data.bbox)) {
+          // Zoom-out grande: mantém a bbox atual (e os pins) em vez de
+          // disparar uma requisição que a API rejeitaria.
+          if (isTooLarge(data.bbox)) return;
           setPendingBbox(data.bbox);
         }
       } catch {
@@ -116,6 +173,7 @@ export function MapScreen({
   return (
     <View testID="mapa-tela" style={[s.root, { backgroundColor: t.bg }]}>
       <WebView
+        ref={webRef}
         testID="mapa-webview"
         style={s.map}
         source={{ html }}
@@ -127,6 +185,7 @@ export function MapScreen({
         overScrollMode="never"
         setSupportMultipleWindows={false}
         onMessage={onMessage}
+        onLoadEnd={() => applyPins(true)}
         onShouldStartLoadWithRequest={shouldLoad}
         accessibilityLabel="mapa de restaurantes por perto"
       />
