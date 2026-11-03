@@ -741,12 +741,12 @@ Expected: exit 0 (sem erro de sintaxe). *(Se o daemon docker estiver parado, `do
 
 - [ ] **Step 3: Documentar no README** a 1ª subida (`docker compose up -d nominatim`, `docker compose logs -f nominatim`, import demora minutos).
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 4: Commit** (o `docker-compose.yml` da raiz é infra local não versionada — não há repo na raiz; então só o `.env.example` da API é commitado)
 
 ```bash
-cd /home/king/Documents/personal/gastro_app
-git add docker-compose.yml api--positive--feed/.env.example
-git commit -m "chore: Nominatim self-host no compose local (extract Sudeste/SP)"
+cd /home/king/Documents/personal/gastro_app/api--positive--feed
+git add .env.example
+git commit -m "chore: envs do Nominatim local (compose raiz, não versionado)"
 ```
 
 ---
