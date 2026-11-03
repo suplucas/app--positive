@@ -7,6 +7,7 @@ import {
   View,
 } from 'react-native';
 import { fonts, palette, spacing, useTheme } from './theme';
+import { friendlyAuthError } from './authError';
 
 export function RegisterScreen({
   onSubmit,
@@ -38,8 +39,8 @@ export function RegisterScreen({
         password,
         inviteCode: inviteCode.trim() || undefined,
       });
-    } catch {
-      setError('Não consegui criar a conta. Confira os dados e o convite.');
+    } catch (e) {
+      setError(friendlyAuthError(e, 'register'));
       setBusy(false);
     }
   };

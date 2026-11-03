@@ -7,6 +7,7 @@ import {
   View,
 } from 'react-native';
 import { fonts, palette, spacing, useTheme } from './theme';
+import { friendlyAuthError } from './authError';
 
 export function LoginScreen({
   onSubmit,
@@ -26,8 +27,8 @@ export function LoginScreen({
     setError(null);
     try {
       await onSubmit(email.trim(), password);
-    } catch {
-      setError('Não consegui entrar. Confira email e senha.');
+    } catch (e) {
+      setError(friendlyAuthError(e, 'login'));
       setBusy(false);
     }
   };
