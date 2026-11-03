@@ -281,15 +281,22 @@ describe("deleteReview", () => {
 
 describe("uploadReviewPhoto", () => {
   it("faz POST /uploads/review-photo com FormData contendo file", async () => {
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({ url: "http://api.test/uploads/foto.jpg" }),
-    });
+    // Primeira chamada: ler o arquivo local como blob
+    // Segunda chamada: enviar o FormData para a API
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(new Response(new Blob(["fake"]), { status: 200 }))
+      .mockResolvedValue({
+        ok: true,
+        json: async () => ({ url: "http://api.test/uploads/foto.jpg" }),
+      });
     vi.stubGlobal("fetch", fetchMock);
 
     await uploadReviewPhoto("user_1", "file:///foto.jpg", "http://api.test");
 
-    expect(fetchMock).toHaveBeenCalledWith(
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(fetchMock.mock.calls[0][0]).toBe("file:///foto.jpg");
+    expect(fetchMock).toHaveBeenLastCalledWith(
       "http://api.test/uploads/review-photo",
       expect.objectContaining({
         method: "POST",
@@ -299,11 +306,7 @@ describe("uploadReviewPhoto", () => {
       }),
     );
 
-    const body = fetchMock.mock.calls[0][1].body;
-    // FormData expõe append/get. No React Native, body é um FormData com
-    // { uri, name, type }; no Node (teste) o get("file") não consegue ler
-    // esse objeto, mas o importante é que o body seja um FormData (não
-    // string JSON serializada).
+    const body = fetchMock.mock.calls[1][1].body;
     expect(typeof body.append).toBe("function");
     expect(typeof body.get).toBe("function");
     expect(typeof body).not.toBe("string");
