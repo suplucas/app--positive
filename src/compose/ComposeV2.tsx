@@ -36,6 +36,10 @@ export const FLAIRS = [
   'achado',
 ];
 const MAX_FLAIRS = 2;
+// Teto de fotos por avaliação (docs/15). Nesta fase a API persiste 1
+// foto por review; o compose já exibe o visual da prateleira para
+// futuramente subir várias fotos.
+export const MAX_PHOTOS = 1;
 
 // Slug estável p/ testID: 'boa pra ir só' → 'flair-boa-pra-ir-so'.
 export function flairSlug(label: string): string {
@@ -182,6 +186,9 @@ export function ComposeV2({
   };
 
   const photoSource = photo ?? photoUrl;
+  // `photos` deriva de `photo`/`photoUrl` (1 foto por vez nesta fase);
+  // o visual de prateleira já está pronto para várias fotos.
+  const photos = photoSource ? [{ uri: photoSource }] : [];
 
   const onPickPhoto = async () => {
     setError(null);
@@ -208,7 +215,10 @@ export function ComposeV2({
     }
   };
 
-  const removePhoto = () => {
+  const addPhoto = onPickPhoto;
+
+  // índice ignorado nesta fase (1 foto por vez); usado quando houver várias.
+  const removePhoto = (_index?: number) => {
     setPhoto(null);
     setPhotoUrl(null);
     setError(null);
@@ -406,39 +416,69 @@ export function ComposeV2({
         })}
       </View>
 
-      <SectionTitle>foto (opcional)</SectionTitle>
-      {photoSource ? (
-        <View style={s.photoRow}>
-          <Image source={{ uri: photoSource }} style={s.photoPreview} />
-          <View style={s.photoControls}>
-            {uploading ? (
-              <Text style={s.photoSending}>enviando foto…</Text>
-            ) : (
-              <Pressable
-                testID="remover-foto"
-                onPress={removePhoto}
-                hitSlop={6}
-                accessibilityRole="button"
-                accessibilityLabel="remover foto"
-                style={s.photoRemove}
-              >
-                <Text style={s.photoRemoveText}>remover</Text>
-              </Pressable>
-            )}
-          </View>
-        </View>
-      ) : (
+      <SectionTitle>
+        {photos.length > 0 ? `fotos · ${photos.length}/${MAX_PHOTOS}` : 'foto (opcional)'}
+      </SectionTitle>
+      {photos.length === 0 ? (
         <Pressable
-          testID="adicionar-foto"
-          onPress={onPickPhoto}
+          testID="foto-add"
+          onPress={addPhoto}
           disabled={uploading || !selected}
           hitSlop={6}
           accessibilityRole="button"
           accessibilityLabel="adicionar foto da galeria"
-          style={s.photoAdd}
+          style={[s.photoBox, { borderColor: t.line }]}
         >
-          <Text style={s.photoAddText}>adicionar foto</Text>
+          <Text style={s.cam}>📷</Text>
+          <Text style={[s.photoText, { color: t.sub }]}>adicionar foto</Text>
+          <Text style={[s.photoSub, { color: t.sub }]}>
+            da sua galeria · 1 foto · sem foto, vira um quote card
+          </Text>
         </Pressable>
+      ) : (
+        <>
+          <View style={s.shelf}>
+            {photos.map((src, i) => (
+              <View key={i} testID={`foto-thumb-${i}`} style={s.thumb}>
+                <Image
+                  testID={i === 0 ? 'foto-preview' : undefined}
+                  source={src}
+                  style={s.thumbImg}
+                  resizeMode="cover"
+                  accessibilityIgnoresInvertColors
+                />
+                <Pressable
+                  testID={`foto-tirar-${i}`}
+                  onPress={() => removePhoto(i)}
+                  style={s.thumbX}
+                  hitSlop={6}
+                  accessibilityRole="button"
+                  accessibilityLabel={`remover foto ${i + 1}`}
+                >
+                  <Text style={s.thumbXText}>×</Text>
+                </Pressable>
+              </View>
+            ))}
+            {photos.length < MAX_PHOTOS ? (
+              <Pressable
+                testID="foto-add"
+                onPress={addPhoto}
+                disabled={uploading || !selected}
+                style={[s.addTile, { borderColor: t.line }]}
+                accessibilityRole="button"
+                accessibilityLabel="adicionar outra foto"
+              >
+                <Text style={s.cam}>📷</Text>
+                <Text style={[s.photoSub, { color: t.sub }]}>
+                  {`foto ${photos.length + 1}`}
+                </Text>
+              </Pressable>
+            ) : null}
+          </View>
+          <Text style={[s.photoHint, { color: t.sub }]}>
+            foto · vai para a API · × remove
+          </Text>
+        </>
       )}
 
       <SectionTitle>preview</SectionTitle>
@@ -567,56 +607,67 @@ const s = StyleSheet.create({
     paddingVertical: 7,
   },
   flairText: { fontSize: 12, fontFamily: fonts.corpo500 },
-  photoRow: {
-    flexDirection: 'row',
+  photoBox: {
+    flexDirection: 'column',
     alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.interno,
+    paddingHorizontal: spacing.padrao,
+    paddingVertical: spacing.interno + 8,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    backgroundColor: palette.papel,
+  },
+  cam: { fontSize: 24, lineHeight: 1 },
+  photoText: { fontSize: 13, fontFamily: fonts.corpo500, fontWeight: '600' },
+  photoSub: { fontSize: 11.5, marginTop: 2, textAlign: 'center' },
+  shelf: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: spacing.interno,
     marginHorizontal: spacing.padrao,
     marginBottom: spacing.interno,
   },
-  photoPreview: {
-    width: 96,
-    height: 96,
+  thumb: {
+    position: 'relative',
+    width: 92,
+    height: 92,
     borderRadius: 12,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(36,26,34,0.10)',
   },
-  photoControls: {
-    gap: spacing.micro,
-  },
-  photoRemove: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: spacing.interno,
-    paddingVertical: 6,
-    borderRadius: 20,
+  thumbImg: { width: '100%', height: '100%' },
+  thumbX: {
+    position: 'absolute',
+    top: -6,
+    right: -6,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: palette.papel,
     borderWidth: 1.5,
     borderColor: palette.picles,
-  },
-  photoRemoveText: {
-    fontSize: 12,
-    fontFamily: fonts.corpo500,
-    color: palette.picles,
-    fontWeight: '600',
-  },
-  photoAdd: {
-    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+  },
+  thumbXText: { fontSize: 16, lineHeight: 18, color: palette.picles },
+  addTile: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
     gap: spacing.interno,
-    paddingHorizontal: spacing.padrao,
-    paddingVertical: spacing.interno + 4,
+    width: 92,
+    height: 92,
     borderRadius: 12,
     borderWidth: 1.5,
-    borderColor: palette.picles,
+    backgroundColor: palette.papel,
   },
-  photoAddText: {
-    fontSize: 13,
-    fontFamily: fonts.corpo500,
-    color: palette.picles,
-    fontWeight: '600',
-  },
-  photoSending: {
-    fontSize: 12,
-    color: palette.picles,
+  photoHint: {
+    fontSize: 11,
+    marginHorizontal: spacing.padrao,
+    marginTop: spacing.interno,
+    textAlign: 'center',
   },
   preview: {
     borderRadius: 16,
