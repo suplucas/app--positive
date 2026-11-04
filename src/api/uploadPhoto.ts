@@ -1,5 +1,7 @@
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
-
+// Upload da foto da avaliação direto no bucket S3.
+// Usa a API REST do S3 (PUT Object) via fetch nativo do React Native:
+// o @aws-sdk/client-s3 não resolve no Metro/Expo (depende de APIs Node
+// e de dependências transitivas que o Metro não empacota).
 export type S3PhotoConfig = {
   bucket: string;
   region: string;
@@ -24,10 +26,11 @@ const EXT_BY_MIME: Record<string, string> = {
   "image/webp": ".webp",
 };
 
-// Envia a imagem escolhida na galeria direto para o S3 (AWS SDK mantido
-// na tela de composição) e devolve a URL pública para gravar em
-// `photoUrl` do POST /reviews. O bucket precisa permitir PUT com o ACL
-// usado abaixo e expor `publicBaseUrl` (ex.: `${bucket}.s3.amazonaws.com`).
+// Envia a imagem escolhida na galeria direto para o S3 (PUT Object via
+// fetch, que funciona nativamente no React Native) e devolve a URL
+// pública para gravar em `photoUrl` do POST /reviews.
+// O bucket precisa permitir PUT e expor `publicBaseUrl` (ex.: CORS +
+// política de bucket com PutObject público, ou presigned URL via backend).
 export async function uploadPhoto(uri: string): Promise<string> {
   const cfg = s3PhotoConfig();
   if (!cfg.bucket || !cfg.publicBaseUrl) {
@@ -42,21 +45,19 @@ export async function uploadPhoto(uri: string): Promise<string> {
   const blob = await res.blob();
   const ext = EXT_BY_MIME[blob.type] ?? ".bin";
   const key = `reviews/${crypto.randomUUID()}${ext}`;
-  const client = new S3Client({
-    region: cfg.region,
-    credentials: {
-      accessKeyId: cfg.accessKeyId,
-      secretAccessKey: cfg.secretAccessKey,
+  const url = `${cfg.publicBaseUrl.replace(/\/$/, "")}/${key}`;
+
+  const putRes = await fetch(url, {
+    method: "PUT",
+    body: blob,
+    headers: {
+      "Content-Type": blob.type ?? "application/octet-stream",
     },
   });
-  await client.send(
-    new PutObjectCommand({
-      Bucket: cfg.bucket,
-      Key: key,
-      Body: blob,
-      ContentType: blob.type ?? "application/octet-stream",
-      ACL: "public-read",
-    }),
-  );
-  return `${cfg.publicBaseUrl.replace(/\/$/, "")}/${key}`;
+
+  if (!putRes.ok) {
+    throw new Error(`upload falhou (${putRes.status})`);
+  }
+
+  return url;
 }
