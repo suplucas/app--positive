@@ -46,6 +46,10 @@ const testStubs: Plugin = {
     // (testes injetam o resultado via a seam `onPickPhoto`).
     if (path.includes("/expo-image-picker/"))
       return `export const launchImageLibraryAsync = async () => ({ canceled: true, assets: [] });`;
+    // @aws-sdk/client-s3 não roda em Node de teste: stub leve (o upload
+    // nunca é chamado nos testes de ComposeV2).
+    if (path.includes("/@aws-sdk/client-s3/"))
+      return `export class S3Client {} export class PutObjectCommand { constructor(input) { this.input = input; } }`;
     // expo-secure-store não roda em Node: stub em memória.
     if (path.includes("/expo-secure-store/"))
       return `const store = new Map();

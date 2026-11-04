@@ -248,6 +248,7 @@ describe('ComposeV2 (editar avaliação própria)', () => {
     expect(payload).toEqual({
       rating: 4.5,
       comment: 'bom demais',
+      photoUrl: '/uploads/foto.jpg',
       flairs: ['achado'],
     });
     expect(onPosted).toHaveBeenCalled();

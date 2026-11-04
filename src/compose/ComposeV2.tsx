@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
+  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -7,8 +8,10 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { getAuthToken } from '../api/client';
 import { postReview, updateReview } from '../api/api';
 import type { ReviewEdit } from '../api/api';
+import { uploadPhoto } from '../api/uploadPhoto';
 import { importPlace, searchPlaces } from '../api/place';
 import type { PlaceHit } from '../api/types';
 import { NoteSlider } from '../feed/NoteSlider';
@@ -20,6 +23,7 @@ import {
   searchRestaurants,
   type RestaurantHit,
 } from '../common/format';
+import { pickPhoto } from './pickPhoto';
 import { fonts, palette, spacing, useTheme } from '../common/theme';
 
 // Flairs disponíveis (docs_04): até 2 por avaliação, o primeiro
@@ -84,6 +88,13 @@ export function ComposeV2({
   const [flairs, setFlairs] = useState<string[]>(() => editReview?.flairs ?? []);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Foto da galeria: `photo` é a URI local (preview imediato) e
+  // `photoUrl` a URL pública no S3 após o upload (enviada no body).
+  const [photo, setPhoto] = useState<string | null>(null);
+  const [photoUrl, setPhotoUrl] = useState<string | null>(() =>
+    editReview?.photoUrl ?? null,
+  );
+  const [uploading, setUploading] = useState(false);
 
   const [apiResults, setApiResults] = useState<PlaceHit[]>([]);
 
@@ -170,6 +181,39 @@ export function ComposeV2({
     });
   };
 
+  const photoSource = photo ?? photoUrl;
+
+  const onPickPhoto = async () => {
+    setError(null);
+    setUploading(true);
+    try {
+      const picked = await pickPhoto();
+      const uri =
+        picked && typeof picked === 'object' && 'uri' in picked
+          ? (picked as { uri: string }).uri
+          : null;
+      if (!uri) return;
+      setPhoto(uri);
+      const url = await uploadPhoto(uri);
+      setPhotoUrl(url);
+    } catch (e) {
+      setPhoto(null);
+      setError(
+        e instanceof Error
+          ? e.message
+          : 'não foi possível enviar a foto.',
+      );
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const removePhoto = () => {
+    setPhoto(null);
+    setPhotoUrl(null);
+    setError(null);
+  };
+
   const submit = async () => {
     if (!canSend || selected === null) return;
     setSending(true);
@@ -181,7 +225,8 @@ export function ComposeV2({
         const body: ReviewEdit = {
           rating: note / 2,
           comment,
-          flairs,
+          ...(photoUrl ? { photoUrl } : {}),
+          ...(flairs.length > 0 ? { flairs } : {}),
         };
         await updateReview(userId, editReview.id, body);
         onPosted();
@@ -192,6 +237,7 @@ export function ComposeV2({
         restaurantId: selected.cnpj,
         rating: note / 2,
         comment,
+        ...(photoUrl ? { photoUrl } : {}),
         ...(flairs.length > 0 ? { flairs } : {}),
       });
       onPosted();
@@ -360,6 +406,41 @@ export function ComposeV2({
         })}
       </View>
 
+      <SectionTitle>foto (opcional)</SectionTitle>
+      {photoSource ? (
+        <View style={s.photoRow}>
+          <Image source={{ uri: photoSource }} style={s.photoPreview} />
+          <View style={s.photoControls}>
+            {uploading ? (
+              <Text style={s.photoSending}>enviando foto…</Text>
+            ) : (
+              <Pressable
+                testID="remover-foto"
+                onPress={removePhoto}
+                hitSlop={6}
+                accessibilityRole="button"
+                accessibilityLabel="remover foto"
+                style={s.photoRemove}
+              >
+                <Text style={s.photoRemoveText}>remover</Text>
+              </Pressable>
+            )}
+          </View>
+        </View>
+      ) : (
+        <Pressable
+          testID="adicionar-foto"
+          onPress={onPickPhoto}
+          disabled={uploading || !selected}
+          hitSlop={6}
+          accessibilityRole="button"
+          accessibilityLabel="adicionar foto da galeria"
+          style={s.photoAdd}
+        >
+          <Text style={s.photoAddText}>adicionar foto</Text>
+        </Pressable>
+      )}
+
       <SectionTitle>preview</SectionTitle>
       <View
         testID="preview-v2"
@@ -486,6 +567,57 @@ const s = StyleSheet.create({
     paddingVertical: 7,
   },
   flairText: { fontSize: 12, fontFamily: fonts.corpo500 },
+  photoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.interno,
+    marginHorizontal: spacing.padrao,
+    marginBottom: spacing.interno,
+  },
+  photoPreview: {
+    width: 96,
+    height: 96,
+    borderRadius: 12,
+  },
+  photoControls: {
+    gap: spacing.micro,
+  },
+  photoRemove: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: spacing.interno,
+    paddingVertical: 6,
+    borderRadius: 20,
+    borderWidth: 1.5,
+    borderColor: palette.picles,
+  },
+  photoRemoveText: {
+    fontSize: 12,
+    fontFamily: fonts.corpo500,
+    color: palette.picles,
+    fontWeight: '600',
+  },
+  photoAdd: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.interno,
+    paddingHorizontal: spacing.padrao,
+    paddingVertical: spacing.interno + 4,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: palette.picles,
+  },
+  photoAddText: {
+    fontSize: 13,
+    fontFamily: fonts.corpo500,
+    color: palette.picles,
+    fontWeight: '600',
+  },
+  photoSending: {
+    fontSize: 12,
+    color: palette.picles,
+  },
   preview: {
     borderRadius: 16,
     marginHorizontal: spacing.padrao,
