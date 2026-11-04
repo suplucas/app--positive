@@ -1,4 +1,4 @@
-import { ApiError, apiBaseUrl, apiFetch, getAuthToken } from "./client";
+import { apiBaseUrl, apiFetch } from "./client";
 import type { FeedResponse, Review } from "../common/types";
 
 export async function getFeed(
@@ -97,93 +97,4 @@ export async function likeReview(
     userId,
     baseUrl,
   });
-}
-
-// Sobe a foto da review (multipart) e devolve a URL pública salva no
-// storage. Chamada antes do POST /reviews; a review guarda só a URL.
-export async function uploadReviewPhoto(
-  userId: string,
-  uri: string,
-  baseUrl?: string,
-): Promise<string> {
-  return uploadPhoto(userId, uri, "/uploads/review-photo", baseUrl);
-}
-
-// Sobe a foto de perfil (multipart) e devolve a URL salva no storage.
-export async function uploadAvatarPhoto(
-  userId: string,
-  uri: string,
-  baseUrl?: string,
-): Promise<string> {
-  return uploadPhoto(userId, uri, "/uploads/avatar", baseUrl);
-}
-
-async function uploadPhoto(
-  userId: string,
-  uri: string,
-  path: string,
-  baseUrl?: string,
-): Promise<string> {
-  const ext = uri.slice(uri.lastIndexOf(".")).toLowerCase();
-  const mime =
-    ext === ".heic" || ext === ".heif"
-      ? "image/heic"
-      : ext === ".png"
-        ? "image/png"
-        : "image/jpeg";
-  const name = `photo${ext}`;
-
-  // React Native não serializa {uri,name,type} em FormData de forma confiável;
-  // lê o arquivo como blob e anexa o blob diretamente.
-  const blobRes = await fetch(uri);
-  const blob = await blobRes.blob();
-
-  const form = new FormData();
-  form.append("file", blob, name);
-
-  console.log(
-    JSON.stringify({
-      event: "uploadPhoto.start",
-      path,
-      baseUrl: baseUrl ?? apiBaseUrl(),
-      uri,
-      uriType: typeof uri,
-      uriStartsWith: uri?.slice(0, 20),
-    }),
-  );
-
-  const bearer = getAuthToken();
-  const res = await fetch(`${baseUrl ?? apiBaseUrl()}${path}`, {
-    method: "POST",
-    headers: {
-      "x-user-id": userId,
-      ...(bearer ? { Authorization: `Bearer ${bearer}` } : {}),
-    },
-    body: form,
-  });
-
-  console.log(
-    JSON.stringify({
-      event: "uploadPhoto.response",
-      path,
-      status: res.status,
-      ok: res.ok,
-    }),
-  );
-
-  if (!res.ok) {
-    throw new ApiError(res.status, path);
-  }
-  const data = (await res.json()) as { url?: unknown };
-  if (typeof data?.url !== "string") {
-    throw new Error(`POST ${path}: invalid payload`);
-  }
-  console.log(
-    JSON.stringify({
-      event: "uploadPhoto.done",
-      path,
-      url: data.url,
-    }),
-  );
-  return data.url;
 }

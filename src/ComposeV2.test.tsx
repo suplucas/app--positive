@@ -2,18 +2,16 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { create, ReactTestRenderer, act } from 'react-test-renderer';
 import { createElement } from 'react';
 import { ComposeV2 } from './compose/ComposeV2';
-import { postReview, updateReview, uploadReviewPhoto } from './api/api';
+import { postReview, updateReview } from './api/api';
 import { restaurantNames } from './restaurant/restaurantNames';
 import type { Review } from './common/types';
 
 vi.mock('./api/api', () => ({
   postReview: vi.fn(),
-  uploadReviewPhoto: vi.fn(),
   updateReview: vi.fn(),
 }));
 
 const postReviewMock = vi.mocked(postReview);
-const uploadPhotoMock = vi.mocked(uploadReviewPhoto);
 const updateReviewMock = vi.mocked(updateReview);
 
 // Usa um restaurante real do mapa do seed.
@@ -89,123 +87,11 @@ describe('ComposeV2 (trocar via busca, docs/16)', () => {
   });
 });
 
-describe('ComposeV2 (foto, docs/15)', () => {
-  it('adiciona 1 foto: miniatura e preview', async () => {
-    const r = render({
-      onPickPhoto: async () => ({ uri: 'file://f0.jpg' }),
-    });
-    await act(async () => {
-      byID(r, 'foto-add').props.onPress();
-    });
-    expect(r.root.findAllByProps({ testID: 'foto-thumb-0' })).toHaveLength(1);
-    expect(byID(r, 'foto-preview').props.source).toEqual({
-      uri: 'file://f0.jpg',
-    });
-  });
-
-  it('teto de 1: o botão de adicionar some depois da foto', async () => {
-    const r = render({
-      onPickPhoto: async () => ({ uri: 'file://g0.jpg' }),
-    });
-    await act(async () => {
-      byID(r, 'foto-add').props.onPress();
-    });
-    expect(r.root.findAllByProps({ testID: 'foto-add' })).toHaveLength(0);
-  });
-
-  it('remover a foto volta ao estado sem preview', async () => {
-    const r = render({
-      onPickPhoto: async () => ({ uri: 'file://f0.jpg' }),
-    });
-    await act(async () => {
-      byID(r, 'foto-add').props.onPress();
-    });
-    act(() => {
-      byID(r, 'foto-tirar-0').props.onPress();
-    });
-    expect(r.root.findAllByProps({ testID: 'foto-preview' })).toHaveLength(0);
-    expect(r.root.findAllByProps({ testID: 'foto-add' })).toHaveLength(1);
-  });
-
-  it('cancelar o picker não altera a fila', async () => {
-    const r = render({ onPickPhoto: async () => null });
-    await act(async () => {
-      byID(r, 'foto-add').props.onPress();
-    });
-    expect(r.root.findAllByProps({ testID: 'foto-thumb-0' })).toHaveLength(0);
-  });
-});
-
-describe('ComposeV2 (foto real, docs/13)', () => {
-  it('picker escolhido: preview usa a URI real do device', async () => {
-    const r = render({
-      onPickPhoto: async () => ({ uri: 'file://demo/foto.jpg' }),
-    });
-    await act(async () => {
-      byID(r, 'foto-add').props.onPress();
-    });
-    expect(byID(r, 'foto-preview').props.source).toEqual({
-      uri: 'file://demo/foto.jpg',
-    });
-  });
-
-  it('picker cancelado: segue sem foto (estado intacto)', async () => {
-    const r = render({ onPickPhoto: async () => null });
-    await act(async () => {
-      byID(r, 'foto-add').props.onPress();
-    });
-    expect(r.root.findAllByProps({ testID: 'foto-preview' })).toHaveLength(0);
-  });
-
-  it('estado com foto deixa claro que ela vai para a API', async () => {
-    const r = render({
-      onPickPhoto: async () => ({ uri: 'file://demo/foto.jpg' }),
-    });
-    await act(async () => {
-      byID(r, 'foto-add').props.onPress();
-    });
-    expect(JSON.stringify(r.toJSON())).toContain('vai para a API');
-  });
-});
-
-// Texts de um subtree (instâncias não expõem toJSON nesta versão do
-// react-test-renderer; só a raiz).
-function subtreeTexts(r: ReactTestRenderer, testID: string): string {
-  const inst = r.root.findByProps({ testID });
-  return inst
-    .findAll((n) => String(n.type) === 'Text')
-    .map((n) =>
-      Array.isArray(n.props.children)
-        ? n.props.children.join('')
-        : String(n.props.children ?? ''),
-    )
-    .join(' ');
-}
-
-function selectedFlairs(r: ReactTestRenderer): string[] {
-  return r.root
-    .findAll(
-      (n) =>
-        typeof n.props.testID === 'string' &&
-        n.props.testID.startsWith('flair-') &&
-        n.props.accessibilityState?.selected === true,
-    )
-    .map((n) => n.props.testID!);
-}
-
-beforeEach(() => {
-  postReviewMock.mockReset();
-  uploadPhotoMock.mockReset();
-  updateReviewMock.mockReset();
-  postReviewMock.mockResolvedValue(reviewCreated);
-});
-
 describe('ComposeV2', () => {
   it('renderiza as seções do docs_04', () => {
     const text = JSON.stringify(render().toJSON());
     expect(text).toContain('onde você comeu');
     expect(text).toContain('nota');
-    expect(text).toContain('foto (opcional)');
     expect(text).toContain('o que achou?');
     expect(text).toContain('flair (até 2)');
     expect(text).toContain('preview');
@@ -231,31 +117,6 @@ describe('ComposeV2', () => {
       comment: null,
     });
     expect(onPosted).toHaveBeenCalled();
-  });
-
-  it('foto + flairs: sobe a foto e envia photoUrl/flairs', async () => {
-    uploadPhotoMock.mockResolvedValue('/uploads/foto.jpg');
-    const r = render({
-      onPickPhoto: async () => ({ uri: 'file://demo/foto.jpg' }),
-    });
-    pick(r);
-    await act(async () => {
-      byID(r, 'foto-add').props.onPress();
-    });
-    act(() => {
-      byID(r, 'flair-volto-sim').props.onPress();
-    });
-    await act(async () => {
-      byID(r, 'publicar-v2').props.onPress();
-    });
-    expect(uploadPhotoMock).toHaveBeenCalledWith('user_1', 'file://demo/foto.jpg');
-    expect(postReviewMock).toHaveBeenCalledWith(
-      'user_1',
-      expect.objectContaining({
-        photoUrl: '/uploads/foto.jpg',
-        flairs: ['volto sim'],
-      }),
-    );
   });
 
   it('nota no slider vira rating float na API (9.5 → 4.75)', async () => {
@@ -311,11 +172,8 @@ describe('ComposeV2', () => {
     const onPosted = vi.fn();
     const r = render({
       onPosted,
-      onPickPhoto: async () => ({ uri: 'file://demo/foto.jpg' }),
     });
     pick(r);
-    await act(async () => byID(r, 'foto-add').props.onPress());
-    expect(r.root.findAllByProps({ testID: 'foto-preview' })).toHaveLength(1);
     await act(async () => {
       byID(r, 'publicar-v2').props.onPress();
     });
@@ -377,19 +235,6 @@ describe('ComposeV2 (editar avaliação própria)', () => {
     photoUrl: '/uploads/foto.jpg',
   };
 
-  it('prefill: título, nota, legenda e flairs; local travado', () => {
-    const r = render({ editReview: ownReview });
-    expect(JSON.stringify(r.toJSON())).toContain('editar avaliação');
-    expect(subtreeTexts(r, 'preview-v2')).toContain('9.0');
-    expect(byID(r, 'legenda').props.value).toBe('bom demais');
-    expect(selectedFlairs(r)).toEqual(['flair-achado']);
-    // local da review é fixo: sem "trocar" nem busca
-    expect(r.root.findAllByProps({ testID: 'trocar-restaurante' })).toHaveLength(0);
-    expect(r.root.findAllByProps({ testID: 'buscar-v2' })).toHaveLength(0);
-    // foto existente aparece como preview
-    expect(r.root.findAllByProps({ testID: 'foto-preview' })).toHaveLength(1);
-  });
-
   it('salvar chama PUT /reviews com os campos editados', async () => {
     updateReviewMock.mockResolvedValue({ ...ownReview });
     const onPosted = vi.fn();
@@ -422,40 +267,6 @@ describe('ComposeV2 (editar avaliação própria)', () => {
     );
   });
 
-  it('remover a foto existente envia photoUrl null', async () => {
-    updateReviewMock.mockResolvedValue({ ...ownReview });
-    const r = render({ editReview: ownReview });
-    act(() => byID(r, 'foto-tirar-0').props.onPress());
-    await act(async () => {
-      byID(r, 'publicar-v2').props.onPress();
-    });
-    expect(updateReviewMock).toHaveBeenCalledWith(
-      'user_1',
-      42,
-      expect.objectContaining({ photoUrl: null }),
-    );
-  });
-
-  it('trocar a foto sobe a nova e envia a URL no PUT', async () => {
-    updateReviewMock.mockResolvedValue({ ...ownReview });
-    uploadPhotoMock.mockResolvedValue('/uploads/nova.jpg');
-    const r = render({
-      editReview: ownReview,
-      onPickPhoto: async () => ({ uri: 'file://nova.jpg' }),
-    });
-    act(() => byID(r, 'foto-tirar-0').props.onPress());
-    await act(async () => byID(r, 'foto-add').props.onPress());
-    await act(async () => {
-      byID(r, 'publicar-v2').props.onPress();
-    });
-    expect(uploadPhotoMock).toHaveBeenCalledWith('user_1', 'file://nova.jpg');
-    expect(updateReviewMock).toHaveBeenCalledWith(
-      'user_1',
-      42,
-      expect.objectContaining({ photoUrl: '/uploads/nova.jpg' }),
-    );
-  });
-
   it('erro de rede mostra mensagem e mantém na tela (sem onPosted)', async () => {
     updateReviewMock.mockRejectedValue(new Error('PUT /reviews/42 failed: 500'));
     const onPosted = vi.fn();
@@ -468,4 +279,35 @@ describe('ComposeV2 (editar avaliação própria)', () => {
       'Não consegui publicar sua avaliação.',
     );
   });
+});
+
+// Texts de um subtree (instâncias não expõem toJSON nesta versão do
+// react-test-renderer; só a raiz).
+function subtreeTexts(r: ReactTestRenderer, testID: string): string {
+  const inst = r.root.findByProps({ testID });
+  return inst
+    .findAll((n) => String(n.type) === 'Text')
+    .map((n) =>
+      Array.isArray(n.props.children)
+        ? n.props.children.join('')
+        : String(n.props.children ?? ''),
+    )
+    .join(' ');
+}
+
+function selectedFlairs(r: ReactTestRenderer): string[] {
+  return r.root
+    .findAll(
+      (n) =>
+        typeof n.props.testID === 'string' &&
+        n.props.testID.startsWith('flair-') &&
+        n.props.accessibilityState?.selected === true,
+    )
+    .map((n) => n.props.testID!);
+}
+
+beforeEach(() => {
+  postReviewMock.mockReset();
+  updateReviewMock.mockReset();
+  postReviewMock.mockResolvedValue(reviewCreated);
 });

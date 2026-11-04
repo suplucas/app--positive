@@ -10,24 +10,22 @@ import {
 } from 'react-native';
 import { Avatar } from '../common/Avatar';
 import { pickPhoto } from '../compose/pickPhoto';
-import { friendlyApiError } from '../common/format';
 import { fonts, palette, spacing, useTheme } from '../common/theme';
 
-// Entrada de edição de perfil. `photoUri` undefined = manter a foto
-// atual; null = remover; string = nova foto local (o container faz upload).
+// Entrada de edição de perfil. Apresentação pura — quem salva é o
+// EditProfileScreen (PUT /users/:id com photoUrl).
 export type EditProfileInput = {
   name: string;
   bio: string | null;
-  photoUri?: string | null;
+  photoUrl?: string | null;
 };
 
-// Formulário de edição do próprio perfil: nome, bio e foto. Apresentação
-// pura — quem salva (upload + PUT) é o EditProfileScreen.
+// Formulário de edição do próprio perfil: nome, bio e foto.
 export function EditProfileForm({
   userId,
   initialName,
   initialBio,
-  initialPhotoUri,
+  initialPhotoUrl,
   onPickPhoto,
   onSave,
   onBack,
@@ -37,7 +35,7 @@ export function EditProfileForm({
   userId: string;
   initialName: string;
   initialBio?: string | null;
-  initialPhotoUri?: string | null;
+  initialPhotoUrl?: string | null;
   // Seam p/ testes injetarem a galeria sem tocar no native.
   onPickPhoto?: () => Promise<ImageSourcePropType | null>;
   onSave: (input: EditProfileInput) => void;
@@ -49,9 +47,8 @@ export function EditProfileForm({
   const [name, setName] = useState(initialName);
   const [bio, setBio] = useState(initialBio ?? '');
   const [photo, setPhoto] = useState<ImageSourcePropType | null>(
-    initialPhotoUri ? { uri: initialPhotoUri } : null,
+    initialPhotoUrl ? { uri: initialPhotoUrl } : null,
   );
-  const [photoTouched, setPhotoTouched] = useState(false);
 
   const canSave = name.trim() !== '' && !saving;
 
@@ -59,14 +56,12 @@ export function EditProfileForm({
     void (onPickPhoto ?? pickPhoto)().then((src) => {
       if (src) {
         setPhoto(src);
-        setPhotoTouched(true);
       }
     });
   };
 
   const removePhoto = () => {
     setPhoto(null);
-    setPhotoTouched(true);
   };
 
   const submit = () => {
@@ -78,7 +73,7 @@ export function EditProfileForm({
     onSave({
       name: name.trim(),
       bio: bio.trim() === '' ? null : bio.trim(),
-      ...(photoTouched ? { photoUri: uri ?? null } : {}),
+      photoUrl: uri ?? null,
     });
   };
 
@@ -173,7 +168,7 @@ export function EditProfileForm({
         {error ? (
           <View testID="perfil-erro" style={[s.error, { backgroundColor: t.quietBg }]}>
             <Text style={[s.errorText, { color: t.sub }]}>
-              {friendlyApiError(error, 'profile')}
+              {error}
             </Text>
           </View>
         ) : null}

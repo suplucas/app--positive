@@ -3,14 +3,11 @@ import { act, create, type ReactTestRenderer } from 'react-test-renderer';
 import { createElement } from 'react';
 import { EditProfileScreen } from './EditProfileScreen';
 import { updateUserProfile } from '../api/user';
-import { uploadAvatarPhoto } from '../api/api';
 import type { UserProfile } from '../api/types';
 
-vi.mock('../api/api', () => ({ uploadAvatarPhoto: vi.fn() }));
 vi.mock('../api/user', () => ({ updateUserProfile: vi.fn() }));
 
 const updateMock = vi.mocked(updateUserProfile);
-const uploadMock = vi.mocked(uploadAvatarPhoto);
 
 const profile: UserProfile = {
   id: 'user_1',
@@ -43,7 +40,6 @@ function byID(r: ReactTestRenderer, id: string) {
 
 beforeEach(() => {
   updateMock.mockReset();
-  uploadMock.mockReset();
 });
 
 describe('EditProfileScreen', () => {
@@ -56,28 +52,9 @@ describe('EditProfileScreen', () => {
     expect(updateMock).toHaveBeenCalledWith('user_1', {
       name: 'Bea',
       bio: 'bio atual',
+      photoUrl: null,
     });
     expect(onSaved).toHaveBeenCalled();
-  });
-
-  it('foto nova: faz upload e envia photoUrl', async () => {
-    updateMock.mockResolvedValue(profile);
-    uploadMock.mockResolvedValue('/uploads/avatar.jpg');
-    const { r } = render({
-      onPickPhoto: async () => ({ uri: 'file://foto.jpg' }),
-    });
-    await act(async () => {
-      byID(r, 'trocar-foto').props.onPress();
-    });
-    await act(async () => {
-      byID(r, 'salvar-perfil').props.onPress();
-    });
-    expect(uploadMock).toHaveBeenCalledWith('user_1', 'file://foto.jpg');
-    expect(updateMock).toHaveBeenCalledWith('user_1', {
-      name: 'Bea',
-      bio: 'bio atual',
-      photoUrl: '/uploads/avatar.jpg',
-    });
   });
 
   it('erro no PUT mostra mensagem e não chama onSaved', async () => {

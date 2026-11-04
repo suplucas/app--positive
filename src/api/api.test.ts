@@ -5,7 +5,6 @@ import {
   likeReview,
   postReview,
   updateReview,
-  uploadReviewPhoto,
 } from "./api";
 
 const okBody = {
@@ -279,36 +278,4 @@ describe("deleteReview", () => {
   });
 });
 
-describe("uploadReviewPhoto", () => {
-  it("faz POST /uploads/review-photo com FormData contendo file", async () => {
-    // Primeira chamada: ler o arquivo local como blob
-    // Segunda chamada: enviar o FormData para a API
-    const fetchMock = vi
-      .fn()
-      .mockResolvedValueOnce(new Response(new Blob(["fake"]), { status: 200 }))
-      .mockResolvedValue({
-        ok: true,
-        json: async () => ({ url: "http://api.test/uploads/foto.jpg" }),
-      });
-    vi.stubGlobal("fetch", fetchMock);
 
-    await uploadReviewPhoto("user_1", "file:///foto.jpg", "http://api.test");
-
-    expect(fetchMock).toHaveBeenCalledTimes(2);
-    expect(fetchMock.mock.calls[0][0]).toBe("file:///foto.jpg");
-    expect(fetchMock).toHaveBeenLastCalledWith(
-      "http://api.test/uploads/review-photo",
-      expect.objectContaining({
-        method: "POST",
-        headers: expect.objectContaining({
-          "x-user-id": "user_1",
-        }),
-      }),
-    );
-
-    const body = fetchMock.mock.calls[1][1].body;
-    expect(typeof body.append).toBe("function");
-    expect(typeof body.get).toBe("function");
-    expect(typeof body).not.toBe("string");
-  });
-});

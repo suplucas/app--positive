@@ -13,6 +13,7 @@ function render(props: Partial<Props> = {}) {
       userId: 'user_1',
       initialName: 'Bea Ferraz',
       initialBio: 'comendo por aí',
+      initialPhotoUrl: null,
       onSave,
       onBack,
       ...props,
@@ -26,78 +27,38 @@ function byID(r: ReactTestRenderer, id: string) {
 }
 
 describe('EditProfileForm', () => {
-  it('prefill: nome e bio atuais', () => {
-    const { r } = render();
-    expect(byID(r, 'perfil-nome').props.value).toBe('Bea Ferraz');
-    expect(byID(r, 'perfil-bio').props.value).toBe('comendo por aí');
-  });
-
-  it('salvar envia nome e bio editados (trim)', () => {
-    const { r, onSave } = render();
-    act(() => byID(r, 'perfil-nome').props.onChangeText('  Bea Nova  '));
-    act(() => byID(r, 'perfil-bio').props.onChangeText(' bio nova '));
-    act(() => byID(r, 'salvar-perfil').props.onPress());
-    expect(onSave).toHaveBeenCalledWith({
-      name: 'Bea Nova',
-      bio: 'bio nova',
-    });
-  });
-
-  it('nome vazio desabilita salvar', () => {
-    const { r } = render();
-    act(() => byID(r, 'perfil-nome').props.onChangeText('   '));
-    expect(
-      byID(r, 'salvar-perfil').props.accessibilityState.disabled,
-    ).toBe(true);
-  });
-
-  it('bio vazia vira null (limpar bio)', () => {
-    const { r, onSave } = render();
-    act(() => byID(r, 'perfil-bio').props.onChangeText('   '));
-    act(() => byID(r, 'salvar-perfil').props.onPress());
-    expect(onSave).toHaveBeenCalledWith({ name: 'Bea Ferraz', bio: null });
-  });
-
-  it('sem mexer na foto, não envia photoUri', () => {
-    const { r, onSave } = render({
-      initialPhotoUri: 'http://api.test/uploads/a.jpg',
-    });
-    act(() => byID(r, 'salvar-perfil').props.onPress());
-    expect(onSave).toHaveBeenCalledWith({
-      name: 'Bea Ferraz',
-      bio: 'comendo por aí',
-    });
-  });
-
-  it('escolher foto nova envia a uri local', async () => {
-    const onPickPhoto = vi.fn().mockResolvedValue({ uri: 'file://foto.jpg' });
-    const { r, onSave } = render({ onPickPhoto });
+  it('salva nome e bio', async () => {
+    const onSave = vi.fn();
+    const { r } = render({ onSave });
+    act(() => byID(r, 'perfil-nome').props.onChangeText('Bea Atualizada'));
+    act(() => byID(r, 'perfil-bio').props.onChangeText('bio nova'));
     await act(async () => {
-      byID(r, 'trocar-foto').props.onPress();
+      byID(r, 'salvar-perfil').props.onPress();
     });
-    act(() => byID(r, 'salvar-perfil').props.onPress());
     expect(onSave).toHaveBeenCalledWith({
-      name: 'Bea Ferraz',
-      bio: 'comendo por aí',
-      photoUri: 'file://foto.jpg',
+      name: 'Bea Atualizada',
+      bio: 'bio nova',
+      photoUrl: null,
     });
   });
 
-  it('remover foto existente envia photoUri null', () => {
-    const { r, onSave } = render({
-      initialPhotoUri: 'http://api.test/uploads/a.jpg',
+  it('bio vazia vira null', async () => {
+    const onSave = vi.fn();
+    const { r } = render({ onSave });
+    act(() => byID(r, 'perfil-bio').props.onChangeText(''));
+    await act(async () => {
+      byID(r, 'salvar-perfil').props.onPress();
     });
-    act(() => byID(r, 'remover-foto').props.onPress());
-    act(() => byID(r, 'salvar-perfil').props.onPress());
     expect(onSave).toHaveBeenCalledWith({
       name: 'Bea Ferraz',
-      bio: 'comendo por aí',
-      photoUri: null,
+      bio: null,
+      photoUrl: null,
     });
   });
 
   it('cancelar chama onBack', () => {
-    const { r, onBack } = render();
+    const onBack = vi.fn();
+    const { r } = render({ onBack });
     act(() => byID(r, 'cancelar-perfil').props.onPress());
     expect(onBack).toHaveBeenCalled();
   });

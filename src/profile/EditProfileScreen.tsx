@@ -1,29 +1,36 @@
 import { useState } from 'react';
-import type { ImageSourcePropType } from 'react-native';
 import { StyleSheet, Text, View } from 'react-native';
-import { uploadAvatarPhoto } from '../api/api';
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { getAuthToken } from '../api/client';
 import { updateUserProfile, type UserProfileEdit } from '../api/user';
 import type { UserProfile } from '../api/types';
 import { EditProfileForm, type EditProfileInput } from './EditProfileForm';
-import { resolvePhotoUrl } from '../common/format';
 import { useProfile } from './useProfile';
 import { useTheme } from '../common/theme';
 
+// Cliente S3 direto para upload de avatar (bucket Railway / t3.storageapi.dev).
+const s3Client = new S3Client({
+  region: 'us-east-1',
+  endpoint: process.env.EXPO_PUBLIC_S3_ENDPOINT,
+  forcePathStyle: true,
+  credentials: {
+    accessKeyId: process.env.EXPO_PUBLIC_S3_ACCESS_KEY_ID ?? '',
+    secretAccessKey: process.env.EXPO_PUBLIC_S3_SECRET_ACCESS_KEY ?? '',
+  },
+});
+
 // Container da edição de perfil: carrega o perfil atual (ou usa o
-// injetado), faz upload da foto nova e o PUT /users/:id.
+// injetado), faz upload da foto para o S3 e o PUT /users/:id.
 export function EditProfileScreen({
   userId,
   onBack,
   onSaved,
   profile: injected,
-  onPickPhoto,
 }: {
   userId: string;
   onBack: () => void;
   onSaved: () => void;
   profile?: UserProfile;
-  // Seam p/ testes injetarem a galeria sem tocar no native.
-  onPickPhoto?: () => Promise<ImageSourcePropType | null>;
 }) {
   const t = useTheme();
   const remote = useProfile(userId, !injected);
@@ -44,11 +51,35 @@ export function EditProfileScreen({
     setError(null);
     void (async () => {
       try {
+        let photoUrl = input.photoUrl;
+
+        // Se o usuário selecionou uma foto local (file://), faz upload
+        // direto para o S3 e usa a URL resultante no PUT.
+        if (photoUrl && photoUrl.startsWith('file://')) {
+          const ext = photoUrl.slice(photoUrl.lastIndexOf('.')).toLowerCase();
+          const key = `uploads/avatar/${userId}/${Date.now()}${ext}`;
+          const blobRes = await fetch(photoUrl);
+          const blob = await blobRes.blob();
+
+          await s3Client.send(
+            new PutObjectCommand({
+              Bucket: process.env.EXPO_PUBLIC_S3_BUCKET ?? '',
+              Key: key,
+              Body: blob,
+              ContentType:
+                ext === '.heic' || ext === '.heif'
+                  ? 'image/heic'
+                  : ext === '.png'
+                    ? 'image/png'
+                    : 'image/jpeg',
+            }),
+          );
+          photoUrl = `${process.env.EXPO_PUBLIC_S3_ENDPOINT ?? ''}/${process.env.EXPO_PUBLIC_S3_BUCKET ?? ''}/${key}`;
+        }
+
         const body: UserProfileEdit = { name: input.name, bio: input.bio };
-        if (input.photoUri !== undefined) {
-          body.photoUrl = input.photoUri
-            ? await uploadAvatarPhoto(userId, input.photoUri)
-            : null;
+        if (photoUrl !== undefined) {
+          body.photoUrl = photoUrl;
         }
         await updateUserProfile(userId, body);
         onSaved();
@@ -64,10 +95,7 @@ export function EditProfileScreen({
       userId={userId}
       initialName={profile.name}
       initialBio={profile.bio}
-      initialPhotoUri={
-        profile.photoUrl ? resolvePhotoUrl(profile.photoUrl) : null
-      }
-      onPickPhoto={onPickPhoto}
+      initialPhotoUrl={profile.photoUrl ?? null}
       onSave={save}
       onBack={onBack}
       saving={saving}

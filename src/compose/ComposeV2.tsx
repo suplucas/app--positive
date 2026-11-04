@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
-  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -8,8 +7,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import type { ImageSourcePropType } from 'react-native';
-import { postReview, updateReview, uploadReviewPhoto } from '../api/api';
+import { postReview, updateReview } from '../api/api';
 import type { ReviewEdit } from '../api/api';
 import { importPlace, searchPlaces } from '../api/place';
 import type { PlaceHit } from '../api/types';
@@ -18,17 +16,11 @@ import { SectionTitle } from '../common/SectionTitle';
 import type { Review } from '../common/types';
 import {
   friendlyApiError,
-  resolvePhotoUrl,
   restaurantName,
   searchRestaurants,
   type RestaurantHit,
 } from '../common/format';
-import { pickPhoto } from './pickPhoto';
 import { fonts, palette, spacing, useTheme } from '../common/theme';
-
-// Teto de fotos por avaliação (docs/15). A API persiste 1 foto por
-// review nesta fase; o compose acompanha o contrato.
-export const MAX_PHOTOS = 1;
 
 // Flairs disponíveis (docs_04): até 2 por avaliação, o primeiro
 // selecionado sai quando entra o terceiro (mesma regra do mock).
@@ -55,15 +47,13 @@ export function flairSlug(label: string): string {
 }
 
 // Tela de composição v2 (mock docs/04): local com "trocar", nota 0–10
-// com slider, foto opcional, legenda, flairs e preview do quote card.
-// FOTO E FLAIRS SÃO SÓ VISUAIS: a API não tem esses campos ainda, o
+// com slider, legenda, flairs e preview do quote card.
 // POST /reviews continua com cnpj + rating (float, nota/2) + comment.
 export function ComposeV2({
   userId,
   initialCnpj,
   onCancel,
   onPosted,
-  onPickPhoto,
   onChangePlace,
   pickedCnpj,
   editReview,
@@ -72,9 +62,6 @@ export function ComposeV2({
   initialCnpj?: string | null;
   onCancel: () => void;
   onPosted: () => void;
-  // docs/13: fonte da foto (default = galeria via expo-image-picker).
-  // Seam p/ testes injetarem o resultado sem tocar no native.
-  onPickPhoto?: () => Promise<ImageSourcePropType | null>;
   // docs/16: "trocar" abre a busca (picker); `pickedCnpj` volta do App.
   onChangePlace?: () => void;
   pickedCnpj?: string | null;
@@ -95,9 +82,6 @@ export function ComposeV2({
   );
   const [caption, setCaption] = useState(() => editReview?.comment ?? '');
   const [flairs, setFlairs] = useState<string[]>(() => editReview?.flairs ?? []);
-  const [photos, setPhotos] = useState<ImageSourcePropType[]>(() =>
-    editReview?.photoUrl ? [{ uri: resolvePhotoUrl(editReview.photoUrl) }] : [],
-  );
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -186,78 +170,30 @@ export function ComposeV2({
     });
   };
 
-  const addPhoto = () => {
-    void (onPickPhoto ?? pickPhoto)().then((src) => {
-      if (src) {
-        // cancelado (null) → nada muda; teto = MAX_PHOTOS
-        setPhotos((prev) =>
-          prev.length >= MAX_PHOTOS ? prev : [...prev, src],
-        );
-      }
-    });
-  };
-
-  const removePhoto = (i: number) =>
-    setPhotos((prev) => prev.filter((_, j) => j !== i));
-
   const submit = async () => {
     if (!canSend || selected === null) return;
     setSending(true);
     setError(null);
     try {
-      const first = photos[0];
-      const uri =
-        first && typeof first === "object" && "uri" in first
-          ? (first as { uri?: string }).uri
-          : undefined;
-      const isRemote = !!uri && /^https?:\/\//i.test(uri);
-      const comment = caption.trim() === "" ? null : caption.trim();
-
-      console.log(
-        JSON.stringify({
-          event: 'submit.start',
-          editReview: !!editReview,
-          hasUri: !!uri,
-          isRemote,
-          selected: selected?.cnpj,
-          rating: note / 2,
-          uri: uri ?? null,
-        }),
-      );
+      const comment = caption.trim() === '' ? null : caption.trim();
 
       if (editReview) {
-        // Edição: sempre envia notch/comment/flairs; a foto só entra se
-        // mudou (removida → null; nova → upload; remota → mantém).
         const body: ReviewEdit = {
           rating: note / 2,
           comment,
           flairs,
         };
-        if (!uri) {
-          body.photoUrl = null;
-        } else if (!isRemote) {
-          console.log(JSON.stringify({ event: 'submit.upload.start', editReview: true }));
-          body.photoUrl = await uploadReviewPhoto(userId, uri);
-          console.log(JSON.stringify({ event: 'submit.upload.done', editReview: true, photoUrl: body.photoUrl }));
-        }
         await updateReview(userId, editReview.id, body);
-        console.log(JSON.stringify({ event: 'submit.updateReview.done', editReview: true }));
         onPosted();
         return;
       }
 
-      console.log(JSON.stringify({ event: 'submit.upload.start', editReview: false }));
-      const photoUrl = uri ? await uploadReviewPhoto(userId, uri) : null;
-      console.log(JSON.stringify({ event: 'submit.upload.done', editReview: false, photoUrl }));
-
       await postReview(userId, {
         restaurantId: selected.cnpj,
-        rating: note / 2, // API usa escala 0–5; UI usa 0–10
+        rating: note / 2,
         comment,
-        ...(photoUrl ? { photoUrl } : {}),
         ...(flairs.length > 0 ? { flairs } : {}),
       });
-      console.log(JSON.stringify({ event: 'submit.postReview.done', photoUrl }));
       onPosted();
     } catch (e) {
       console.error(
@@ -386,71 +322,6 @@ export function ComposeV2({
         {/* O rótulo "nota" (centralizado, docs/16) vive dentro do slider. */}
         <NoteSlider value={note} onChange={setNote} />
       </View>
-
-      <SectionTitle>
-        {photos.length > 0
-          ? `fotos · ${photos.length}/${MAX_PHOTOS}`
-          : 'foto (opcional)'}
-      </SectionTitle>
-      {photos.length === 0 ? (
-        <Pressable
-          testID="foto-add"
-          onPress={addPhoto}
-          style={[s.photoBox, { borderColor: t.line }]}
-          accessibilityRole="button"
-          accessibilityLabel="adicionar foto da galeria"
-        >
-          <Text style={s.cam}>📷</Text>
-          <Text style={[s.photoText, { color: t.sub }]}>adicionar foto</Text>
-          <Text style={[s.photoSub, { color: t.sub }]}>
-            da sua galeria · 1 foto · sem foto, vira um quote
-            card
-          </Text>
-        </Pressable>
-      ) : (
-        <>
-          <View style={s.shelf}>
-            {photos.map((src, i) => (
-              <View key={i} testID={`foto-thumb-${i}`} style={s.thumb}>
-                <Image
-                  testID={i === 0 ? 'foto-preview' : undefined}
-                  source={src}
-                  style={s.thumbImg}
-                  resizeMode="cover"
-                  accessibilityIgnoresInvertColors
-                />
-                <Pressable
-                  testID={`foto-tirar-${i}`}
-                  onPress={() => removePhoto(i)}
-                  style={s.thumbX}
-                  hitSlop={6}
-                  accessibilityRole="button"
-                  accessibilityLabel={`remover foto ${i + 1}`}
-                >
-                  <Text style={s.thumbXText}>×</Text>
-                </Pressable>
-              </View>
-            ))}
-            {photos.length < MAX_PHOTOS ? (
-              <Pressable
-                testID="foto-add"
-                onPress={addPhoto}
-                style={[s.addTile, { borderColor: t.line }]}
-                accessibilityRole="button"
-                accessibilityLabel="adicionar outra foto"
-              >
-                <Text style={s.cam}>📷</Text>
-                <Text style={[s.photoSub, { color: t.sub }]}>
-                  {`foto ${photos.length + 1}`}
-                </Text>
-              </Pressable>
-            ) : null}
-          </View>
-          <Text style={[s.photoHint, { color: t.sub }]}>
-            foto · vai para a API · × remove
-          </Text>
-        </>
-      )}
 
       <SectionTitle>o que achou?</SectionTitle>
       <TextInput
@@ -602,63 +473,6 @@ const s = StyleSheet.create({
     paddingBottom: spacing.interno,
     marginTop: spacing.interno,
   },
-  photoBox: {
-    borderRadius: 14,
-    borderWidth: 1.5,
-    borderStyle: 'dashed',
-    marginHorizontal: spacing.padrao,
-    marginBottom: spacing.interno,
-    minHeight: 100,
-    justifyContent: 'center',
-    alignItems: 'center',
-    overflow: 'hidden',
-  },
-  cam: { fontSize: 22 },
-  photoText: { fontSize: 12.5, fontFamily: fonts.corpo600, fontWeight: '600', marginTop: 6 },
-  // Carrossel em compose (docs/15): fila de miniaturas + tile "foto N".
-  shelf: {
-    flexDirection: 'row',
-    gap: spacing.interno,
-    marginHorizontal: spacing.padrao,
-    marginBottom: spacing.micro,
-    alignItems: 'center',
-  },
-  thumb: {
-    position: 'relative',
-    width: 92,
-    height: 92,
-    borderRadius: 12,
-    overflow: 'hidden',
-  },
-  thumbImg: { width: '100%', height: '100%' },
-  thumbX: {
-    position: 'absolute',
-    top: 4,
-    right: 4,
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    backgroundColor: 'rgba(36,26,34,0.7)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  thumbXText: { color: '#fff', fontSize: 13, lineHeight: 15 },
-  addTile: {
-    width: 92,
-    height: 92,
-    borderRadius: 12,
-    borderWidth: 1.5,
-    borderStyle: 'dashed',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 4,
-  },
-  photoHint: {
-    fontSize: 11,
-    marginHorizontal: spacing.padrao,
-    marginBottom: spacing.interno,
-  },
-  photoSub: { fontSize: 11, opacity: 0.8, marginTop: 2 },
   flairRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
