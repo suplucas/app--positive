@@ -4,14 +4,7 @@ import { ExpandableText } from '../common/ExpandableText';
 import { Flair } from './Flair';
 import { NoteBadge } from './NoteBadge';
 import { formatRelative, getNote, restaurantName } from '../common/format';
-import {
-  fonts,
-  palette,
-  radius,
-  spacing,
-  type,
-  useTheme,
-} from '../common/theme';
+import { fonts, palette, spacing, type, useTheme } from '../common/theme';
 import type { Review } from '../common/types';
 
 // Linha do feed: texto-primeiro, avatar à esquerda, nota à direita

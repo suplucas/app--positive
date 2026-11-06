@@ -57,8 +57,8 @@ const s = StyleSheet.create({
   plate: {
     width: '100%',
     borderRadius: radius.thumb,
-    borderTopLeftRadius: 10,
-    borderTopRightRadius: 10,
+    borderTopLeftRadius: radius.thumb,
+    borderTopRightRadius: radius.thumb,
     borderBottomLeftRadius: 4,
     borderBottomRightRadius: 4,
   },

@@ -2,14 +2,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Avatar } from '../common/Avatar';
 import { FeedCard } from '../feed/FeedCard';
 import { SectionTitle } from '../common/SectionTitle';
-import {
-  fonts,
-  palette,
-  radius,
-  spacing,
-  type,
-  useTheme,
-} from '../common/theme';
+import { fonts, palette, spacing, type, useTheme } from '../common/theme';
 import { layout } from '../common/layout';
 import { useUserProfile } from './useUserProfile';
 

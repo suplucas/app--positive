@@ -1,5 +1,5 @@
 import { StyleSheet, Text } from 'react-native';
-import { fonts, radius, spacing, type, useTheme } from './theme';
+import { fonts, spacing, type, useTheme } from './theme';
 
 // Título de seção: display, 13px, cor secundária (identidade §02/§07).
 export function SectionTitle({ children }: { children: string }) {

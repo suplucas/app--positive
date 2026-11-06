@@ -1,13 +1,6 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import {
-  fonts,
-  palette,
-  radius,
-  spacing,
-  type,
-  useTheme,
-} from '../common/theme';
+import { fonts, palette, spacing, type, useTheme } from '../common/theme';
 import { friendlyAuthError } from './authError';
 
 export function RegisterScreen({

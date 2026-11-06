@@ -12,14 +12,7 @@ import {
 import { Avatar } from '../common/Avatar';
 import { Flair } from './Flair';
 import { formatRelative, getNote, restaurantName } from '../common/format';
-import {
-  fonts,
-  palette,
-  radius,
-  spacing,
-  type,
-  useTheme,
-} from '../common/theme';
+import { fonts, palette, spacing, type, useTheme } from '../common/theme';
 import type { Review } from '../common/types';
 
 // Post com foto: mídia edge-to-edge (sangra na borda), nota sobre a

@@ -1,5 +1,5 @@
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
-import { fonts, palette, radius, spacing, type, useTheme } from './theme';
+import { fonts, palette, spacing, type, useTheme } from './theme';
 
 export type Screen = 'feed' | 'busca' | 'mapa' | 'perfil' | 'compose';
 
