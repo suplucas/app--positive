@@ -1,11 +1,5 @@
 import { useState } from 'react';
-import {
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { fonts, palette, spacing, useTheme } from '../common/theme';
 import { friendlyAuthError } from './authError';
 
@@ -59,7 +53,10 @@ export function LoginScreen({
         style={[s.input, { color: t.ink, borderColor: t.line }]}
       />
       {error ? (
-        <Text testID="login-erro" style={[s.error, { color: palette.lambeLambe }]}>
+        <Text
+          testID="login-erro"
+          style={[s.error, { color: palette.lambeLambe }]}
+        >
           {error}
         </Text>
       ) : null}
@@ -67,7 +64,10 @@ export function LoginScreen({
         testID="login-entrar"
         onPress={() => void submit()}
         disabled={busy}
-        style={[s.btn, { backgroundColor: palette.lambeLambe, opacity: busy ? 0.5 : 1 }]}
+        style={[
+          s.btn,
+          { backgroundColor: palette.lambeLambe, opacity: busy ? 0.5 : 1 },
+        ]}
         accessibilityRole="button"
       >
         <Text style={s.btnText}>{busy ? 'entrando…' : 'entrar'}</Text>
@@ -80,9 +80,19 @@ export function LoginScreen({
 }
 
 const s = StyleSheet.create({
-  wrap: { flex: 1, justifyContent: 'center', paddingHorizontal: spacing.secao, gap: spacing.interno },
+  wrap: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingHorizontal: spacing.secao,
+    gap: spacing.interno,
+  },
   brand: { fontFamily: fonts.display800, fontSize: 30, textAlign: 'center' },
-  title: { fontFamily: fonts.display700, fontSize: 18, textAlign: 'center', marginBottom: spacing.interno },
+  title: {
+    fontFamily: fonts.display700,
+    fontSize: 18,
+    textAlign: 'center',
+    marginBottom: spacing.interno,
+  },
   input: {
     borderWidth: 1.5,
     borderRadius: 14,

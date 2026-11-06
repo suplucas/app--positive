@@ -1,21 +1,21 @@
-import { useCallback, useEffect, useState } from "react";
-import { getRestaurant, getRestaurantReviews } from "../api/restaurant";
-import type { RestaurantProfile } from "../api/types";
-import type { Review } from "../common/types";
+import { useCallback, useEffect, useState } from 'react';
+import { getRestaurant, getRestaurantReviews } from '../api/restaurant';
+import type { RestaurantProfile } from '../api/types';
+import type { Review } from '../common/types';
 
-export type RestaurantStatus = "loading" | "idle" | "error";
+export type RestaurantStatus = 'loading' | 'idle' | 'error';
 
 export function useRestaurant(cnpj: string, userId?: string, enabled = true) {
   const [data, setData] = useState<RestaurantProfile | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [status, setStatus] = useState<RestaurantStatus>(
-    enabled ? "loading" : "idle",
+    enabled ? 'loading' : 'idle',
   );
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     if (!enabled) return;
-    setStatus("loading");
+    setStatus('loading');
     setError(null);
     try {
       const [profile, page] = await Promise.all([
@@ -24,16 +24,16 @@ export function useRestaurant(cnpj: string, userId?: string, enabled = true) {
       ]);
       setData(profile);
       setReviews(page.results);
-      setStatus("idle");
+      setStatus('idle');
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
-      setStatus("error");
+      setStatus('error');
     }
   }, [cnpj, userId, enabled]);
 
   useEffect(() => {
     if (!enabled) {
-      setStatus("idle");
+      setStatus('idle');
       return;
     }
     void load();

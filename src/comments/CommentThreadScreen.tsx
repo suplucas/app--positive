@@ -80,15 +80,18 @@ export function CommentThreadScreen({
             ) : null}
           </View>
           {review.comment ? (
-            <Text style={[s.origText, { color: t.ink }]}>
-              {review.comment}
-            </Text>
+            <Text style={[s.origText, { color: t.ink }]}>{review.comment}</Text>
           ) : null}
         </View>
       </View>
 
       {status === 'loading' ? (
-        <Text style={[s.itemText, { color: t.sub, paddingHorizontal: spacing.padrao }]}>
+        <Text
+          style={[
+            s.itemText,
+            { color: t.sub, paddingHorizontal: spacing.padrao },
+          ]}
+        >
           carregando…
         </Text>
       ) : null}
@@ -111,7 +114,13 @@ export function CommentThreadScreen({
       ))}
 
       {error ? (
-        <Text testID="comentario-erro" style={[s.itemTime, { color: palette.lambeLambe, paddingHorizontal: spacing.padrao }]}>
+        <Text
+          testID="comentario-erro"
+          style={[
+            s.itemTime,
+            { color: palette.lambeLambe, paddingHorizontal: spacing.padrao },
+          ]}
+        >
           {error}
         </Text>
       ) : null}
@@ -171,7 +180,12 @@ const s = StyleSheet.create({
     marginBottom: spacing.interno,
   },
   origBody: { flex: 1, minWidth: 0 },
-  origTop: { flexDirection: 'row', alignItems: 'baseline', gap: 6, flexWrap: 'wrap' },
+  origTop: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 6,
+    flexWrap: 'wrap',
+  },
   origUser: { fontFamily: fonts.display700, fontSize: 13 },
   origPlace: { fontSize: 11.5 },
   origText: { fontSize: 13, lineHeight: 19, marginTop: 4 },

@@ -72,7 +72,9 @@ export function FeedCard({
               accessibilityRole="button"
               accessibilityLabel="curtir avaliação"
             >
-              <Text style={[s.metaText, { color: t.sub }]}>▲ {review.likes}</Text>
+              <Text style={[s.metaText, { color: t.sub }]}>
+                ▲ {review.likes}
+              </Text>
             </Pressable>
           ) : (
             <Text style={[s.metaText, { color: t.sub }]}>▲ {review.likes}</Text>
@@ -151,7 +153,12 @@ const s = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   body: { flex: 1, minWidth: 0 },
-  top: { flexDirection: 'row', alignItems: 'baseline', gap: 6, flexWrap: 'wrap' },
+  top: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 6,
+    flexWrap: 'wrap',
+  },
   uname: { fontFamily: fonts.display700, fontSize: 13.5 },
   place: { fontSize: 13 },
   placeName: { fontFamily: fonts.corpo600, fontWeight: '600' },

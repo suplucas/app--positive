@@ -81,22 +81,22 @@ export function ComposeV2({
   const [query, setQuery] = useState('');
   const [selected, setSelected] = useState<RestaurantHit | null>(() => {
     const cnpj = editReview?.restaurantId ?? initialCnpj;
-    return cnpj
-      ? { cnpj, nome: restaurantName(cnpj) ?? cnpj }
-      : null;
+    return cnpj ? { cnpj, nome: restaurantName(cnpj) ?? cnpj } : null;
   });
   const [note, setNote] = useState(() =>
     editReview?.rating != null ? editReview.rating * 2 : 8,
   );
   const [caption, setCaption] = useState(() => editReview?.comment ?? '');
-  const [flairs, setFlairs] = useState<string[]>(() => editReview?.flairs ?? []);
+  const [flairs, setFlairs] = useState<string[]>(
+    () => editReview?.flairs ?? [],
+  );
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   // Foto da galeria: `photo` é a URI local (preview imediato) e
   // `photoUrl` a URL pública no S3 após o upload (enviada no body).
   const [photo, setPhoto] = useState<string | null>(null);
-  const [photoUrl, setPhotoUrl] = useState<string | null>(() =>
-    editReview?.photoUrl ?? null,
+  const [photoUrl, setPhotoUrl] = useState<string | null>(
+    () => editReview?.photoUrl ?? null,
   );
   const [uploading, setUploading] = useState(false);
 
@@ -206,9 +206,7 @@ export function ComposeV2({
     } catch (e) {
       setPhoto(null);
       setError(
-        e instanceof Error
-          ? e.message
-          : 'não foi possível enviar a foto.',
+        e instanceof Error ? e.message : 'não foi possível enviar a foto.',
       );
     } finally {
       setUploading(false);
@@ -303,214 +301,243 @@ export function ComposeV2({
         contentContainerStyle={s.scroll}
         keyboardShouldPersistTaps="handled"
       >
-      <SectionTitle>onde você comeu</SectionTitle>
-      {selected ? (
-        editing ? (
-          <View style={[s.place, { backgroundColor: t.quietBg }]}>
-            <Text style={s.pin}>📍</Text>
-            <View style={{ flex: 1 }}>
-              <Text style={[s.placeNome, { color: t.ink }]}>{selected.nome}</Text>
-              <Text style={[s.placeSub, { color: t.sub }]}>{selected.cnpj}</Text>
+        <SectionTitle>onde você comeu</SectionTitle>
+        {selected ? (
+          editing ? (
+            <View style={[s.place, { backgroundColor: t.quietBg }]}>
+              <Text style={s.pin}>📍</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={[s.placeNome, { color: t.ink }]}>
+                  {selected.nome}
+                </Text>
+                <Text style={[s.placeSub, { color: t.sub }]}>
+                  {selected.cnpj}
+                </Text>
+              </View>
             </View>
-          </View>
-        ) : (
-          <Pressable
-            testID="trocar-restaurante"
-            onPress={() => {
-              // Com picker disponível abre a busca; senão, volta ao campo.
-              if (onChangePlace) onChangePlace();
-              else {
-                setSelected(null);
-                setQuery('');
-              }
-            }}
-            style={[s.place, { backgroundColor: t.quietBg }]}
-            accessibilityRole="button"
-            accessibilityLabel="trocar restaurante"
-          >
-            <Text style={s.pin}>📍</Text>
-            <View style={{ flex: 1 }}>
-              <Text style={[s.placeNome, { color: t.ink }]}>{selected.nome}</Text>
-              <Text style={[s.placeSub, { color: t.sub }]}>{selected.cnpj}</Text>
-            </View>
-            <Text style={[s.placeTrocar, { color: palette.lambeLambe }]}>
-              trocar
-            </Text>
-          </Pressable>
-        )
-      ) : (
-        <>
-          <TextInput
-            testID="buscar-v2"
-            value={query}
-            onChangeText={setQuery}
-            placeholder="buscar restaurante por nome…"
-            placeholderTextColor={t.sub}
-            autoCapitalize="none"
-            autoCorrect={false}
-            style={[s.input, { backgroundColor: t.quietBg, color: t.ink }]}
-            accessibilityLabel="buscar restaurante"
-          />
-          {results.map((r) => (
+          ) : (
             <Pressable
-              key={r.id}
-              testID={`pick-v2-${r.id}`}
-              onPress={() => void choose(r)}
-              style={({ pressed }) => [
-                s.result,
-                { borderBottomColor: t.line, opacity: pressed ? 0.6 : 1 },
-              ]}
+              testID="trocar-restaurante"
+              onPress={() => {
+                // Com picker disponível abre a busca; senão, volta ao campo.
+                if (onChangePlace) onChangePlace();
+                else {
+                  setSelected(null);
+                  setQuery('');
+                }
+              }}
+              style={[s.place, { backgroundColor: t.quietBg }]}
               accessibilityRole="button"
+              accessibilityLabel="trocar restaurante"
             >
-              <Text style={[s.resultNome, { color: t.ink }]}>{r.nome}</Text>
-              <Text style={[s.resultCnpj, { color: t.sub }]}>{r.id}</Text>
-            </Pressable>
-          ))}
-          {query.trim() !== '' && results.length === 0 ? (
-            <Text style={[s.empty, { color: t.sub }]}>
-              nenhum restaurante com esse nome
-            </Text>
-          ) : null}
-        </>
-      )}
-
-      <View style={[s.noteField, { borderBottomColor: t.line, borderTopColor: t.line }]}>
-        {/* O rótulo "nota" (centralizado, docs/16) vive dentro do slider. */}
-        <NoteSlider value={note} onChange={setNote} />
-      </View>
-
-      <SectionTitle>o que achou?</SectionTitle>
-      <TextInput
-        testID="legenda"
-        value={caption}
-        onChangeText={setCaption}
-        placeholder="Como foi? Seja direto."
-        placeholderTextColor={t.sub}
-        multiline
-        style={[s.input, s.commentInput, { backgroundColor: t.quietBg, color: t.ink }]}
-        accessibilityLabel="legenda"
-      />
-
-      <SectionTitle>flair (até 2)</SectionTitle>
-      <View style={s.flairRow}>
-        {FLAIRS.map((label) => {
-          const on = flairs.includes(label);
-          return (
-            <Pressable
-              key={label}
-              testID={flairSlug(label)}
-              onPress={() => toggleFlair(label)}
-              style={[
-                s.flair,
-                { borderColor: t.line },
-                on && { backgroundColor: palette.picles, borderColor: palette.picles },
-              ]}
-              accessibilityRole="button"
-              accessibilityState={{ selected: on }}
-            >
-              <Text style={[s.flairText, { color: on ? palette.papel : t.sub }]}>
-                {label}
+              <Text style={s.pin}>📍</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={[s.placeNome, { color: t.ink }]}>
+                  {selected.nome}
+                </Text>
+                <Text style={[s.placeSub, { color: t.sub }]}>
+                  {selected.cnpj}
+                </Text>
+              </View>
+              <Text style={[s.placeTrocar, { color: palette.lambeLambe }]}>
+                trocar
               </Text>
             </Pressable>
-          );
-        })}
-      </View>
-
-      <SectionTitle>
-        {photos.length > 0 ? `fotos · ${photos.length}/${MAX_PHOTOS}` : 'foto (opcional)'}
-      </SectionTitle>
-      {photos.length === 0 ? (
-        <Pressable
-          testID="foto-add"
-          onPress={addPhoto}
-          disabled={uploading || !selected}
-          hitSlop={6}
-          accessibilityRole="button"
-          accessibilityLabel="adicionar foto da galeria"
-          style={[s.photoBox, { borderColor: t.line }]}
-        >
-          <Text style={s.cam}>📷</Text>
-          <Text style={[s.photoText, { color: t.sub }]}>adicionar foto</Text>
-          <Text style={[s.photoSub, { color: t.sub }]}>
-            da sua galeria · 1 foto · sem foto, vira um quote card
-          </Text>
-        </Pressable>
-      ) : (
-        <>
-          <View style={s.shelf}>
-            {photos.map((src, i) => (
-              <View key={i} testID={`foto-thumb-${i}`} style={s.thumb}>
-                <Image
-                  testID={i === 0 ? 'foto-preview' : undefined}
-                  source={src}
-                  style={s.thumbImg}
-                  resizeMode="cover"
-                  accessibilityIgnoresInvertColors
-                />
-                <Pressable
-                  testID={`foto-tirar-${i}`}
-                  onPress={() => removePhoto(i)}
-                  style={s.thumbX}
-                  hitSlop={6}
-                  accessibilityRole="button"
-                  accessibilityLabel={`remover foto ${i + 1}`}
-                >
-                  <Text style={s.thumbXText}>×</Text>
-                </Pressable>
-              </View>
-            ))}
-            {photos.length < MAX_PHOTOS ? (
+          )
+        ) : (
+          <>
+            <TextInput
+              testID="buscar-v2"
+              value={query}
+              onChangeText={setQuery}
+              placeholder="buscar restaurante por nome…"
+              placeholderTextColor={t.sub}
+              autoCapitalize="none"
+              autoCorrect={false}
+              style={[s.input, { backgroundColor: t.quietBg, color: t.ink }]}
+              accessibilityLabel="buscar restaurante"
+            />
+            {results.map((r) => (
               <Pressable
-                testID="foto-add"
-                onPress={addPhoto}
-                disabled={uploading || !selected}
-                style={[s.addTile, { borderColor: t.line }]}
+                key={r.id}
+                testID={`pick-v2-${r.id}`}
+                onPress={() => void choose(r)}
+                style={({ pressed }) => [
+                  s.result,
+                  { borderBottomColor: t.line, opacity: pressed ? 0.6 : 1 },
+                ]}
                 accessibilityRole="button"
-                accessibilityLabel="adicionar outra foto"
               >
-                <Text style={s.cam}>📷</Text>
-                <Text style={[s.photoSub, { color: t.sub }]}>
-                  {`foto ${photos.length + 1}`}
+                <Text style={[s.resultNome, { color: t.ink }]}>{r.nome}</Text>
+                <Text style={[s.resultCnpj, { color: t.sub }]}>{r.id}</Text>
+              </Pressable>
+            ))}
+            {query.trim() !== '' && results.length === 0 ? (
+              <Text style={[s.empty, { color: t.sub }]}>
+                nenhum restaurante com esse nome
+              </Text>
+            ) : null}
+          </>
+        )}
+
+        <View
+          style={[
+            s.noteField,
+            { borderBottomColor: t.line, borderTopColor: t.line },
+          ]}
+        >
+          {/* O rótulo "nota" (centralizado, docs/16) vive dentro do slider. */}
+          <NoteSlider value={note} onChange={setNote} />
+        </View>
+
+        <SectionTitle>o que achou?</SectionTitle>
+        <TextInput
+          testID="legenda"
+          value={caption}
+          onChangeText={setCaption}
+          placeholder="Como foi? Seja direto."
+          placeholderTextColor={t.sub}
+          multiline
+          style={[
+            s.input,
+            s.commentInput,
+            { backgroundColor: t.quietBg, color: t.ink },
+          ]}
+          accessibilityLabel="legenda"
+        />
+
+        <SectionTitle>flair (até 2)</SectionTitle>
+        <View style={s.flairRow}>
+          {FLAIRS.map((label) => {
+            const on = flairs.includes(label);
+            return (
+              <Pressable
+                key={label}
+                testID={flairSlug(label)}
+                onPress={() => toggleFlair(label)}
+                style={[
+                  s.flair,
+                  { borderColor: t.line },
+                  on && {
+                    backgroundColor: palette.picles,
+                    borderColor: palette.picles,
+                  },
+                ]}
+                accessibilityRole="button"
+                accessibilityState={{ selected: on }}
+              >
+                <Text
+                  style={[s.flairText, { color: on ? palette.papel : t.sub }]}
+                >
+                  {label}
                 </Text>
               </Pressable>
-            ) : null}
+            );
+          })}
+        </View>
+
+        <SectionTitle>
+          {photos.length > 0
+            ? `fotos · ${photos.length}/${MAX_PHOTOS}`
+            : 'foto (opcional)'}
+        </SectionTitle>
+        {photos.length === 0 ? (
+          <Pressable
+            testID="foto-add"
+            onPress={addPhoto}
+            disabled={uploading || !selected}
+            hitSlop={6}
+            accessibilityRole="button"
+            accessibilityLabel="adicionar foto da galeria"
+            style={[s.photoBox, { borderColor: t.line }]}
+          >
+            <Text style={s.cam}>📷</Text>
+            <Text style={[s.photoText, { color: t.sub }]}>adicionar foto</Text>
+            <Text style={[s.photoSub, { color: t.sub }]}>
+              da sua galeria · 1 foto · sem foto, vira um quote card
+            </Text>
+          </Pressable>
+        ) : (
+          <>
+            <View style={s.shelf}>
+              {photos.map((src, i) => (
+                <View key={i} testID={`foto-thumb-${i}`} style={s.thumb}>
+                  <Image
+                    testID={i === 0 ? 'foto-preview' : undefined}
+                    source={src}
+                    style={s.thumbImg}
+                    resizeMode="cover"
+                    accessibilityIgnoresInvertColors
+                  />
+                  <Pressable
+                    testID={`foto-tirar-${i}`}
+                    onPress={() => removePhoto(i)}
+                    style={s.thumbX}
+                    hitSlop={6}
+                    accessibilityRole="button"
+                    accessibilityLabel={`remover foto ${i + 1}`}
+                  >
+                    <Text style={s.thumbXText}>×</Text>
+                  </Pressable>
+                </View>
+              ))}
+              {photos.length < MAX_PHOTOS ? (
+                <Pressable
+                  testID="foto-add"
+                  onPress={addPhoto}
+                  disabled={uploading || !selected}
+                  style={[s.addTile, { borderColor: t.line }]}
+                  accessibilityRole="button"
+                  accessibilityLabel="adicionar outra foto"
+                >
+                  <Text style={s.cam}>📷</Text>
+                  <Text style={[s.photoSub, { color: t.sub }]}>
+                    {`foto ${photos.length + 1}`}
+                  </Text>
+                </Pressable>
+              ) : null}
+            </View>
+            <Text style={[s.photoHint, { color: t.sub }]}>
+              foto · vai para a API · × remove
+            </Text>
+          </>
+        )}
+
+        <SectionTitle>preview</SectionTitle>
+        <View
+          testID="preview-v2"
+          style={[s.preview, { backgroundColor: palette.mostarda }]}
+        >
+          <View style={s.previewMeta}>
+            <Text
+              style={[s.previewPlace, { color: palette.berinjela }]}
+              numberOfLines={1}
+            >
+              {selected?.nome ?? 'restaurante'}
+            </Text>
+            <Text style={[s.previewNote, { color: palette.berinjela }]}>
+              {note.toFixed(1)}
+            </Text>
           </View>
-          <Text style={[s.photoHint, { color: t.sub }]}>
-            foto · vai para a API · × remove
-          </Text>
-        </>
-      )}
-
-      <SectionTitle>preview</SectionTitle>
-      <View
-        testID="preview-v2"
-        style={[s.preview, { backgroundColor: palette.mostarda }]}
-      >
-        <View style={s.previewMeta}>
-          <Text style={[s.previewPlace, { color: palette.berinjela }]} numberOfLines={1}>
-            {selected?.nome ?? 'restaurante'}
-          </Text>
-          <Text style={[s.previewNote, { color: palette.berinjela }]}>
-            {note.toFixed(1)}
+          <Text style={[s.previewText, { color: palette.berinjela }]}>
+            “{previewCaption}”
           </Text>
         </View>
-        <Text style={[s.previewText, { color: palette.berinjela }]}>
-          “{previewCaption}”
+        <Text style={[s.previewLabel, { color: t.sub }]}>
+          Esse é o quote card que aparece no feed e no perfil se nenhuma foto
+          for adicionada.
         </Text>
-      </View>
-      <Text style={[s.previewLabel, { color: t.sub }]}>
-        Esse é o quote card que aparece no feed e no perfil se nenhuma foto
-        for adicionada.
-      </Text>
 
-      {error ? (
-        <View testID="compose-v2-erro" style={[s.error, { backgroundColor: t.quietBg }]}>
-          <Text style={[s.errorText, { color: t.sub }]}>
-            {friendlyApiError(error, 'publish')}
-          </Text>
-        </View>
-      ) : null}
-
+        {error ? (
+          <View
+            testID="compose-v2-erro"
+            style={[s.error, { backgroundColor: t.quietBg }]}
+          >
+            <Text style={[s.errorText, { color: t.sub }]}>
+              {friendlyApiError(error, 'publish')}
+            </Text>
+          </View>
+        ) : null}
       </ScrollView>
     </View>
   );
@@ -685,7 +712,12 @@ const s = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.interno,
   },
-  previewPlace: { fontSize: 11, fontFamily: fonts.corpo600, fontWeight: '600', flex: 1 },
+  previewPlace: {
+    fontSize: 11,
+    fontFamily: fonts.corpo600,
+    fontWeight: '600',
+    flex: 1,
+  },
   previewNote: { fontFamily: fonts.display800, fontSize: 15 },
   previewText: {
     fontFamily: fonts.display700,

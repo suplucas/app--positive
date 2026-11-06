@@ -1,10 +1,4 @@
-import {
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Avatar } from '../common/Avatar';
 import { FeedCard } from '../feed/FeedCard';
 import { SectionTitle } from '../common/SectionTitle';
@@ -23,8 +17,10 @@ export function UserProfileScreen({
   onOpenRestaurant: (restaurantId: string) => void;
 }) {
   const t = useTheme();
-  const { profile, reviews, status, following, toggleFollow } =
-    useUserProfile(userId, viewerId);
+  const { profile, reviews, status, following, toggleFollow } = useUserProfile(
+    userId,
+    viewerId,
+  );
 
   if (status === 'loading') {
     return (
@@ -80,7 +76,10 @@ export function UserProfileScreen({
           onPress={() => void toggleFollow()}
           style={[
             s.follow,
-            { backgroundColor: following ? 'transparent' : t.ink, borderColor: t.ink },
+            {
+              backgroundColor: following ? 'transparent' : t.ink,
+              borderColor: t.ink,
+            },
           ]}
           accessibilityRole="button"
           accessibilityState={{ selected: following }}

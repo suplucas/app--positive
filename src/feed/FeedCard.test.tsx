@@ -34,7 +34,9 @@ describe('FeedCard (comentários, docs/12)', () => {
 
   it('sem onComments: sem botão de comentário', () => {
     const { r } = render();
-    expect(r.root.findAllByProps({ testID: 'comentar-card-1' })).toHaveLength(0);
+    expect(r.root.findAllByProps({ testID: 'comentar-card-1' })).toHaveLength(
+      0,
+    );
   });
 });
 
@@ -114,7 +116,9 @@ describe('FeedCard', () => {
 
   it('sem onPress, o card não expõe ação', () => {
     const { r } = render();
-    expect(r.root.findByProps({ testID: 'card-1' }).props.onPress).toBeUndefined();
+    expect(
+      r.root.findByProps({ testID: 'card-1' }).props.onPress,
+    ).toBeUndefined();
   });
 
   it('like chama onLike quando recebido', () => {

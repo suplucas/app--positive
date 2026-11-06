@@ -33,11 +33,16 @@ describe('NoteSlider', () => {
     const r = render({ value: 8 });
     const inteiro = r.root.findByProps({ testID: 'nota-tick-8.0' });
     expect(
-      inteiro.findAll((n) => String(n.type) === 'Text' && n.props.children === 8),
+      inteiro.findAll(
+        (n) => String(n.type) === 'Text' && n.props.children === 8,
+      ),
     ).toHaveLength(1);
     const meia = r.root.findByProps({ testID: 'nota-tick-8.5' });
     expect(
-      meia.findAll((n) => String(n.type) === 'Text' && typeof n.props.children === 'number'),
+      meia.findAll(
+        (n) =>
+          String(n.type) === 'Text' && typeof n.props.children === 'number',
+      ),
     ).toHaveLength(0);
   });
 
@@ -56,31 +61,42 @@ describe('NoteSlider', () => {
       (r.root.findByProps({ testID: id }).props.style as unknown as object[])
         .flat()
         .filter((s) => s && typeof s === 'object') as Record<string, unknown>[];
-    const has = (styles: Record<string, unknown>[], fn: (s: Record<string, unknown>) => boolean) =>
-      styles.some(fn);
+    const has = (
+      styles: Record<string, unknown>[],
+      fn: (s: Record<string, unknown>) => boolean,
+    ) => styles.some(fn);
     const ativo = styleOf('nota-tick-8.0');
     const inativo = styleOf('nota-tick-7.5');
     expect(has(ativo, (s) => s.opacity === 1)).toBe(true);
     expect(has(inativo, (s) => s.opacity === 0.35)).toBe(true);
     // ativo volta à escala 1; inativo fica em 0.85 (mock docs_04)
     expect(
-      has(ativo, (s) => Array.isArray(s.transform) && (s.transform[0] as { scale?: number })?.scale === 1),
+      has(
+        ativo,
+        (s) =>
+          Array.isArray(s.transform) &&
+          (s.transform[0] as { scale?: number })?.scale === 1,
+      ),
     ).toBe(true);
     expect(
-      has(inativo, (s) => Array.isArray(s.transform) && (s.transform[0] as { scale?: number })?.scale === 0.85),
+      has(
+        inativo,
+        (s) =>
+          Array.isArray(s.transform) &&
+          (s.transform[0] as { scale?: number })?.scale === 0.85,
+      ),
     ).toBe(true);
   });
 
   it('trilha de ticks usa layout em linha (flexDirection row) com os 21 ticks como filhos', () => {
     const r = render();
     const track = r.root.findByProps({ testID: 'nota-track' });
-    const style = track.props.style as
-      | object
-      | object[]
-      | undefined;
+    const style = track.props.style as object | object[] | undefined;
     const flat = Array.isArray(style) ? style.flat() : style ? [style] : [];
     expect(
-      flat.some((s) => (s as { flexDirection?: string })?.flexDirection === 'row'),
+      flat.some(
+        (s) => (s as { flexDirection?: string })?.flexDirection === 'row',
+      ),
     ).toBe(true);
     const trackTicks = track.findAll(
       (n) =>

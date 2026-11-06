@@ -23,16 +23,22 @@ function fill(r: ReactTestRenderer) {
 
 describe('RegisterScreen (erro da API vira copy acionável)', () => {
   it('403 mostra "convite inválido"', async () => {
-    const r = render(vi.fn().mockRejectedValue(new ApiError(403, '/auth/register')));
+    const r = render(
+      vi.fn().mockRejectedValue(new ApiError(403, '/auth/register')),
+    );
     fill(r);
     await act(async () => {
       byID(r, 'register-criar').props.onPress();
     });
-    expect(byID(r, 'register-erro').props.children).toMatch(/convite inválido/i);
+    expect(byID(r, 'register-erro').props.children).toMatch(
+      /convite inválido/i,
+    );
   });
 
   it('409 mostra "email ou username já está em uso"', async () => {
-    const r = render(vi.fn().mockRejectedValue(new ApiError(409, '/auth/register')));
+    const r = render(
+      vi.fn().mockRejectedValue(new ApiError(409, '/auth/register')),
+    );
     fill(r);
     await act(async () => {
       byID(r, 'register-criar').props.onPress();
@@ -41,11 +47,15 @@ describe('RegisterScreen (erro da API vira copy acionável)', () => {
   });
 
   it('400 mostra "senha com ao menos 8"', async () => {
-    const r = render(vi.fn().mockRejectedValue(new ApiError(400, '/auth/register')));
+    const r = render(
+      vi.fn().mockRejectedValue(new ApiError(400, '/auth/register')),
+    );
     fill(r);
     await act(async () => {
       byID(r, 'register-criar').props.onPress();
     });
-    expect(byID(r, 'register-erro').props.children).toMatch(/senha com ao menos 8/i);
+    expect(byID(r, 'register-erro').props.children).toMatch(
+      /senha com ao menos 8/i,
+    );
   });
 });

@@ -18,7 +18,12 @@ export function Avatar({
     return (
       <Image
         source={photo}
-        style={{ width: size, height: size, borderRadius: radius, flexShrink: 0 }}
+        style={{
+          width: size,
+          height: size,
+          borderRadius: radius,
+          flexShrink: 0,
+        }}
         resizeMode="cover"
         accessibilityIgnoresInvertColors
       />

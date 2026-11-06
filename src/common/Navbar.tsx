@@ -1,10 +1,4 @@
-import {
-  Animated,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import { fonts, palette, spacing, useTheme } from './theme';
 
 export type Screen = 'feed' | 'busca' | 'mapa' | 'perfil' | 'compose';
@@ -29,12 +23,29 @@ export function Navbar({
         s.bar,
         { backgroundColor: t.bg, borderTopColor: t.line },
         {
-          transform: [{ translateY: navAnim.interpolate({ inputRange: [0, 1], outputRange: [0, 56] }) }],
+          transform: [
+            {
+              translateY: navAnim.interpolate({
+                inputRange: [0, 1],
+                outputRange: [0, 56],
+              }),
+            },
+          ],
         },
       ]}
     >
-      <NavItem label="feed" icon="⌂" active={active === 'feed'} onPress={() => onNavigate('feed')} />
-      <NavItem label="buscar" icon="⌕" active={active === 'busca'} onPress={() => onNavigate('busca')} />
+      <NavItem
+        label="feed"
+        icon="⌂"
+        active={active === 'feed'}
+        onPress={() => onNavigate('feed')}
+      />
+      <NavItem
+        label="buscar"
+        icon="⌕"
+        active={active === 'busca'}
+        onPress={() => onNavigate('busca')}
+      />
       <Pressable
         style={s.addHit}
         onPress={onCompose}
@@ -45,8 +56,18 @@ export function Navbar({
           <Text style={s.addIcon}>+</Text>
         </View>
       </Pressable>
-      <NavItem label="mapa" icon="📍" active={active === 'mapa'} onPress={() => onNavigate('mapa')} />
-      <NavItem label="perfil" icon="●" active={active === 'perfil'} onPress={() => onNavigate('perfil')} />
+      <NavItem
+        label="mapa"
+        icon="📍"
+        active={active === 'mapa'}
+        onPress={() => onNavigate('mapa')}
+      />
+      <NavItem
+        label="perfil"
+        icon="●"
+        active={active === 'perfil'}
+        onPress={() => onNavigate('perfil')}
+      />
     </Animated.View>
   );
 }
@@ -133,5 +154,10 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  addIcon: { color: '#FBF2E4', fontSize: 18, lineHeight: 20, fontFamily: fonts.corpo500 },
+  addIcon: {
+    color: '#FBF2E4',
+    fontSize: 18,
+    lineHeight: 20,
+    fontFamily: fonts.corpo500,
+  },
 });

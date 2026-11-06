@@ -1,9 +1,9 @@
-import { describe, it, expect } from "vitest";
-import { BAIRRO_CENTERS, mapPlaces } from "./mapMock";
-import { palette } from "../common/theme";
+import { describe, it, expect } from 'vitest';
+import { BAIRRO_CENTERS, mapPlaces } from './mapMock';
+import { palette } from '../common/theme';
 
-describe("mapPlaces (docs/16, mapa mock)", () => {
-  it("retorna 4–6 lugares com campos preenchidos", () => {
+describe('mapPlaces (docs/16, mapa mock)', () => {
+  it('retorna 4–6 lugares com campos preenchidos', () => {
     const pins = mapPlaces();
     expect(pins.length).toBeGreaterThanOrEqual(4);
     expect(pins.length).toBeLessThanOrEqual(6);
@@ -17,11 +17,11 @@ describe("mapPlaces (docs/16, mapa mock)", () => {
     }
   });
 
-  it("determinístico: mesmo CNPJ → mesma posição/cor", () => {
+  it('determinístico: mesmo CNPJ → mesma posição/cor', () => {
     expect(mapPlaces()).toEqual(mapPlaces());
   });
 
-  it("posições fracionárias dentro do mapa (sem sair da moldura)", () => {
+  it('posições fracionárias dentro do mapa (sem sair da moldura)', () => {
     for (const p of mapPlaces()) {
       expect(p.x).toBeGreaterThanOrEqual(0.1);
       expect(p.x).toBeLessThanOrEqual(0.9);
@@ -30,7 +30,7 @@ describe("mapPlaces (docs/16, mapa mock)", () => {
     }
   });
 
-  it("coordenadas geográficas determinísticas ao redor do centro (mock)", () => {
+  it('coordenadas geográficas determinísticas ao redor do centro (mock)', () => {
     for (const p of mapPlaces()) {
       expect(p.lat).toBeGreaterThan(-23.62);
       expect(p.lat).toBeLessThan(-23.5);
@@ -39,12 +39,12 @@ describe("mapPlaces (docs/16, mapa mock)", () => {
     }
   });
 
-  it("cor vem da paleta de marca", () => {
+  it('cor vem da paleta de marca', () => {
     const ok = [palette.mostarda, palette.lambeLambe, palette.picles];
     for (const p of mapPlaces()) expect(ok).toContain(p.cor);
   });
 
-  it("cada pin fica perto do centro do seu bairro", () => {
+  it('cada pin fica perto do centro do seu bairro', () => {
     for (const p of mapPlaces()) {
       const centro = BAIRRO_CENTERS[p.bairro];
       expect(centro).toBeTruthy();

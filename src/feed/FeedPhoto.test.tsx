@@ -30,7 +30,9 @@ function scrollPage(r: ReactTestRenderer, page: number) {
   });
 }
 
-function textsOf(inst: ReturnType<ReactTestRenderer['root']['findByProps']>): string[] {
+function textsOf(
+  inst: ReturnType<ReactTestRenderer['root']['findByProps']>,
+): string[] {
   return inst
     .findAll((n) => String(n.type) === 'Text')
     .map((n) =>
@@ -52,15 +54,18 @@ describe('FeedPhoto (comentários, docs/12)', () => {
 
   it('sem onComments: sem botão de comentário', () => {
     const { r } = render();
-    expect(r.root.findAllByProps({ testID: 'comentar-photo-3' })).toHaveLength(0);
+    expect(r.root.findAllByProps({ testID: 'comentar-photo-3' })).toHaveLength(
+      0,
+    );
   });
 });
 
-function styleOf(r: ReactTestRenderer, testID: string): Record<string, unknown>[] {
+function styleOf(
+  r: ReactTestRenderer,
+  testID: string,
+): Record<string, unknown>[] {
   const p = r.root.findByProps({ testID }).props.style as
-    | object
-    | object[]
-    | undefined;
+    object | object[] | undefined;
   const flat = (Array.isArray(p) ? p.flat() : p ? [p] : []) as Record<
     string,
     unknown
@@ -78,7 +83,9 @@ describe('FeedPhoto', () => {
 
   it('mantém testID photo-{id}', () => {
     const { r } = render();
-    expect(r.root.findAllByProps({ testID: 'photo-3' }).length).toBeGreaterThan(0);
+    expect(r.root.findAllByProps({ testID: 'photo-3' }).length).toBeGreaterThan(
+      0,
+    );
   });
 
   it('mostra nota numérica na escala 0-10', () => {
@@ -107,14 +114,16 @@ describe('FeedPhoto', () => {
       const texts = textsOf(frame);
       expect(texts).toContain('caio.garfo');
       expect(texts.some((t) => t.includes('em'))).toBe(true);
-      expect(r.root.findAllByProps({ testID: 'photo-3-scrim' })).toHaveLength(1);
+      expect(r.root.findAllByProps({ testID: 'photo-3-scrim' })).toHaveLength(
+        1,
+      );
     });
 
     it('imagem fica mais alta (480) e a nota vai para o rodapé', () => {
       const { r } = render();
-      expect(
-        styleOf(r, 'photo-3-img').some((s) => s.height === 480),
-      ).toBe(true);
+      expect(styleOf(r, 'photo-3-img').some((s) => s.height === 480)).toBe(
+        true,
+      );
       expect(
         styleOf(r, 'photo-3-note').some((s) => s.bottom !== undefined),
       ).toBe(true);
@@ -132,9 +141,7 @@ describe('FeedPhoto', () => {
 
     it('2 fotos: contador 1/2, 2 dots e as 2 imagens na fila', () => {
       const { r } = render({ photos: [1, 2] });
-      expect(
-        r.root.findAll((n) => String(n.type) === 'Image').length,
-      ).toBe(2);
+      expect(r.root.findAll((n) => String(n.type) === 'Image').length).toBe(2);
       expect(r.root.findByProps({ testID: 'carousel-count-3' })).toBeTruthy();
       expect(
         r.root.findAllByProps({ testID: 'carousel-dot-3-0' }).length +
@@ -152,7 +159,9 @@ describe('FeedPhoto', () => {
 
     it('2 fotos: scrim, linha no topo e nota seguem sobre a foto', () => {
       const { r } = render({ photos: [1, 2] });
-      expect(r.root.findAllByProps({ testID: 'photo-3-scrim' })).toHaveLength(1);
+      expect(r.root.findAllByProps({ testID: 'photo-3-scrim' })).toHaveLength(
+        1,
+      );
       const frame = r.root.findByProps({ testID: 'photo-3-frame' });
       expect(textsOf(frame)).toContain('caio.garfo');
       expect(r.root.findByProps({ testID: 'photo-3-note' })).toBeTruthy();
@@ -167,12 +176,18 @@ describe('FeedPhoto', () => {
     const btn = r.root.findByProps({ testID: 'salvar-3' });
     expect(btn.props.accessibilityState.selected).toBe(false);
     act(() => btn.props.onPress());
-    expect(r.root.findByProps({ testID: 'salvar-3' }).props.accessibilityState.selected).toBe(true);
+    expect(
+      r.root.findByProps({ testID: 'salvar-3' }).props.accessibilityState
+        .selected,
+    ).toBe(true);
     expect(JSON.stringify(r.toJSON())).toContain('salvo');
     act(() => {
       r.root.findByProps({ testID: 'salvar-3' }).props.onPress();
     });
-    expect(r.root.findByProps({ testID: 'salvar-3' }).props.accessibilityState.selected).toBe(false);
+    expect(
+      r.root.findByProps({ testID: 'salvar-3' }).props.accessibilityState
+        .selected,
+    ).toBe(false);
   });
 
   describe('editar/apagar review própria', () => {

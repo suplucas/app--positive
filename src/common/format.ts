@@ -1,23 +1,23 @@
 // Helpers de apresentação: nota na escala 0-10, tempo relativo,
 // cor de avatar por usuário e resolução de nome de restaurante.
-import { restaurantNames } from "../restaurant/restaurantNames";
-import { apiBaseUrl } from "../api/client";
-import { palette } from "./theme";
+import { restaurantNames } from '../restaurant/restaurantNames';
+import { apiBaseUrl } from '../api/client';
+import { palette } from './theme';
 
 // URL de foto vinda da API: absoluta ou relativa ao backend.
 export function resolvePhotoUrl(url: string): string {
   if (/^https?:\/\//i.test(url)) return url;
-  return `${apiBaseUrl()}${url.startsWith("/") ? "" : "/"}${url}`;
+  return `${apiBaseUrl()}${url.startsWith('/') ? '' : '/'}${url}`;
 }
 
 // API guarda rating 0-5; a marca (protótipo/identidade) usa notas 0-10.
 export function getNote(rating: number | null): string {
-  return rating == null ? "—" : (rating * 2).toFixed(1);
+  return rating == null ? '—' : (rating * 2).toFixed(1);
 }
 
 export function formatRelative(iso: string, now: number = Date.now()): string {
   const diff = now - Date.parse(iso);
-  if (!Number.isFinite(diff) || diff < 60_000) return "agora";
+  if (!Number.isFinite(diff) || diff < 60_000) return 'agora';
   const minutes = Math.floor(diff / 60_000);
   if (minutes < 60) return `${minutes}m`;
   const hours = Math.floor(minutes / 60);
@@ -55,17 +55,17 @@ const OFFLINE_PATTERN =
 
 export function friendlyApiError(
   technical: string | null,
-  context: "feed" | "publish" | "profile",
+  context: 'feed' | 'publish' | 'profile',
 ): string {
   if (technical != null && OFFLINE_PATTERN.test(technical)) {
-    return "Sem conexão. Verifique a rede e tente de novo.";
+    return 'Sem conexão. Verifique a rede e tente de novo.';
   }
-  if (context === "profile") {
-    return "Não consegui atualizar o perfil. Tente de novo.";
+  if (context === 'profile') {
+    return 'Não consegui atualizar o perfil. Tente de novo.';
   }
-  return context === "feed"
-    ? "Não consegui carregar o feed."
-    : "Não consegui publicar sua avaliação.";
+  return context === 'feed'
+    ? 'Não consegui carregar o feed.'
+    : 'Não consegui publicar sua avaliação.';
 }
 
 // Busca por nome na tela de composição (fonte: mesmo mapa do seed).

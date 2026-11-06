@@ -38,6 +38,8 @@ describe('EmptyState', () => {
 
   it('sem ação: nenhum botão', () => {
     const { r } = render({ testID: 'feed-vazio' });
-    expect(r.root.findAllByProps({ testID: 'feed-vazio-acao' })).toHaveLength(0);
+    expect(r.root.findAllByProps({ testID: 'feed-vazio-acao' })).toHaveLength(
+      0,
+    );
   });
 });

@@ -1,6 +1,6 @@
-import { restaurantFor } from "../restaurant/restaurantMock";
-import { restaurantNames } from "../restaurant/restaurantNames";
-import { palette } from "../common/theme";
+import { restaurantFor } from '../restaurant/restaurantMock';
+import { restaurantNames } from '../restaurant/restaurantNames';
+import { palette } from '../common/theme';
 
 // Dados do mapa (docs/16). O mapa é real (OSM/CARTO via Leaflet no
 // WebView), mas as coordenadas ainda são mock: derivadas do CNPJ para o
@@ -44,12 +44,12 @@ export const MAP_CENTER = { lat: -23.5614, lng: -46.6559 };
 // do centro do bairro (com jitter determinístico) para o mapa fazer
 // sentido geográfico mesmo sem endereço real.
 export const BAIRRO_CENTERS: Record<string, { lat: number; lng: number }> = {
-  "Vila Madalena": { lat: -23.5545, lng: -46.6905 },
+  'Vila Madalena': { lat: -23.5545, lng: -46.6905 },
   Pinheiros: { lat: -23.5675, lng: -46.7 },
   Moema: { lat: -23.6015, lng: -46.6655 },
   Centro: { lat: -23.5485, lng: -46.636 },
   Sumaré: { lat: -23.5455, lng: -46.68 },
-  "Vila Mariana": { lat: -23.589, lng: -46.634 },
+  'Vila Mariana': { lat: -23.589, lng: -46.634 },
 };
 
 // 5 lugares espalhados pelo mapa do seed (passo fixo → determinístico).

@@ -166,10 +166,11 @@ export function EditProfileForm({
         />
 
         {error ? (
-          <View testID="perfil-erro" style={[s.error, { backgroundColor: t.quietBg }]}>
-            <Text style={[s.errorText, { color: t.sub }]}>
-              {error}
-            </Text>
+          <View
+            testID="perfil-erro"
+            style={[s.error, { backgroundColor: t.quietBg }]}
+          >
+            <Text style={[s.errorText, { color: t.sub }]}>{error}</Text>
           </View>
         ) : null}
       </ScrollView>

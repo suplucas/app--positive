@@ -32,8 +32,12 @@ function allText(r: ReactTestRenderer): string {
 describe('SavedList (docs/16, lista "quero ir")', () => {
   it('lista cada CNPJ salvo com nome e meta', () => {
     const r = render();
-    expect(r.root.findByProps({ testID: `salvo-linha-${CJNPJ_1}` })).toBeTruthy();
-    expect(r.root.findByProps({ testID: `salvo-linha-${CJNPJ_2}` })).toBeTruthy();
+    expect(
+      r.root.findByProps({ testID: `salvo-linha-${CJNPJ_1}` }),
+    ).toBeTruthy();
+    expect(
+      r.root.findByProps({ testID: `salvo-linha-${CJNPJ_2}` }),
+    ).toBeTruthy();
     const text = allText(r);
     expect(text).toContain('BAR DO LECO');
     expect(text).toContain('Kyoto sushi bar');

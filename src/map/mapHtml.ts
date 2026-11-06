@@ -1,18 +1,18 @@
-import { MAP_CENTER, type MapPlace } from "./mapMock";
-import { palette } from "../common/theme";
+import { MAP_CENTER, type MapPlace } from './mapMock';
+import { palette } from '../common/theme';
 
 // HTML do mapa (Leaflet + tiles OSM: MapTiler em produção, OSM padrão
 // como fallback de dev) renderizado no WebView. Função pura de
 // propósito: o layout/teste dos pins não depende do runtime nativo.
 // Toque em pin → postMessage → onMessage no MapScreen.
 
-export type MapThemeMode = "light" | "dark";
+export type MapThemeMode = 'light' | 'dark';
 
 export function jsonForScript(value: unknown): string {
   return JSON.stringify(value)
-    .replace(/</g, "\\u003c")
-    .replace(/\u2028/g, "\\u2028")
-    .replace(/\u2029/g, "\\u2029");
+    .replace(/</g, '\\u003c')
+    .replace(/\u2028/g, '\\u2028')
+    .replace(/\u2029/g, '\\u2029');
 }
 
 export type MapPin = {
@@ -61,31 +61,31 @@ export function buildMapHtml({
   mode: MapThemeMode;
   tileKey?: string;
 }): string {
-  const dark = mode === "dark";
+  const dark = mode === 'dark';
   const useMaptiler = Boolean(tileKey && tileKey.trim());
-  const styleId = dark ? "backdrop-v4-dark" : "backdrop-v4";
+  const styleId = dark ? 'backdrop-v4-dark' : 'backdrop-v4';
   const key = tileKey?.trim();
   // Produção: MapTiler (OSM). Sem key, OSM padrão só para dev — a
   // política do OSM não cobre uso comercial/pesado.
   const tileUrl = useMaptiler
     ? `https://api.maptiler.com/maps/${styleId}/256/{z}/{x}/{y}.png?key=${encodeURIComponent(key!)}`
-    : "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
+    : 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
   const attribution = useMaptiler
     ? '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://www.maptiler.com/copyright/">MapTiler</a>'
     : '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
-  const bg = dark ? "#121212" : palette.papel;
-  const ink = dark ? "#F2F0EF" : palette.berinjela;
-  const sub = dark ? "rgba(242,240,239,0.55)" : "rgba(36,26,34,0.58)";
-  const line = dark ? "rgba(242,240,239,0.12)" : "rgba(36,26,34,0.12)";
-  const attributionBg = dark ? "rgba(18,18,18,0.90)" : "rgba(251,242,228,0.94)";
+  const bg = dark ? '#121212' : palette.papel;
+  const ink = dark ? '#F2F0EF' : palette.berinjela;
+  const sub = dark ? 'rgba(242,240,239,0.55)' : 'rgba(36,26,34,0.58)';
+  const line = dark ? 'rgba(242,240,239,0.12)' : 'rgba(36,26,34,0.12)';
+  const attributionBg = dark ? 'rgba(18,18,18,0.90)' : 'rgba(251,242,228,0.94)';
   // Cartografia quieta: no claro, puxa para o papel; no escuro, só
   // reduz o contraste dos tiles escuros. Sem key (OSM claro), o modo
   // escuro inverte os tiles para não estourar a tela.
   const tileFilter = dark
     ? useMaptiler
-      ? "saturate(0.8) brightness(0.95)"
-      : "invert(1) hue-rotate(180deg) brightness(0.85) saturate(0.65)"
-    : "sepia(0.22) saturate(0.72) brightness(1.03) contrast(0.96)";
+      ? 'saturate(0.8) brightness(0.95)'
+      : 'invert(1) hue-rotate(180deg) brightness(0.85) saturate(0.65)'
+    : 'sepia(0.22) saturate(0.72) brightness(1.03) contrast(0.96)';
 
   return `<!DOCTYPE html>
 <html lang="pt-BR">

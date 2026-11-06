@@ -1,5 +1,5 @@
-import type { Review } from "../common/types";
-import { restaurantNames } from "./restaurantNames";
+import type { Review } from '../common/types';
+import { restaurantNames } from './restaurantNames';
 
 // Dados da página do restaurante (mock docs_05). A API ainda não tem
 // endpoint de restaurante — stats, flairs agregados e reviews são gerados
@@ -33,43 +33,43 @@ function hash(s: string): number {
   return h >>> 0;
 }
 
-const CATEGORIAS = ["boteco", "brasil", "massa", "japonesa", "café", "sorvete"];
+const CATEGORIAS = ['boteco', 'brasil', 'massa', 'japonesa', 'café', 'sorvete'];
 const BAIRROS = [
-  "Vila Madalena",
-  "Pinheiros",
-  "Moema",
-  "Centro",
-  "Sumaré",
-  "Vila Mariana",
+  'Vila Madalena',
+  'Pinheiros',
+  'Moema',
+  'Centro',
+  'Sumaré',
+  'Vila Mariana',
 ];
-const PRECOS = ["$$", "$", "$$$"];
-const CAPAS = ["#C98A3F", "#8A3550", "#5A6B3A", "#3E5C78"];
+const PRECOS = ['$$', '$', '$$$'];
+const CAPAS = ['#C98A3F', '#8A3550', '#5A6B3A', '#3E5C78'];
 const FLAIR_LABELS = [
-  "volto sim",
-  "boa pra ir só",
-  "fila vale a pena",
-  "achado",
-  "prato pequeno",
+  'volto sim',
+  'boa pra ir só',
+  'fila vale a pena',
+  'achado',
+  'prato pequeno',
 ];
 const USERS = [
-  "renatocritico",
-  "juu.talher",
-  "bea_come_tudo",
-  "caio.garfo",
-  "isa.mastiga",
-  "bruce",
-  "maria_fome",
-  "lucas.comida",
+  'renatocritico',
+  'juu.talher',
+  'bea_come_tudo',
+  'caio.garfo',
+  'isa.mastiga',
+  'bruce',
+  'maria_fome',
+  'lucas.comida',
 ];
 const COMMENTS = [
-  "Atendimento rápido mesmo lotado, raro pra um lugar desse tamanho.",
-  "Voltei uma segunda vez só pra testar outro prato — não decepciona.",
-  "Pedi o mesmo prato três vezes só pra confirmar que não foi acidente.",
-  "Fila longa, mas o balcão serve rápido. Voltaria.",
-  "Sabor acima da média, porção abaixo do prometido.",
-  "Ambiente simples, mas come-se muito bem aqui.",
-  "Levei visita de fora e saiu elogiando até na volta.",
-  "Preço justo pro cardápio que dão.",
+  'Atendimento rápido mesmo lotado, raro pra um lugar desse tamanho.',
+  'Voltei uma segunda vez só pra testar outro prato — não decepciona.',
+  'Pedi o mesmo prato três vezes só pra confirmar que não foi acidente.',
+  'Fila longa, mas o balcão serve rápido. Voltaria.',
+  'Sabor acima da média, porção abaixo do prometido.',
+  'Ambiente simples, mas come-se muito bem aqui.',
+  'Levei visita de fora e saiu elogiando até na volta.',
+  'Preço justo pro cardápio que dão.',
 ];
 
 export function restaurantFor(cnpj: string): RestaurantData {

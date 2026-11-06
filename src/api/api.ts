@@ -1,5 +1,5 @@
-import { apiBaseUrl, apiFetch } from "./client";
-import type { FeedResponse, Review } from "../common/types";
+import { apiBaseUrl, apiFetch } from './client';
+import type { FeedResponse, Review } from '../common/types';
 
 export async function getFeed(
   userId: string,
@@ -12,11 +12,11 @@ export async function getFeed(
     { userId, baseUrl },
   );
   if (
-    typeof data !== "object" ||
+    typeof data !== 'object' ||
     data === null ||
     !Array.isArray(data.results)
   ) {
-    throw new Error("GET /feed: invalid payload");
+    throw new Error('GET /feed: invalid payload');
   }
   return data;
 }
@@ -35,14 +35,14 @@ export async function postReview(
   review: NewReview,
   baseUrl?: string,
 ): Promise<Review> {
-  const data = await apiFetch<Review>("/reviews", {
-    method: "POST",
+  const data = await apiFetch<Review>('/reviews', {
+    method: 'POST',
     userId,
     baseUrl,
     body: review,
   });
-  if (typeof data !== "object" || data === null || data.id === undefined) {
-    throw new Error("POST /reviews: invalid payload");
+  if (typeof data !== 'object' || data === null || data.id === undefined) {
+    throw new Error('POST /reviews: invalid payload');
   }
   return data;
 }
@@ -63,13 +63,13 @@ export async function updateReview(
   baseUrl?: string,
 ): Promise<Review> {
   const data = await apiFetch<Review>(`/reviews/${id}`, {
-    method: "PUT",
+    method: 'PUT',
     userId,
     baseUrl,
     body: review,
   });
-  if (typeof data !== "object" || data === null || data.id === undefined) {
-    throw new Error("PUT /reviews/:id: invalid payload");
+  if (typeof data !== 'object' || data === null || data.id === undefined) {
+    throw new Error('PUT /reviews/:id: invalid payload');
   }
   return data;
 }
@@ -80,7 +80,7 @@ export async function deleteReview(
   baseUrl?: string,
 ): Promise<void> {
   await apiFetch<void>(`/reviews/${id}`, {
-    method: "DELETE",
+    method: 'DELETE',
     userId,
     baseUrl,
   });
@@ -93,7 +93,7 @@ export async function likeReview(
   baseUrl?: string,
 ): Promise<{ id: number; likes: number }> {
   return apiFetch<{ id: number; likes: number }>(`/reviews/${id}/like`, {
-    method: "POST",
+    method: 'POST',
     userId,
     baseUrl,
   });

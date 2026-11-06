@@ -163,7 +163,17 @@ const s = StyleSheet.create({
     justifyContent: 'space-between',
     gap: spacing.interno,
   },
-  place: { fontSize: 11.5, fontFamily: fonts.corpo600, fontWeight: '600', flexShrink: 1 },
+  place: {
+    fontSize: 11.5,
+    fontFamily: fonts.corpo600,
+    fontWeight: '600',
+    flexShrink: 1,
+  },
   metaRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  actions: { fontSize: 11.5, fontFamily: fonts.corpo600, fontWeight: '600', opacity: 0.85 },
+  actions: {
+    fontSize: 11.5,
+    fontFamily: fonts.corpo600,
+    fontWeight: '600',
+    opacity: 0.85,
+  },
 });

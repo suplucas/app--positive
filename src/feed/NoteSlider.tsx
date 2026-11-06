@@ -39,9 +39,7 @@ export function NoteSlider({
 
   // docs/16: o valor grande acompanha o scroll ao vivo (como no mock),
   // não só no fim do momentum. Só dispara quando a página muda.
-  const onScroll = (e: {
-    nativeEvent: { contentOffset: { x: number } };
-  }) => {
+  const onScroll = (e: { nativeEvent: { contentOffset: { x: number } } }) => {
     const idx = Math.round((e.nativeEvent.contentOffset.x - pad) / TICK_W);
     const v = clamp(idx * 0.5);
     if (v !== value) onChange(v);
@@ -108,11 +106,17 @@ export function NoteSlider({
                 >
                   <View style={s.numSlot}>
                     {major ? (
-                      <Text style={[s.num, { color: t.ink }]}>{Math.round(v)}</Text>
+                      <Text style={[s.num, { color: t.ink }]}>
+                        {Math.round(v)}
+                      </Text>
                     ) : null}
                   </View>
                   <View
-                    style={[s.line, major && s.lineMajor, { backgroundColor: t.ink }]}
+                    style={[
+                      s.line,
+                      major && s.lineMajor,
+                      { backgroundColor: t.ink },
+                    ]}
                   />
                 </Pressable>
               );

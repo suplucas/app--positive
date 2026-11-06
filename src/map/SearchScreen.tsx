@@ -74,8 +74,11 @@ export function SearchScreen({
     };
   }, [query, placesOnly]);
 
-  const hasResults = result != null &&
-    (result.places.length > 0 || result.reviews.length > 0 || result.users.length > 0);
+  const hasResults =
+    result != null &&
+    (result.places.length > 0 ||
+      result.reviews.length > 0 ||
+      result.users.length > 0);
 
   return (
     <ScrollView
@@ -100,8 +103,8 @@ export function SearchScreen({
           onChangeText={setQuery}
           placeholder={
             placesOnly
-              ? "Escolha um restaurante…"
-              : "Buscar restaurantes, avaliações, pessoas…"
+              ? 'Escolha um restaurante…'
+              : 'Buscar restaurantes, avaliações, pessoas…'
           }
           placeholderTextColor={t.sub}
           autoCapitalize="none"
@@ -132,10 +135,7 @@ export function SearchScreen({
               hitSlop={8}
               accessibilityRole="button"
               accessibilityLabel="voltar"
-              style={[
-                s.retry,
-                { backgroundColor: palette.lambeLambe },
-              ]}
+              style={[s.retry, { backgroundColor: palette.lambeLambe }]}
             >
               <Text style={s.retryText}>voltar</Text>
             </Pressable>
@@ -171,7 +171,9 @@ export function SearchScreen({
                   accessibilityRole="button"
                   accessibilityLabel={`abrir ${hit.nome}`}
                 >
-                  <View style={[s.thumb, { backgroundColor: palette.picles }]} />
+                  <View
+                    style={[s.thumb, { backgroundColor: palette.picles }]}
+                  />
                   <View style={s.rowBody}>
                     <Text style={[s.name, { color: t.ink }]} numberOfLines={1}>
                       {hit.nome}
@@ -208,13 +210,18 @@ export function SearchScreen({
                   accessibilityRole="button"
                   accessibilityLabel={`abrir avaliação ${review.id}`}
                 >
-                  <View style={[s.thumb, { backgroundColor: palette.berinjela }]} />
+                  <View
+                    style={[s.thumb, { backgroundColor: palette.berinjela }]}
+                  />
                   <View style={s.rowBody}>
                     <Text style={[s.name, { color: t.ink }]} numberOfLines={1}>
                       {review.comment ?? 'sem comentário'}
                     </Text>
                     <Text style={[s.meta, { color: t.sub }]} numberOfLines={1}>
-                      nota {review.rating != null ? (review.rating * 2).toFixed(1) : '—'}
+                      nota{' '}
+                      {review.rating != null
+                        ? (review.rating * 2).toFixed(1)
+                        : '—'}
                     </Text>
                   </View>
                   <Text style={[s.note, { color: t.ink }]}>{review.likes}</Text>
@@ -241,12 +248,20 @@ export function SearchScreen({
                     accessibilityRole="button"
                     accessibilityLabel={`abrir perfil ${user.name}`}
                   >
-                    <View style={[s.thumb, { backgroundColor: palette.lambeLambe }]} />
+                    <View
+                      style={[s.thumb, { backgroundColor: palette.lambeLambe }]}
+                    />
                     <View style={s.rowBody}>
-                      <Text style={[s.name, { color: t.ink }]} numberOfLines={1}>
+                      <Text
+                        style={[s.name, { color: t.ink }]}
+                        numberOfLines={1}
+                      >
                         {user.name}
                       </Text>
-                      <Text style={[s.meta, { color: t.sub }]} numberOfLines={1}>
+                      <Text
+                        style={[s.meta, { color: t.sub }]}
+                        numberOfLines={1}
+                      >
                         {handle}
                       </Text>
                     </View>

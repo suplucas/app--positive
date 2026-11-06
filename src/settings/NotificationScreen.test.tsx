@@ -2,10 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { act, create, ReactTestRenderer } from 'react-test-renderer';
 import { createElement } from 'react';
 import { NotificationScreen } from './NotificationScreen';
-import {
-  getNotifications,
-  markNotificationRead,
-} from '../api/comment';
+import { getNotifications, markNotificationRead } from '../api/comment';
 
 vi.mock('../api/comment', () => ({
   getNotifications: vi.fn(),

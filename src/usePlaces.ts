@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useState } from "react";
-import { getPlaces, type PlacePin } from "./api/place";
+import { useCallback, useEffect, useState } from 'react';
+import { getPlaces, type PlacePin } from './api/place';
 
-export type PlacesStatus = "loading" | "idle" | "error";
+export type PlacesStatus = 'loading' | 'idle' | 'error';
 
 export type Bbox = {
   minLng: number;
@@ -21,21 +21,21 @@ export const DEFAULT_BBOX: Bbox = {
 
 export function usePlaces(bbox: Bbox = DEFAULT_BBOX) {
   const [pins, setPins] = useState<PlacePin[]>([]);
-  const [status, setStatus] = useState<PlacesStatus>("loading");
+  const [status, setStatus] = useState<PlacesStatus>('loading');
   const [error, setError] = useState<string | null>(null);
   const { minLng, minLat, maxLng, maxLat } = bbox;
 
   const load = useCallback(async () => {
-    setStatus("loading");
+    setStatus('loading');
     setError(null);
     try {
       const results = await getPlaces({ minLng, minLat, maxLng, maxLat });
       setPins(results);
-      setStatus("idle");
+      setStatus('idle');
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
       setPins([]);
-      setStatus("error");
+      setStatus('error');
     }
   }, [minLng, minLat, maxLng, maxLat]);
 

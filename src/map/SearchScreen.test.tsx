@@ -37,9 +37,7 @@ const usuario = {
   stats: { reviews: 3, followers: 10, following: 5, notaMedia: 8.5 },
 };
 
-async function render(
-  props: Partial<Parameters<typeof SearchScreen>[0]> = {},
-) {
+async function render(props: Partial<Parameters<typeof SearchScreen>[0]> = {}) {
   const onOpenRestaurant = props.onOpenRestaurant ?? vi.fn();
   const onOpenReview = props.onOpenReview ?? vi.fn();
   const onOpenProfile = props.onOpenProfile ?? vi.fn();
@@ -138,7 +136,9 @@ describe('SearchScreen (busca global: lugares, avaliações, pessoas)', () => {
     input(r, 'kyoto');
     await flush();
     act(() => {
-      r.root.findByProps({ testID: `busca-review-${review.id}` }).props.onPress();
+      r.root
+        .findByProps({ testID: `busca-review-${review.id}` })
+        .props.onPress();
     });
     expect(onOpenReview).toHaveBeenCalledWith(review.id);
   });
@@ -148,7 +148,9 @@ describe('SearchScreen (busca global: lugares, avaliações, pessoas)', () => {
     input(r, 'kyoto');
     await flush();
     act(() => {
-      r.root.findByProps({ testID: `busca-pessoa-${usuario.id}` }).props.onPress();
+      r.root
+        .findByProps({ testID: `busca-pessoa-${usuario.id}` })
+        .props.onPress();
     });
     expect(onOpenProfile).toHaveBeenCalledWith(usuario.id);
   });

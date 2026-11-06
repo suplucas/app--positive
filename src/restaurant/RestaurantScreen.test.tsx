@@ -74,9 +74,9 @@ describe('RestaurantScreen (docs_05)', () => {
   it('interpola um quote card entre as linhas (componente do feed)', () => {
     const r = render();
     const quote = data.reviews[1]!;
-    expect(
-      r.root.findAllByProps({ testID: `quote-${quote.id}` }),
-    ).toHaveLength(1);
+    expect(r.root.findAllByProps({ testID: `quote-${quote.id}` })).toHaveLength(
+      1,
+    );
   });
 
   it('quero ir sem estado salvo: inativo, chama onSaveToggle', () => {
@@ -96,9 +96,9 @@ describe('RestaurantScreen (docs_05)', () => {
 
   it('flairs agregados: 1º é forte, resto quieto', () => {
     const r = render();
-    expect(
-      r.root.findAllByProps({ testID: 'flair-chip-forte' }),
-    ).toHaveLength(1);
+    expect(r.root.findAllByProps({ testID: 'flair-chip-forte' })).toHaveLength(
+      1,
+    );
     expect(texts(r, 'flair-chip-forte')).toContain(data.flairs[0]!.label);
   });
 

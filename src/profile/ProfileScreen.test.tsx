@@ -120,18 +120,22 @@ describe('ProfileScreen (v2)', () => {
   it('não tem aba listas (sem endpoint real)', () => {
     const { r } = render();
     expect(r.root.findAllByProps({ testID: 'tab-listas' })).toHaveLength(0);
-    expect(r.root.findAllByProps({ testID: 'tab-quero-ir' }).length).toBeGreaterThan(0);
-    expect(r.root.findAllByProps({ testID: 'tab-diario' }).length).toBeGreaterThan(0);
+    expect(
+      r.root.findAllByProps({ testID: 'tab-quero-ir' }).length,
+    ).toBeGreaterThan(0);
+    expect(
+      r.root.findAllByProps({ testID: 'tab-diario' }).length,
+    ).toBeGreaterThan(0);
   });
 
   it('não tem seletor de versão e mantém as abas', () => {
     const { r } = render();
     expect(r.root.findAllByProps({ testID: 'perfil-v1' })).toHaveLength(0);
     expect(r.root.findAllByProps({ testID: 'perfil-v2' })).toHaveLength(0);
+    expect(r.root.findAllByProps({ testID: 'tab-listas' }).length).toBe(0);
     expect(
-      r.root.findAllByProps({ testID: 'tab-listas' }).length,
-    ).toBe(0);
-    expect(r.root.findAllByProps({ testID: 'tab-diario' }).length).toBeGreaterThan(0);
+      r.root.findAllByProps({ testID: 'tab-diario' }).length,
+    ).toBeGreaterThan(0);
   });
 
   it('bio fica dentro do bloco do username, abaixo do handle', () => {

@@ -85,7 +85,12 @@ export function RestaurantProfileTemplate({
 
       <View style={[s.stats, { borderBottomColor: t.line }]}>
         <Stat n={nota} l="nota média" ink={t.ink} sub={t.sub} />
-        <Stat n={String(data.totalAvaliacoes)} l="avaliações" ink={t.ink} sub={t.sub} />
+        <Stat
+          n={String(data.totalAvaliacoes)}
+          l="avaliações"
+          ink={t.ink}
+          sub={t.sub}
+        />
         <Stat n={String(data.queroIr)} l="quero ir" ink={t.ink} sub={t.sub} />
       </View>
 
@@ -110,9 +115,7 @@ export function RestaurantProfileTemplate({
           accessibilityRole="button"
           accessibilityState={{ selected: saved }}
         >
-          <Text
-            style={[s.btnText, { color: saved ? t.bg : t.ink }]}
-          >
+          <Text style={[s.btnText, { color: saved ? t.bg : t.ink }]}>
             {saved ? '★ salvo' : '☆ quero ir'}
           </Text>
         </Pressable>
@@ -192,15 +195,25 @@ export function RestaurantProfileTemplate({
       </View>
 
       <Text style={[s.legend, { color: t.sub }]}>
-        A página reaproveita os componentes do feed (linha compacta, quote
-        card) e soma os flairs de todo mundo numa prévia única — sem ler
-        200 reviews p/ entender o consenso.
+        A página reaproveita os componentes do feed (linha compacta, quote card)
+        e soma os flairs de todo mundo numa prévia única — sem ler 200 reviews
+        p/ entender o consenso.
       </Text>
     </ScrollView>
   );
 }
 
-function Stat({ n, l, ink, sub }: { n: string; l: string; ink: string; sub: string }) {
+function Stat({
+  n,
+  l,
+  ink,
+  sub,
+}: {
+  n: string;
+  l: string;
+  ink: string;
+  sub: string;
+}) {
   return (
     <View style={s.stat}>
       <Text style={[s.statN, { color: ink }]}>{n}</Text>
@@ -254,7 +267,11 @@ const s = StyleSheet.create({
   stat: { flex: 1, alignItems: 'center' },
   statN: { fontFamily: fonts.display800, fontSize: 17 },
   statL: { fontSize: 11, marginTop: 1 },
-  actions: { flexDirection: 'row', gap: spacing.interno, padding: spacing.padrao },
+  actions: {
+    flexDirection: 'row',
+    gap: spacing.interno,
+    padding: spacing.padrao,
+  },
   btn: {
     flex: 1,
     borderRadius: 14,

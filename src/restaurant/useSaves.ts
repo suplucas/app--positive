@@ -1,27 +1,27 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from 'react';
 import {
   addSave,
   getSaves,
   removeSave,
   type SavedRestaurant,
-} from "../api/user";
+} from '../api/user';
 
-export type SavesStatus = "loading" | "idle" | "error";
+export type SavesStatus = 'loading' | 'idle' | 'error';
 
 export function useSaves(userId: string) {
   const [items, setItems] = useState<SavedRestaurant[]>([]);
-  const [status, setStatus] = useState<SavesStatus>("loading");
+  const [status, setStatus] = useState<SavesStatus>('loading');
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    setStatus("loading");
+    setStatus('loading');
     setError(null);
     try {
       setItems(await getSaves(userId));
-      setStatus("idle");
+      setStatus('idle');
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
-      setStatus("error");
+      setStatus('error');
     }
   }, [userId]);
 

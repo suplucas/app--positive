@@ -40,13 +40,16 @@ export class ErrorBoundary extends Component<
           Ops, algo quebrou aqui.
         </Text>
         <Text style={[s.sub, { color: palette.berinjela, opacity: 0.7 }]}>
-          Nada do que você fez se perdeu. Tente de novo — se persistir,
-          sai e reabre o app.
+          Nada do que você fez se perdeu. Tente de novo — se persistir, sai e
+          reabre o app.
         </Text>
         <Pressable
           testID="erro-boundary-retry"
           onPress={() =>
-            this.setState((prev) => ({ failed: false, resetKey: prev.resetKey + 1 }))
+            this.setState((prev) => ({
+              failed: false,
+              resetKey: prev.resetKey + 1,
+            }))
           }
           style={[s.btn, { backgroundColor: palette.lambeLambe }]}
           accessibilityRole="button"

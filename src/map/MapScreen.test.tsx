@@ -79,8 +79,10 @@ function loadEnd(r: ReactTestRenderer) {
   });
 }
 
-const setPinsCalls = () => injected.filter((js) => js.includes('window.setPins'));
-const fitCalls = () => injected.filter((js) => js.includes('window.fitToBounds'));
+const setPinsCalls = () =>
+  injected.filter((js) => js.includes('window.setPins'));
+const fitCalls = () =>
+  injected.filter((js) => js.includes('window.fitToBounds'));
 const lastSetPins = () => setPinsCalls().at(-1) ?? '';
 
 function allText(r: ReactTestRenderer): string {
@@ -208,10 +210,7 @@ describe('MapScreen (mapa OSM/Leaflet)', () => {
 
   it('ponte: pin tocado abre a página do restaurante', async () => {
     const { r, onOpenRestaurant } = await render();
-    receive(
-      r,
-      JSON.stringify({ type: 'open-restaurant', cnpj: '1' }),
-    );
+    receive(r, JSON.stringify({ type: 'open-restaurant', cnpj: '1' }));
     expect(onOpenRestaurant).toHaveBeenCalledWith('1');
   });
 
@@ -246,9 +245,9 @@ describe('MapScreen (mapa OSM/Leaflet)', () => {
     const { r } = await render();
     const shouldLoad = webview(r).props.onShouldStartLoadWithRequest;
     expect(shouldLoad({ url: 'about:blank' })).toBe(true);
-    expect(
-      shouldLoad({ url: 'https://www.openstreetmap.org/copyright' }),
-    ).toBe(false);
+    expect(shouldLoad({ url: 'https://www.openstreetmap.org/copyright' })).toBe(
+      false,
+    );
   });
 
   it('bounds do mapa refazem o GET com a bbox, após o debounce', async () => {

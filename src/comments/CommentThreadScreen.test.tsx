@@ -15,7 +15,8 @@ const review: Review = {
   userId: 'bea_come_tudo',
   restaurantId: '09597505000150',
   rating: 4.55,
-  comment: 'Pedi o mesmo prato três vezes só pra confirmar que não foi acidente.',
+  comment:
+    'Pedi o mesmo prato três vezes só pra confirmar que não foi acidente.',
   likes: 128,
   createdAt: new Date(Date.now() - 3 * 3_600_000).toISOString(),
 };
@@ -115,9 +116,9 @@ describe('CommentThreadScreen (docs/12)', () => {
     );
     expect(commentCount(r)).toBe(comments.length + 1);
     expect(allText(r)).toContain('passaria lá semana que vem!');
-    expect(
-      r.root.findByProps({ testID: 'comentario-novo' }).props.value,
-    ).toBe('');
+    expect(r.root.findByProps({ testID: 'comentario-novo' }).props.value).toBe(
+      '',
+    );
   });
 
   it('input vazio: botão desabilitado', async () => {

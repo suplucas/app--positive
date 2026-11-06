@@ -1,23 +1,23 @@
-import { useCallback, useEffect, useState } from "react";
-import * as SecureStore from "expo-secure-store";
-import { login, me, register, type AuthUser } from "../api/auth";
-import { setAuthToken } from "../api/client";
+import { useCallback, useEffect, useState } from 'react';
+import * as SecureStore from 'expo-secure-store';
+import { login, me, register, type AuthUser } from '../api/auth';
+import { setAuthToken } from '../api/client';
 
-const TOKEN_KEY = "tim.token";
+const TOKEN_KEY = 'tim.token';
 
-export type SessionStatus = "loading" | "ready" | "signed-out";
+export type SessionStatus = 'loading' | 'ready' | 'signed-out';
 
 export function useSession() {
   const [token, setToken] = useState<string | null>(null);
   const [user, setUser] = useState<AuthUser | null>(null);
-  const [status, setStatus] = useState<SessionStatus>("loading");
+  const [status, setStatus] = useState<SessionStatus>('loading');
 
   useEffect(() => {
     let active = true;
     (async () => {
       const stored = await SecureStore.getItemAsync(TOKEN_KEY);
       if (!stored) {
-        if (active) setStatus("signed-out");
+        if (active) setStatus('signed-out');
         return;
       }
       setAuthToken(stored);
@@ -26,11 +26,11 @@ export function useSession() {
         if (!active) return;
         setToken(stored);
         setUser(profile);
-        setStatus("ready");
+        setStatus('ready');
       } catch {
         setAuthToken(null);
         await SecureStore.deleteItemAsync(TOKEN_KEY);
-        if (active) setStatus("signed-out");
+        if (active) setStatus('signed-out');
       }
     })();
     return () => {
@@ -44,7 +44,7 @@ export function useSession() {
       await SecureStore.setItemAsync(TOKEN_KEY, result.token);
       setToken(result.token);
       setUser(result.user);
-      setStatus("ready");
+      setStatus('ready');
     },
     [],
   );
@@ -74,7 +74,7 @@ export function useSession() {
     await SecureStore.deleteItemAsync(TOKEN_KEY);
     setToken(null);
     setUser(null);
-    setStatus("signed-out");
+    setStatus('signed-out');
   }, []);
 
   return { token, user, status, signIn, signUp, signOut };

@@ -1,24 +1,24 @@
-import { useCallback, useEffect, useState } from "react";
-import { getNotifications, markNotificationRead } from "../api/comment";
-import type { AppNotification } from "../api/types";
+import { useCallback, useEffect, useState } from 'react';
+import { getNotifications, markNotificationRead } from '../api/comment';
+import type { AppNotification } from '../api/types';
 
-export type NotificationsStatus = "loading" | "idle" | "error";
+export type NotificationsStatus = 'loading' | 'idle' | 'error';
 
 export function useNotifications(userId: string) {
   const [items, setItems] = useState<AppNotification[]>([]);
-  const [status, setStatus] = useState<NotificationsStatus>("loading");
+  const [status, setStatus] = useState<NotificationsStatus>('loading');
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    setStatus("loading");
+    setStatus('loading');
     setError(null);
     try {
       const page = await getNotifications(userId);
       setItems(page.results);
-      setStatus("idle");
+      setStatus('idle');
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
-      setStatus("error");
+      setStatus('error');
     }
   }, [userId]);
 

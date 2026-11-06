@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { getPlaces, type PlacePin } from "../api/place";
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { getPlaces, type PlacePin } from '../api/place';
 
-export type PlacesStatus = "loading" | "idle" | "error";
+export type PlacesStatus = 'loading' | 'idle' | 'error';
 
 export type Bbox = {
   minLng: number;
@@ -21,7 +21,7 @@ export const DEFAULT_BBOX: Bbox = {
 
 export function usePlaces(bbox: Bbox = DEFAULT_BBOX) {
   const [pins, setPins] = useState<PlacePin[]>([]);
-  const [status, setStatus] = useState<PlacesStatus>("loading");
+  const [status, setStatus] = useState<PlacesStatus>('loading');
   const [error, setError] = useState<string | null>(null);
   const { minLng, minLat, maxLng, maxLat } = bbox;
   // Cada carregamento ganha um id; uma resposta de bbox antiga que
@@ -30,20 +30,20 @@ export function usePlaces(bbox: Bbox = DEFAULT_BBOX) {
 
   const load = useCallback(async () => {
     const id = ++requestId.current;
-    setStatus("loading");
+    setStatus('loading');
     setError(null);
     try {
       const results = await getPlaces({ minLng, minLat, maxLng, maxLat });
       // Resolução obsoleta: outra bbox já foi pedida depois desta.
       if (id !== requestId.current) return;
       setPins(results);
-      setStatus("idle");
+      setStatus('idle');
     } catch (e) {
       if (id !== requestId.current) return;
       setError(e instanceof Error ? e.message : String(e));
       // Mantém os pins anteriores: a última área carregada continua no
       // mapa enquanto a nova tentativa falha (só o status muda).
-      setStatus("error");
+      setStatus('error');
     }
   }, [minLng, minLat, maxLng, maxLat]);
 

@@ -33,7 +33,9 @@ const data: RestaurantData = {
   ],
 };
 
-function render(props: Partial<Parameters<typeof RestaurantProfileTemplate>[0]> = {}) {
+function render(
+  props: Partial<Parameters<typeof RestaurantProfileTemplate>[0]> = {},
+) {
   const onBack = props.onBack ?? vi.fn();
   const onEvaluate = props.onEvaluate ?? vi.fn();
   const r = create(

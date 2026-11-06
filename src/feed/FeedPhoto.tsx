@@ -95,20 +95,13 @@ export function FeedPhoto({
       >
         <Avatar userId={review.userId} size={30} />
       </Pressable>
-      <Text style={[s.uname, { color: palette.papel }]}>
-        {review.userId}
-      </Text>
+      <Text style={[s.uname, { color: palette.papel }]}>{review.userId}</Text>
       {nome ? (
         <Text
           style={[s.place, { color: 'rgba(242,240,239,0.75)' }]}
           numberOfLines={1}
         >
-          em{' '}
-          <Text
-            style={[s.placeName, { color: palette.papel }]}
-          >
-            {nome}
-          </Text>
+          em <Text style={[s.placeName, { color: palette.papel }]}>{nome}</Text>
         </Text>
       ) : null}
       <Text style={[s.time, { color: 'rgba(242,240,239,0.75)' }]}>
@@ -123,17 +116,11 @@ export function FeedPhoto({
         {media}
         <View testID={`photo-${review.id}-scrim`} style={s.scrim} />
         <View style={s.topOverlay}>{meta}</View>
-        <View
-          testID={`photo-${review.id}-note`}
-          style={s.noteBottom}
-        >
+        <View testID={`photo-${review.id}-note`} style={s.noteBottom}>
           <Text style={s.noteText}>{getNote(review.rating)}</Text>
         </View>
         {multi ? (
-          <View
-            testID={`carousel-dots-${review.id}`}
-            style={s.dots}
-          >
+          <View testID={`carousel-dots-${review.id}`} style={s.dots}>
             {photos.map((_, i) => (
               <View
                 key={i}
@@ -141,10 +128,7 @@ export function FeedPhoto({
                 style={i === page ? s.dotActive : s.dot}
               />
             ))}
-            <Text
-              testID={`carousel-count-${review.id}`}
-              style={s.count}
-            >
+            <Text testID={`carousel-count-${review.id}`} style={s.count}>
               {`${page + 1}/${photos.length}`}
             </Text>
           </View>

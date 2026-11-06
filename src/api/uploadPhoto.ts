@@ -12,18 +12,18 @@ export type S3PhotoConfig = {
 
 function s3PhotoConfig(): S3PhotoConfig {
   return {
-    bucket: process.env.EXPO_PUBLIC_S3_BUCKET ?? "",
-    region: process.env.EXPO_PUBLIC_S3_REGION ?? "us-east-1",
-    publicBaseUrl: process.env.EXPO_PUBLIC_S3_PUBLIC_BASE_URL ?? "",
-    accessKeyId: process.env.EXPO_PUBLIC_S3_ACCESS_KEY_ID ?? "",
-    secretAccessKey: process.env.EXPO_PUBLIC_S3_SECRET_ACCESS_KEY ?? "",
+    bucket: process.env.EXPO_PUBLIC_S3_BUCKET ?? '',
+    region: process.env.EXPO_PUBLIC_S3_REGION ?? 'us-east-1',
+    publicBaseUrl: process.env.EXPO_PUBLIC_S3_PUBLIC_BASE_URL ?? '',
+    accessKeyId: process.env.EXPO_PUBLIC_S3_ACCESS_KEY_ID ?? '',
+    secretAccessKey: process.env.EXPO_PUBLIC_S3_SECRET_ACCESS_KEY ?? '',
   };
 }
 
 const EXT_BY_MIME: Record<string, string> = {
-  "image/jpeg": ".jpg",
-  "image/png": ".png",
-  "image/webp": ".webp",
+  'image/jpeg': '.jpg',
+  'image/png': '.png',
+  'image/webp': '.webp',
 };
 
 // Envia a imagem escolhida na galeria direto para o S3 (PUT Object via
@@ -35,7 +35,7 @@ export async function uploadPhoto(uri: string): Promise<string> {
   const cfg = s3PhotoConfig();
   if (!cfg.bucket || !cfg.publicBaseUrl) {
     throw new Error(
-      "S3 não configurado para upload de foto. Defina EXPO_PUBLIC_S3_BUCKET e EXPO_PUBLIC_S3_PUBLIC_BASE_URL.",
+      'S3 não configurado para upload de foto. Defina EXPO_PUBLIC_S3_BUCKET e EXPO_PUBLIC_S3_PUBLIC_BASE_URL.',
     );
   }
   const res = await fetch(uri);
@@ -43,15 +43,15 @@ export async function uploadPhoto(uri: string): Promise<string> {
     throw new Error(`não foi possível ler a imagem (${res.status})`);
   }
   const blob = await res.blob();
-  const ext = EXT_BY_MIME[blob.type] ?? ".bin";
+  const ext = EXT_BY_MIME[blob.type] ?? '.bin';
   const key = `reviews/${crypto.randomUUID()}${ext}`;
-  const url = `${cfg.publicBaseUrl.replace(/\/$/, "")}/${key}`;
+  const url = `${cfg.publicBaseUrl.replace(/\/$/, '')}/${key}`;
 
   const putRes = await fetch(url, {
-    method: "PUT",
+    method: 'PUT',
     body: blob,
     headers: {
-      "Content-Type": blob.type ?? "application/octet-stream",
+      'Content-Type': blob.type ?? 'application/octet-stream',
     },
   });
 

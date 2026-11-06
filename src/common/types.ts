@@ -1,6 +1,6 @@
 // Formato visual de um item do feed. A API não envia: feeds mock fixam o
 // layout para reproduzir o mix de cards (foto / quote / linha).
-export type ReviewLayout = "photo" | "quote" | "row";
+export type ReviewLayout = 'photo' | 'quote' | 'row';
 
 export type Review = {
   id: string | number;
@@ -29,4 +29,4 @@ export type FeedResponse = {
 };
 
 export type FeedStatus =
-  "idle" | "loading" | "loading-more" | "error" | "empty";
+  'idle' | 'loading' | 'loading-more' | 'error' | 'empty';

@@ -1,8 +1,8 @@
-import type { ImageSourcePropType } from "react-native";
-import post1 from "../../assets/posts/post1-pratocarne.jpg";
-import post2 from "../../assets/posts/post2.jpg";
-import post3 from "../../assets/posts/post3.jpg";
-import post4 from "../../assets/posts/post4.jpg";
+import type { ImageSourcePropType } from 'react-native';
+import post1 from '../../assets/posts/post1-pratocarne.jpg';
+import post2 from '../../assets/posts/post2.jpg';
+import post3 from '../../assets/posts/post3.jpg';
+import post4 from '../../assets/posts/post4.jpg';
 
 // Fotos mock (assets/posts). O modelo de dados ainda não tem mídia: a
 // tela distribui as imagens locais de forma determinística pelo índice
@@ -21,7 +21,7 @@ export function photoFor(
   index: number,
 ): ImageSourcePropType | null {
   const i = review.photoIndex;
-  if (typeof i === "number") {
+  if (typeof i === 'number') {
     return (
       PHOTOS[((i % PHOTOS.length) + PHOTOS.length) % PHOTOS.length] ?? null
     );

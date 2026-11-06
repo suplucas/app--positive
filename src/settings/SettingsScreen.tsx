@@ -28,7 +28,10 @@ export function SettingsScreen({
 }) {
   const t = useTheme();
   return (
-    <ScrollView style={{ backgroundColor: t.bg }} contentContainerStyle={s.scroll}>
+    <ScrollView
+      style={{ backgroundColor: t.bg }}
+      contentContainerStyle={s.scroll}
+    >
       <View style={[s.topbar, { borderBottomColor: t.line }]}>
         <Pressable
           testID="voltar"
@@ -62,7 +65,10 @@ export function SettingsScreen({
           <Pressable
             testID="sair"
             onPress={() => void onSignOut()}
-            style={[s.chip, { backgroundColor: t.quietBg, alignSelf: 'flex-start' }]}
+            style={[
+              s.chip,
+              { backgroundColor: t.quietBg, alignSelf: 'flex-start' },
+            ]}
             accessibilityRole="button"
           >
             <Text style={[s.chipText, { color: t.ink }]}>sair da conta</Text>

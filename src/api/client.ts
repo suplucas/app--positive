@@ -7,13 +7,13 @@ export class ApiError extends Error {
 
   constructor(status: number, path: string) {
     super(`${path} failed: ${status}`);
-    this.name = "ApiError";
+    this.name = 'ApiError';
     this.status = status;
   }
 }
 
 export type ApiFetchOptions = {
-  method?: "GET" | "POST" | "DELETE" | "PUT" | "PATCH";
+  method?: 'GET' | 'POST' | 'DELETE' | 'PUT' | 'PATCH';
   body?: unknown;
   userId?: string;
   token?: string;
@@ -36,13 +36,13 @@ export function setAuthToken(token: string | null): void {
 }
 
 export function apiBaseUrl(): string {
-  return process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3001";
+  return process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3001';
 }
 
 export async function apiFetch<T>(
   path: string,
   {
-    method = "GET",
+    method = 'GET',
     body,
     userId,
     token,
@@ -60,10 +60,10 @@ export async function apiFetch<T>(
     const res = await fetch(`${base}${path}`, {
       method,
       headers: {
-        Accept: "application/json",
+        Accept: 'application/json',
         ...(bearer ? { Authorization: `Bearer ${bearer}` } : {}),
-        ...(userId ? { "x-user-id": userId } : {}),
-        ...(body !== undefined ? { "Content-Type": "application/json" } : {}),
+        ...(userId ? { 'x-user-id': userId } : {}),
+        ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}),
       },
       body: body !== undefined ? JSON.stringify(body) : undefined,
       signal: signal ?? controller.signal,

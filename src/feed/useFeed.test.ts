@@ -1,11 +1,11 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { act, create, ReactTestRenderer } from "react-test-renderer";
-import { createElement } from "react";
-import { useFeed } from "./useFeed";
-import { getFeed, likeReview, deleteReview } from "../api/api";
-import type { FeedResponse } from "../common/types";
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { act, create, ReactTestRenderer } from 'react-test-renderer';
+import { createElement } from 'react';
+import { useFeed } from './useFeed';
+import { getFeed, likeReview, deleteReview } from '../api/api';
+import type { FeedResponse } from '../common/types';
 
-vi.mock("../api/api", () => ({
+vi.mock('../api/api', () => ({
   getFeed: vi.fn(),
   likeReview: vi.fn(),
   deleteReview: vi.fn(),
@@ -20,12 +20,12 @@ const page20 = (page: number) => ({
   limit: 20,
   results: Array.from({ length: 20 }, (_, i) => ({
     id: page * 100 + i,
-    userId: "u",
+    userId: 'u',
     restaurantId: null,
     rating: 5,
     comment: null,
     likes: 0,
-    createdAt: "2026-01-01T00:00:00.000Z",
+    createdAt: '2026-01-01T00:00:00.000Z',
   })),
 });
 
@@ -53,24 +53,24 @@ beforeEach(() => {
   getFeedMock.mockReset();
 });
 
-describe("useFeed", () => {
-  it("primeira carga: loading → items + hasMore", async () => {
+describe('useFeed', () => {
+  it('primeira carga: loading → items + hasMore', async () => {
     getFeedMock.mockResolvedValue(page20(1));
-    const h = renderHook("user_1");
+    const h = renderHook('user_1');
     await act(async () => {});
     expect(h.get().items).toHaveLength(20);
-    expect(h.get().status).toBe("idle");
+    expect(h.get().status).toBe('idle');
     expect(h.get().hasMore).toBe(true);
-    expect(getFeedMock).toHaveBeenCalledWith("user_1", 1, 20);
+    expect(getFeedMock).toHaveBeenCalledWith('user_1', 1, 20);
   });
 
-  it("página parcial (< limit) → hasMore false; loadMore no-op", async () => {
+  it('página parcial (< limit) → hasMore false; loadMore no-op', async () => {
     getFeedMock.mockResolvedValue({
       page: 1,
       limit: 20,
       results: [page20(1).results[0]!],
     });
-    const h = renderHook("user_1");
+    const h = renderHook('user_1');
     await act(async () => {});
     expect(h.get().hasMore).toBe(false);
     const calls = getFeedMock.mock.calls.length;
@@ -80,50 +80,50 @@ describe("useFeed", () => {
     expect(getFeedMock.mock.calls.length).toBe(calls);
   });
 
-  it("primeira carga vazia → status empty", async () => {
+  it('primeira carga vazia → status empty', async () => {
     getFeedMock.mockResolvedValue({ page: 1, limit: 20, results: [] });
-    const h = renderHook("user_nobody");
+    const h = renderHook('user_nobody');
     await act(async () => {});
-    expect(h.get().status).toBe("empty");
+    expect(h.get().status).toBe('empty');
     expect(h.get().items).toEqual([]);
     expect(h.get().hasMore).toBe(false);
   });
 
-  it("erro de rede na primeira carga → status error, mensagem presente", async () => {
-    getFeedMock.mockRejectedValue(new Error("network down"));
-    const h = renderHook("user_1");
+  it('erro de rede na primeira carga → status error, mensagem presente', async () => {
+    getFeedMock.mockRejectedValue(new Error('network down'));
+    const h = renderHook('user_1');
     await act(async () => {});
-    expect(h.get().status).toBe("error");
+    expect(h.get().status).toBe('error');
     expect(h.get().error).toMatch(/network down/);
     expect(h.get().items).toEqual([]);
   });
 
-  it("erro em loadMore após sucesso → error mas items preservados", async () => {
+  it('erro em loadMore após sucesso → error mas items preservados', async () => {
     getFeedMock
       .mockResolvedValueOnce(page20(1))
-      .mockRejectedValueOnce(new Error("boom"));
-    const h = renderHook("user_1");
+      .mockRejectedValueOnce(new Error('boom'));
+    const h = renderHook('user_1');
     await act(async () => {});
     await act(async () => {
       await h.get().loadMore();
     });
-    expect(h.get().status).toBe("error");
+    expect(h.get().status).toBe('error');
     expect(h.get().items).toHaveLength(20);
     expect(h.get().hasMore).toBe(true);
   });
 
-  it("troca de usuário descarta resposta antiga (race)", async () => {
+  it('troca de usuário descarta resposta antiga (race)', async () => {
     const slowFeed: FeedResponse = {
       page: 1,
       limit: 20,
       results: Array.from({ length: 20 }, (_, i) => ({
         id: 900 + i,
-        userId: "user_slow",
+        userId: 'user_slow',
         restaurantId: null,
         rating: 5,
         comment: null,
         likes: 0,
-        createdAt: "2026-01-01T00:00:00.000Z",
+        createdAt: '2026-01-01T00:00:00.000Z',
       })),
     };
     const fastFeed: FeedResponse = {
@@ -131,12 +131,12 @@ describe("useFeed", () => {
       limit: 20,
       results: Array.from({ length: 20 }, (_, i) => ({
         id: 100 + i,
-        userId: "user_fast",
+        userId: 'user_fast',
         restaurantId: null,
         rating: 5,
         comment: null,
         likes: 0,
-        createdAt: "2026-01-01T00:00:00.000Z",
+        createdAt: '2026-01-01T00:00:00.000Z',
       })),
     };
     let resolveFirst: (v: FeedResponse) => void = () => {};
@@ -148,31 +148,31 @@ describe("useFeed", () => {
           }),
       )
       .mockResolvedValueOnce(fastFeed);
-    const h = renderHook("user_slow");
+    const h = renderHook('user_slow');
     // second user loads fully
-    h.setUser("user_fast");
+    h.setUser('user_fast');
     await act(async () => {});
     expect(h.get().items).toHaveLength(20);
-    expect(h.get().items.every((r) => r.userId === "user_fast")).toBe(true);
+    expect(h.get().items.every((r) => r.userId === 'user_fast')).toBe(true);
     // late response for user_slow arrives
     await act(async () => {
       resolveFirst(slowFeed);
       await Promise.resolve();
     });
     // must still be user_fast data — stale slow payload discarded
-    expect(getFeedMock).toHaveBeenLastCalledWith("user_fast", 1, 20);
+    expect(getFeedMock).toHaveBeenLastCalledWith('user_fast', 1, 20);
     expect(h.get().items).toHaveLength(20);
-    expect(h.get().items.every((r) => r.userId === "user_fast")).toBe(true);
+    expect(h.get().items.every((r) => r.userId === 'user_fast')).toBe(true);
     expect(h.get().items.some((r) => Number(r.id) >= 900)).toBe(false);
   });
 
-  it("refresh zeta e recarrega page 1", async () => {
+  it('refresh zeta e recarrega page 1', async () => {
     getFeedMock.mockResolvedValueOnce(page20(1)).mockResolvedValueOnce({
       page: 1,
       limit: 20,
       results: [page20(1).results[0]!],
     });
-    const h = renderHook("user_1");
+    const h = renderHook('user_1');
     await act(async () => {});
     expect(h.get().items).toHaveLength(20);
     await act(async () => {
@@ -180,27 +180,27 @@ describe("useFeed", () => {
     });
     expect(h.get().items).toHaveLength(1);
     expect(h.get().hasMore).toBe(false);
-    expect(getFeedMock).toHaveBeenNthCalledWith(2, "user_1", 1, 20);
+    expect(getFeedMock).toHaveBeenNthCalledWith(2, 'user_1', 1, 20);
   });
 
-  it("loadMore anexa página seguinte", async () => {
+  it('loadMore anexa página seguinte', async () => {
     getFeedMock
       .mockResolvedValueOnce(page20(1))
       .mockResolvedValueOnce(page20(2));
-    const h = renderHook("user_1");
+    const h = renderHook('user_1');
     await act(async () => {});
     await act(async () => {
       await h.get().loadMore();
     });
     expect(h.get().items).toHaveLength(40);
-    expect(getFeedMock).toHaveBeenNthCalledWith(2, "user_1", 2, 20);
+    expect(getFeedMock).toHaveBeenNthCalledWith(2, 'user_1', 2, 20);
   });
 
-  it("loadMore após erro na primeira carga não busca página 2", async () => {
-    getFeedMock.mockRejectedValueOnce(new Error("network down"));
-    const h = renderHook("user_1");
+  it('loadMore após erro na primeira carga não busca página 2', async () => {
+    getFeedMock.mockRejectedValueOnce(new Error('network down'));
+    const h = renderHook('user_1');
     await act(async () => {});
-    expect(h.get().status).toBe("error");
+    expect(h.get().status).toBe('error');
     const calls = getFeedMock.mock.calls.length;
     await act(async () => {
       await h.get().loadMore();
@@ -208,7 +208,7 @@ describe("useFeed", () => {
     expect(getFeedMock.mock.calls.length).toBe(calls);
   });
 
-  it("refresh durante loadMore descarta resposta do append", async () => {
+  it('refresh durante loadMore descarta resposta do append', async () => {
     let resolveAppend: (v: FeedResponse) => void = () => {};
     getFeedMock
       .mockResolvedValueOnce(page20(1))
@@ -223,7 +223,7 @@ describe("useFeed", () => {
         limit: 20,
         results: [page20(1).results[0]!],
       });
-    const h = renderHook("user_1");
+    const h = renderHook('user_1');
     await act(async () => {});
     expect(h.get().items).toHaveLength(20);
 
@@ -243,47 +243,47 @@ describe("useFeed", () => {
     });
     expect(h.get().items).toHaveLength(1);
     expect(h.get().hasMore).toBe(false);
-    expect(h.get().status).toBe("idle");
+    expect(h.get().status).toBe('idle');
   });
 
-  it("like otimista soma 1 e chama a API", async () => {
+  it('like otimista soma 1 e chama a API', async () => {
     getFeedMock.mockResolvedValue(page20(1));
     likeReviewMock.mockResolvedValue({ id: 100, likes: 1 });
-    const h = renderHook("user_1");
+    const h = renderHook('user_1');
     await act(async () => {});
     const first = h.get().items[0]!;
     await act(async () => {
       await h.get().like(first);
     });
     expect(h.get().items[0]!.likes).toBe(1);
-    expect(likeReviewMock).toHaveBeenCalledWith("user_1", first.id);
+    expect(likeReviewMock).toHaveBeenCalledWith('user_1', first.id);
   });
 
-  it("usuário mock não é mais especial: busca no backend", async () => {
+  it('usuário mock não é mais especial: busca no backend', async () => {
     getFeedMock.mockResolvedValue(page20(1));
-    const h = renderHook("mock");
+    const h = renderHook('mock');
     await act(async () => {});
-    expect(getFeedMock).toHaveBeenCalledWith("mock", 1, 20);
+    expect(getFeedMock).toHaveBeenCalledWith('mock', 1, 20);
     expect(h.get().items).toHaveLength(20);
   });
 
-  it("remove otimista tira o item e chama a API", async () => {
+  it('remove otimista tira o item e chama a API', async () => {
     getFeedMock.mockResolvedValue(page20(1));
     deleteReviewMock.mockResolvedValue(undefined);
-    const h = renderHook("user_1");
+    const h = renderHook('user_1');
     await act(async () => {});
     const target = h.get().items[3]!;
     await act(async () => {
       await h.get().remove(target);
     });
     expect(h.get().items.some((r) => r.id === target.id)).toBe(false);
-    expect(deleteReviewMock).toHaveBeenCalledWith("user_1", target.id);
+    expect(deleteReviewMock).toHaveBeenCalledWith('user_1', target.id);
   });
 
-  it("restaura o item se a API de delete falhar", async () => {
+  it('restaura o item se a API de delete falhar', async () => {
     getFeedMock.mockResolvedValue(page20(1));
-    deleteReviewMock.mockRejectedValue(new Error("404"));
-    const h = renderHook("user_1");
+    deleteReviewMock.mockRejectedValue(new Error('404'));
+    const h = renderHook('user_1');
     await act(async () => {});
     const target = h.get().items[3]!;
     await act(async () => {

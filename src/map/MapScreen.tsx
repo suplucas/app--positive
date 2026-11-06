@@ -81,9 +81,9 @@ export function MapScreen({
   const { pins, status, refresh } = usePlaces(bbox);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<PlaceHit[]>([]);
-  const [searchStatus, setSearchStatus] = useState<'idle' | 'loading' | 'error'>(
-    'idle'
-  );
+  const [searchStatus, setSearchStatus] = useState<
+    'idle' | 'loading' | 'error'
+  >('idle');
 
   // A fonte do WebView é estável (não embute os lugares): os pins são
   // injetados via `window.setPins`, então uma nova resposta de /places
@@ -227,7 +227,7 @@ export function MapScreen({
     <View testID="mapa-tela" style={[s.root, { backgroundColor: t.bg }]}>
       {/* Header: chip + título + busca na mesma linha */}
       <View style={s.header}>
-{/*         <View style={s.chipWrap}>
+        {/*         <View style={s.chipWrap}>
           <View style={s.chip}>
             <Text style={[s.chipText, { color: t.sub }]}>perto de você</Text>
           </View>
@@ -300,7 +300,8 @@ export function MapScreen({
               <Text style={[s.resultMeta, { color: t.sub }]}>
                 {[hit.categoria, hit.bairro ?? hit.endereco]
                   .filter(Boolean)
-                  .join(' · ')} + (hit.source === 'osm' ? ' · osm' : '')
+                  .join(' · ')}{' '}
+                + (hit.source === 'osm' ? ' · osm' : '')
               </Text>
             </Pressable>
           ))}
@@ -328,24 +329,19 @@ export function MapScreen({
       />
 
       <View pointerEvents="none" style={s.chipWrap}>
-        <View
-          style={[s.chip, { backgroundColor: t.bg, borderColor: t.line }]}
-        >
+        <View style={[s.chip, { backgroundColor: t.bg, borderColor: t.line }]}>
           <Text style={[s.chipText, { color: t.sub }]}>perto de você</Text>
         </View>
       </View>
 
       <View
         testID="mapa-sheet"
-        style={[
-          s.sheet,
-          { backgroundColor: t.bg, borderTopColor: t.line },
-        ]}
+        style={[s.sheet, { backgroundColor: t.bg, borderTopColor: t.line }]}
       >
         <View style={[s.handle, { backgroundColor: t.line }]} />
         <View style={s.sheetHead}>
           <Text style={[s.sheetTitle, { color: t.ink }]}>nessa área</Text>
-          {status === "error" ? (
+          {status === 'error' ? (
             <View style={s.actions}>
               <Pressable
                 testID="mapa-voltar-erro"
@@ -368,12 +364,12 @@ export function MapScreen({
             </View>
           ) : (
             <Text style={[s.sheetMeta, { color: t.sub }]}>
-              {status === "loading" ? "carregando…" : "posições aproximadas"}
+              {status === 'loading' ? 'carregando…' : 'posições aproximadas'}
             </Text>
           )}
         </View>
 
-        {places.length === 0 && status === "idle" ? (
+        {places.length === 0 && status === 'idle' ? (
           <Text style={[s.empty, { color: t.sub }]}>
             nenhum restaurante com review nesta área.
           </Text>
@@ -395,21 +391,15 @@ export function MapScreen({
                 <View style={[s.cardPhoto, { backgroundColor: p.cor }]}>
                   <View style={s.cardNote}>
                     <Text style={s.cardNoteText}>
-                      {p.nota != null && p.nota > 0 ? p.nota.toFixed(1) : "—"}
+                      {p.nota != null && p.nota > 0 ? p.nota.toFixed(1) : '—'}
                     </Text>
                   </View>
                 </View>
-                <Text
-                  style={[s.cardName, { color: t.ink }]}
-                  numberOfLines={1}
-                >
+                <Text style={[s.cardName, { color: t.ink }]} numberOfLines={1}>
                   {p.nome}
                 </Text>
-                <Text
-                  style={[s.cardMeta, { color: t.sub }]}
-                  numberOfLines={1}
-                >
-                  {p.bairro || "região"}
+                <Text style={[s.cardMeta, { color: t.sub }]} numberOfLines={1}>
+                  {p.bairro || 'região'}
                 </Text>
               </Pressable>
             ))}

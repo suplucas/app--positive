@@ -15,7 +15,11 @@ function textOf(r: ReactTestRenderer): string {
 describe('ErrorBoundary (docs/14, E3)', () => {
   it('sem erro: children passam sem fallback', () => {
     const r = create(
-      createElement(ErrorBoundary, null, createElement('Text', null, 'tudo bem')),
+      createElement(
+        ErrorBoundary,
+        null,
+        createElement('Text', null, 'tudo bem'),
+      ),
     );
     expect(textOf(r)).toContain('tudo bem');
     expect(textOf(r)).not.toContain('algo quebrou');
@@ -52,9 +56,7 @@ describe('ErrorBoundary (docs/14, E3)', () => {
       }
       return createElement('Text', null, 'voltou');
     }
-    const r = create(
-      createElement(ErrorBoundary, null, createElement(Flaky)),
-    );
+    const r = create(createElement(ErrorBoundary, null, createElement(Flaky)));
     expect(textOf(r)).toContain('voltou');
     expect(textOf(r)).not.toContain('algo quebrou');
   });
@@ -71,9 +73,7 @@ describe('ErrorBoundary (docs/14, E3)', () => {
     expect(textOf(r)).toContain('algo quebrou');
     const before = renders;
     act(() => {
-      r.root
-        .findByProps({ testID: 'erro-boundary-retry' })
-        .props.onPress();
+      r.root.findByProps({ testID: 'erro-boundary-retry' }).props.onPress();
     });
     // continua quebrando → o fallback volta (não é só "esconder");
     // e o contador prova que as crianças remontaram.

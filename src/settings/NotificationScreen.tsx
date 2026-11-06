@@ -1,10 +1,4 @@
-import {
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { formatRelative } from '../common/format';
 import { fonts, spacing, useTheme } from '../common/theme';
 import { useNotifications } from '../comments/useNotifications';

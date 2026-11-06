@@ -83,7 +83,9 @@ describe('ComposeV2 (trocar via busca, docs/16)', () => {
     const r = render({ pickedCnpj: cnpjOutro });
     const texto = JSON.stringify(r.toJSON());
     expect(texto).toContain(restaurantNames[cnpjOutro]);
-    expect(r.root.findAllByProps({ testID: 'trocar-restaurante' })).toHaveLength(1);
+    expect(
+      r.root.findAllByProps({ testID: 'trocar-restaurante' }),
+    ).toHaveLength(1);
   });
 });
 
@@ -107,7 +109,9 @@ describe('ComposeV2', () => {
     const r = render({ onPosted });
     pick(r);
 
-    expect(byID(r, 'publicar-v2').props.accessibilityState.disabled).toBe(false);
+    expect(byID(r, 'publicar-v2').props.accessibilityState.disabled).toBe(
+      false,
+    );
     await act(async () => {
       byID(r, 'publicar-v2').props.onPress();
     });
@@ -155,10 +159,7 @@ describe('ComposeV2', () => {
     act(() => byID(r, 'flair-volto-sim').props.onPress());
     act(() => byID(r, 'flair-prato-pequeno').props.onPress());
     act(() => byID(r, 'flair-achado').props.onPress());
-    expect(selectedFlairs(r)).toEqual([
-      'flair-prato-pequeno',
-      'flair-achado',
-    ]);
+    expect(selectedFlairs(r)).toEqual(['flair-prato-pequeno', 'flair-achado']);
   });
 
   it('flair selecionado desmarca ao tocar de novo', () => {
@@ -199,9 +200,9 @@ describe('ComposeV2', () => {
     expect(JSON.stringify(r.toJSON())).toContain(
       'Não consegui publicar sua avaliação.',
     );
-    expect(
-      byID(r, 'publicar-v2').props.accessibilityState.disabled,
-    ).toBe(false);
+    expect(byID(r, 'publicar-v2').props.accessibilityState.disabled).toBe(
+      false,
+    );
   });
 
   it('cancelar chama onCancel', () => {
@@ -216,9 +217,9 @@ describe('ComposeV2', () => {
     // campo de busca não existe com local selecionado
     expect(r.root.findAllByProps({ testID: 'buscar-v2' })).toHaveLength(0);
     expect(JSON.stringify(r.toJSON())).toContain(restaurantNames[cnpjOutro]);
-    expect(
-      byID(r, 'publicar-v2').props.accessibilityState.disabled,
-    ).toBe(false);
+    expect(byID(r, 'publicar-v2').props.accessibilityState.disabled).toBe(
+      false,
+    );
   });
 });
 
@@ -269,7 +270,9 @@ describe('ComposeV2 (editar avaliação própria)', () => {
   });
 
   it('erro de rede mostra mensagem e mantém na tela (sem onPosted)', async () => {
-    updateReviewMock.mockRejectedValue(new Error('PUT /reviews/42 failed: 500'));
+    updateReviewMock.mockRejectedValue(
+      new Error('PUT /reviews/42 failed: 500'),
+    );
     const onPosted = vi.fn();
     const r = render({ editReview: ownReview, onPosted });
     await act(async () => {

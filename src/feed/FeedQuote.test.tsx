@@ -33,7 +33,9 @@ describe('FeedQuote (comentários, docs/12)', () => {
 
   it('sem onComments: sem botão de comentário', () => {
     const { r } = render();
-    expect(r.root.findAllByProps({ testID: 'comentar-quote-7' })).toHaveLength(0);
+    expect(r.root.findAllByProps({ testID: 'comentar-quote-7' })).toHaveLength(
+      0,
+    );
   });
 });
 
@@ -66,7 +68,9 @@ describe('FeedQuote', () => {
 
   it('mantém testID quote-{id}', () => {
     const { r } = render();
-    expect(r.root.findAllByProps({ testID: 'quote-7' }).length).toBeGreaterThan(0);
+    expect(r.root.findAllByProps({ testID: 'quote-7' }).length).toBeGreaterThan(
+      0,
+    );
   });
 
   it('mostra nota numérica na escala 0-10', () => {

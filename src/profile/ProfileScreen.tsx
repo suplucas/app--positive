@@ -1,11 +1,5 @@
 import { useState } from 'react';
-import {
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Avatar } from '../common/Avatar';
 import { FeedCard } from '../feed/FeedCard';
 import { displayName } from '../common/mockData';
@@ -73,9 +67,7 @@ export function ProfileScreen({
   if (!active) {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-        <Text style={{ color: t.ink }}>
-          Não consegui carregar o perfil.
-        </Text>
+        <Text style={{ color: t.ink }}>Não consegui carregar o perfil.</Text>
       </View>
     );
   }
@@ -268,11 +260,7 @@ function PerfilV2({
 }
 
 // ---- blocos compartilhados ---------------------------------------------
-function Stats({
-  stats,
-}: {
-  stats: UserProfile['stats'];
-}) {
+function Stats({ stats }: { stats: UserProfile['stats'] }) {
   const t = useTheme();
   const items = [
     { n: String(stats.reviews), l: 'avaliações' },

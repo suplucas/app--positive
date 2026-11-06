@@ -1,7 +1,7 @@
-import { apiFetch } from "./client";
-import type { Review } from "../common/types";
-import type { PlaceHit } from "./types";
-import type { UserProfile } from "./types";
+import { apiFetch } from './client';
+import type { Review } from '../common/types';
+import type { PlaceHit } from './types';
+import type { UserProfile } from './types';
 
 export type SearchResult = {
   places: PlaceHit[];
@@ -26,10 +26,10 @@ export async function searchPlaces(
   near?: { lat: number; lng: number },
   baseUrl?: string,
 ): Promise<PlaceHit[]> {
-  const params = new URLSearchParams({ q, limit: "10" });
+  const params = new URLSearchParams({ q, limit: '10' });
   if (near) {
-    params.set("lat", String(near.lat));
-    params.set("lng", String(near.lng));
+    params.set('lat', String(near.lat));
+    params.set('lng', String(near.lng));
   }
   return apiFetch<{ results: PlaceHit[] }>(`/places/search?${params}`, {
     baseUrl,

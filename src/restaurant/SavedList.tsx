@@ -40,7 +40,10 @@ export function SavedList({
         const d = restaurantFor(cnpj);
         const nome = saved?.nome ?? d.nome;
         const meta = saved
-          ? [saved.bairro, saved.nota != null ? `nota ${saved.nota.toFixed(1)}` : null]
+          ? [
+              saved.bairro,
+              saved.nota != null ? `nota ${saved.nota.toFixed(1)}` : null,
+            ]
               .filter(Boolean)
               .join(' · ')
           : `${d.bairro} · a ${d.distanciaKm.toFixed(1)}km`;

@@ -1,21 +1,21 @@
-import { useCallback, useEffect, useState } from "react";
-import { getUser, getUserReviews } from "../api/user";
-import type { UserProfile } from "../api/types";
-import type { Review } from "../common/types";
+import { useCallback, useEffect, useState } from 'react';
+import { getUser, getUserReviews } from '../api/user';
+import type { UserProfile } from '../api/types';
+import type { Review } from '../common/types';
 
-export type ProfileStatus = "loading" | "idle" | "error";
+export type ProfileStatus = 'loading' | 'idle' | 'error';
 
 export function useProfile(userId: string, enabled = true) {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [status, setStatus] = useState<ProfileStatus>(
-    enabled ? "loading" : "idle",
+    enabled ? 'loading' : 'idle',
   );
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     if (!enabled) return;
-    setStatus("loading");
+    setStatus('loading');
     setError(null);
     try {
       const [user, page] = await Promise.all([
@@ -24,16 +24,16 @@ export function useProfile(userId: string, enabled = true) {
       ]);
       setProfile(user);
       setReviews(page.results);
-      setStatus("idle");
+      setStatus('idle');
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
-      setStatus("error");
+      setStatus('error');
     }
   }, [userId, enabled]);
 
   useEffect(() => {
     if (!enabled) {
-      setStatus("idle");
+      setStatus('idle');
       return;
     }
     void load();

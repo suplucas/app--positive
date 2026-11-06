@@ -1,24 +1,24 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect } from 'vitest';
 import {
   MOCK_POST_PHOTOS,
   MOCK_PROFILE_PHOTO,
   photoFor,
   photosFor,
   photoAt,
-} from "./feed/postPhotos";
+} from './feed/postPhotos';
 
-describe("postPhotos", () => {
-  it("expõe as fotos mock de assets/posts", () => {
+describe('postPhotos', () => {
+  it('expõe as fotos mock de assets/posts', () => {
     expect(MOCK_POST_PHOTOS).toHaveLength(4);
     expect(MOCK_PROFILE_PHOTO).toBe(MOCK_POST_PHOTOS[1]);
   });
 
-  it("photoFor usa photoIndex quando presente", () => {
+  it('photoFor usa photoIndex quando presente', () => {
     expect(photoFor({ photoIndex: 0 }, 99)).toBe(MOCK_POST_PHOTOS[0]);
     expect(photoFor({ photoIndex: 3 }, 3)).toBe(MOCK_POST_PHOTOS[3]);
   });
 
-  it("photoFor cai na regra por índice sem photoIndex", () => {
+  it('photoFor cai na regra por índice sem photoIndex', () => {
     // feed real: índice par → foto 0, ímpar → foto 1
     expect(photoFor({}, 0)).toBe(MOCK_POST_PHOTOS[0]);
     expect(photoFor({}, 1)).toBe(MOCK_POST_PHOTOS[1]);
@@ -26,20 +26,20 @@ describe("postPhotos", () => {
     expect(photoFor({}, 3)).toBe(MOCK_POST_PHOTOS[1]);
   });
 
-  it("photosFor: photoIndexes com >1 vira carrossel determinístico", () => {
+  it('photosFor: photoIndexes com >1 vira carrossel determinístico', () => {
     expect(photosFor({ photoIndexes: [0, 2] }, 99)).toEqual([
       MOCK_POST_PHOTOS[0],
       MOCK_POST_PHOTOS[2],
     ]);
   });
 
-  it("photosFor: sem photoIndexes (ou com 1) → array de 1 foto (regra atual)", () => {
+  it('photosFor: sem photoIndexes (ou com 1) → array de 1 foto (regra atual)', () => {
     expect(photosFor({ photoIndex: 3 }, 5)).toEqual([MOCK_POST_PHOTOS[3]]);
     expect(photosFor({}, 1)).toEqual([MOCK_POST_PHOTOS[1]]);
     expect(photosFor({ photoIndexes: [1] }, 0)).toEqual([MOCK_POST_PHOTOS[1]]);
   });
 
-  it("photoAt usa o índice informado", () => {
+  it('photoAt usa o índice informado', () => {
     expect(photoAt(0)).toBe(MOCK_POST_PHOTOS[0]);
     expect(photoAt(1)).toBe(MOCK_POST_PHOTOS[1]);
     expect(photoAt(2)).toBe(MOCK_POST_PHOTOS[2]);

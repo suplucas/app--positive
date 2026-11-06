@@ -1,15 +1,15 @@
-import { apiFetch } from "./client";
-import type { PlaceHit } from "./types";
+import { apiFetch } from './client';
+import type { PlaceHit } from './types';
 
 export async function searchPlaces(
   query: string,
   near?: { lat: number; lng: number },
   baseUrl?: string,
 ): Promise<PlaceHit[]> {
-  const params = new URLSearchParams({ q: query, limit: "10" });
+  const params = new URLSearchParams({ q: query, limit: '10' });
   if (near) {
-    params.set("lat", String(near.lat));
-    params.set("lng", String(near.lng));
+    params.set('lat', String(near.lat));
+    params.set('lng', String(near.lng));
   }
   const data = await apiFetch<{ query: string; results: PlaceHit[] }>(
     `/places/search?${params}`,
@@ -34,7 +34,7 @@ export async function getPlaces(
 ): Promise<PlacePin[]> {
   const params = new URLSearchParams({
     bbox: `${bbox.minLng},${bbox.minLat},${bbox.maxLng},${bbox.maxLat}`,
-    limit: "200",
+    limit: '200',
   });
   const data = await apiFetch<{ results: PlacePin[] }>(`/places?${params}`, {
     baseUrl,
@@ -53,8 +53,8 @@ export async function importPlace(
   },
   baseUrl?: string,
 ): Promise<{ id: string }> {
-  return apiFetch<{ id: string }>("/places/import", {
-    method: "POST",
+  return apiFetch<{ id: string }>('/places/import', {
+    method: 'POST',
     baseUrl,
     body: {
       id: hit.id,

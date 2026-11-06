@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useState } from "react";
-import { followUser, unfollowUser } from "../api/user";
-import { useProfile } from "./useProfile";
+import { useCallback, useEffect, useState } from 'react';
+import { followUser, unfollowUser } from '../api/user';
+import { useProfile } from './useProfile';
 
 export function useUserProfile(userId: string, viewerId?: string) {
   const profile = useProfile(userId);

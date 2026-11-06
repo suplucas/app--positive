@@ -26,7 +26,13 @@ export function Podium() {
           <View key={p.name} style={s.pod}>
             <Text style={s.medal}>{p.medal}</Text>
             <View
-              style={[s.plate, { height: PLATE_HEIGHT[p.place], backgroundColor: PLATE_BG[p.place] }]}
+              style={[
+                s.plate,
+                {
+                  height: PLATE_HEIGHT[p.place],
+                  backgroundColor: PLATE_BG[p.place],
+                },
+              ]}
             />
             <Text style={[s.placeName, { color: t.ink }]}>{p.name}</Text>
             <Text style={[s.note, { color: t.ink }]}>{p.note}</Text>

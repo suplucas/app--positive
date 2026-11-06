@@ -1,5 +1,5 @@
-import { apiFetch } from "./client";
-import type { RestaurantProfile, Review } from "./types";
+import { apiFetch } from './client';
+import type { RestaurantProfile, Review } from './types';
 
 export type RestaurantReviewsPage = {
   page: number;
