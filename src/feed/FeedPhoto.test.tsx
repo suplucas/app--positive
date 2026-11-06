@@ -58,6 +58,14 @@ describe('FeedPhoto (comentários, docs/12)', () => {
       0,
     );
   });
+
+  it('com strong renderiza flair-forte', () => {
+    const { r } = render({
+      review: { ...baseReview, flairs: ['chorei de tão bom'] },
+      strong: true,
+    });
+    expect(r.root.findAllByProps({ testID: 'flair-forte' })).toHaveLength(1);
+  });
 });
 
 function styleOf(

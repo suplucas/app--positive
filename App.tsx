@@ -40,7 +40,7 @@ import { ErrorBoundary } from './src/common/ErrorBoundary';
 import { FeedCard } from './src/feed/FeedCard';
 import { FeedPhoto } from './src/feed/FeedPhoto';
 import { FeedQuote } from './src/feed/FeedQuote';
-import { MOCK_POST_PHOTOS, photoFor, photosFor } from './src/feed/postPhotos';
+import { decorateFeed } from './src/feed/decorateFeed';
 import { ComposeScreen } from './src/compose/ComposeScreen';
 import { Navbar, type Screen } from './src/common/Navbar';
 import { PageTitle } from './src/common/PageTitle';
@@ -64,19 +64,11 @@ import {
   useTheme,
   type Theme,
 } from './src/common/theme';
-import {
-  friendlyApiError,
-  resolvePhotoUrl,
-  restaurantName,
-} from './src/common/format';
+import { friendlyApiError, restaurantName } from './src/common/format';
 import { useFeed } from './src/feed/useFeed';
 import { useSaves } from './src/restaurant/useSaves';
 import { useSession } from './src/auth/useSession';
-import type { Review, ReviewLayout } from './src/common/types';
-import type { ImageSourcePropType } from 'react-native';
-
-// Nota forte na escala 0-10: flair "chorei de tão bom" no máx. 1 por tela.
-const STRONG_NOTE = 9;
+import type { Review } from './src/common/types';
 
 export default function App() {
   // Fontes da identidade na RAIZ (antes do login): sem isso o logo/título
@@ -210,51 +202,9 @@ function MainApp({
     }
   }, [status, loadMore]);
 
-  // Formato de cada item do feed + tom das quote cards (alterna
-  // mostarda/lambe-lambe). `layout` explícito vence (feeds mock);
-  // senão deriva: foto pela regra de índice, quote para nota >= 9,
-  // caso contrário linha compacta.
-  const decorated = useMemo(() => {
-    const map = new Map<
-      Review['id'],
-      {
-        layout: ReviewLayout;
-        photos?: ImageSourcePropType[];
-        tone?: 'mostarda' | 'lambeLambe';
-      }
-    >();
-    let quotes = 0;
-    items.forEach((item, index) => {
-      const remotePhoto = item.photoUrl
-        ? { uri: resolvePhotoUrl(item.photoUrl) }
-        : null;
-      const isMock =
-        item.layout != null ||
-        item.photoIndex != null ||
-        item.photoIndexes != null;
-      const photo = remotePhoto ?? (isMock ? photoFor(item, index) : null);
-      const strong = item.rating != null && item.rating * 2 >= STRONG_NOTE;
-      const layout: ReviewLayout =
-        item.layout ?? (photo ? 'photo' : strong ? 'quote' : 'row');
-      if (layout === 'photo') {
-        // Foto remota da API vence; senão, 2+ fotos do mock viram carrossel.
-        const photos = remotePhoto ? [remotePhoto] : photosFor(item, index);
-        map.set(item.id, {
-          layout,
-          photos: photos.length > 0 ? photos : [MOCK_POST_PHOTOS[0]],
-        });
-      } else if (layout === 'quote') {
-        map.set(item.id, {
-          layout,
-          tone: quotes % 2 === 0 ? 'mostarda' : 'lambeLambe',
-        });
-        quotes += 1;
-      } else {
-        map.set(item.id, { layout });
-      }
-    });
-    return map;
-  }, [items]);
+  // Formato de cada item do feed + tom das quote cards: extraído para
+  // src/feed/decorateFeed.ts (mesma lógica, testada).
+  const decorated = useMemo(() => decorateFeed(items), [items]);
 
   // Só estados que pedem atenção; o feed vazio ganha um empty state
   // próprio (abaixo), não o banner. Paginação não aparece mais.
@@ -309,7 +259,7 @@ function MainApp({
                           { color: palette.lambeLambe },
                         ]}
                       >
-                        · tentar de novo
+                        tentar de novo
                       </Text>
                     </Pressable>
                   ) : null}
@@ -406,6 +356,7 @@ function MainApp({
                       <FeedPhoto
                         review={item}
                         photos={d.photos}
+                        strong={d.strong}
                         onPress={openPlace}
                         onComments={openComments}
                         onLike={() => void like(item)}
@@ -419,6 +370,7 @@ function MainApp({
                       <FeedQuote
                         review={item}
                         tone={d.tone}
+                        strong={d.strong}
                         onPress={openPlace}
                         onComments={openComments}
                         onLike={() => void like(item)}
@@ -430,6 +382,7 @@ function MainApp({
                   return (
                     <FeedCard
                       review={item}
+                      strong={d?.strong ?? false}
                       onPress={openPlace}
                       onComments={openComments}
                       onLike={() => void like(item)}

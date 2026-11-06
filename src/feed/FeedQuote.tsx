@@ -13,6 +13,7 @@ import type { Review } from '../common/types';
 export function FeedQuote({
   review,
   tone = 'mostarda',
+  strong = false,
   onPress,
   onComments,
   onLike,
@@ -22,6 +23,8 @@ export function FeedQuote({
 }: {
   review: Review;
   tone?: 'mostarda' | 'lambeLambe';
+  // Flair forte (máx. 1 por tela — quem decide é o decorateFeed).
+  strong?: boolean;
   onPress?: () => void;
   // docs/12: abre a thread de comentários (opcional, como `onPress`).
   onComments?: () => void;
@@ -62,7 +65,9 @@ export function FeedQuote({
           {nome ?? ''}
         </Text>
         <View style={s.metaRight}>
-          {review.flairs?.[0] ? <Flair label={review.flairs[0]} /> : null}
+          {review.flairs?.[0] ? (
+            <Flair label={review.flairs[0]} strong={strong} />
+          ) : null}
           {onLike ? (
             <Pressable
               testID={`like-quote-${review.id}`}
@@ -77,7 +82,7 @@ export function FeedQuote({
             <Text style={[s.actions, { color: ink }]}>▲ {review.likes}</Text>
           )}
           <Text style={[s.actions, { color: ink }]}>
-            · {formatRelative(review.createdAt)}
+            {formatRelative(review.createdAt)}
           </Text>
           {onComments ? (
             <Pressable

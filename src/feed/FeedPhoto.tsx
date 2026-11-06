@@ -25,6 +25,7 @@ import type { Review } from '../common/types';
 export function FeedPhoto({
   review,
   photos,
+  strong = false,
   onPress,
   onComments,
   onLike,
@@ -34,6 +35,8 @@ export function FeedPhoto({
 }: {
   review: Review;
   photos: ImageSourcePropType[];
+  // Flair forte (máx. 1 por tela — quem decide é o decorateFeed).
+  strong?: boolean;
   onPress?: () => void;
   // docs/12: abre a thread de comentários (opcional, como `onPress`).
   onComments?: () => void;
@@ -153,7 +156,9 @@ export function FeedPhoto({
         ) : (
           <Text style={[s.action, { color: t.sub }]}>▲ {review.likes}</Text>
         )}
-        {review.flairs?.[0] ? <Flair label={review.flairs[0]} /> : null}
+        {review.flairs?.[0] ? (
+          <Flair label={review.flairs[0]} strong={strong} />
+        ) : null}
         {onEdit ? (
           <Pressable
             testID={`editar-${review.id}`}
