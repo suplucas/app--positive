@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>tim — perfil v2 (com foto mock)</title>
+<title>tim — perfil v2 (com wishlist)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700;800&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
@@ -62,7 +62,7 @@
   }
   .section-title{font-family:'Bricolage Grotesque'; font-weight:700; font-size:13px; color:var(--sub); padding:16px 16px 10px;}
 
-  /* tabs diario/listas */
+  /* tabs diario/listas/wishlist */
   .content-tabs{display:flex; gap:20px; padding:14px 16px 0; border-bottom:1px solid var(--line);}
   .ctab{
     font-family:'Bricolage Grotesque'; font-weight:700; font-size:13.5px; color:var(--sub);
@@ -93,6 +93,35 @@
   .list-collage span:first-child{grid-row:span 2;}
   .list-body .title{font-family:'Bricolage Grotesque'; font-weight:700; font-size:14px;}
   .list-body .meta{font-size:12px; color:var(--sub); margin-top:3px;}
+
+  /* wishlist */
+  .wish-head{display:flex; justify-content:space-between; align-items:baseline; padding:14px 16px 2px;}
+  .wish-head .count{font-size:12px; color:var(--sub);}
+  .wish-chips{display:flex; gap:6px; padding:8px 16px 4px; overflow-x:auto; scrollbar-width:none;}
+  .wish-chips::-webkit-scrollbar{display:none;}
+  .chip{
+    font-family:'Instrument Sans'; font-weight:600; font-size:11.5px; white-space:nowrap; padding:5px 11px; border-radius:20px;
+    border:1px solid var(--line); background:none; color:var(--ink); cursor:pointer;
+  }
+  .chip.active{background:var(--ink); color:var(--bg); border-color:var(--ink);}
+  .wishes{display:flex; flex-direction:column; padding:4px 16px 20px;}
+  .wish-card{display:flex; gap:12px; align-items:center; padding:12px 0; border-bottom:1px solid var(--line);}
+  .wish-card.hidden{display:none;}
+  .wish-thumb{width:52px; height:52px; border-radius:10px; flex-shrink:0; position:relative; overflow:hidden;}
+  .wish-body{flex:1; min-width:0;}
+  .wish-body .title{font-family:'Bricolage Grotesque'; font-weight:700; font-size:14px;}
+  .wish-body .meta{font-size:12px; color:var(--sub); margin-top:2px;}
+  .wish-body .social{font-size:11.5px; margin-top:4px; display:flex; align-items:center; gap:6px;}
+  .wish-body .social .dots{display:flex;}
+  .wish-body .social .dots span{width:14px; height:14px; border-radius:50%; border:1.5px solid var(--bg); margin-left:-4px;}
+  .wish-body .social .dots span:first-child{margin-left:0;}
+  .wish-body .social b{font-family:'Bricolage Grotesque'; font-weight:800;}
+  .been-btn{
+    font-family:'Bricolage Grotesque'; font-weight:700; font-size:11.5px; padding:5px 12px; border-radius:20px; flex-shrink:0;
+    cursor:pointer; border:1.5px solid var(--ink); background:transparent; color:var(--ink);
+  }
+  .been-btn.done{background:var(--pickle); border-color:var(--pickle); color:#FBF2E4;}
+  .wish-card.visited .title{text-decoration:line-through; opacity:0.55;}
 
   footer.legend{padding:16px 16px 34px; font-size:12px; color:var(--sub); line-height:1.5;}
   .nav-links{display:flex; gap:16px; padding:0 16px 20px; font-size:12px;}
@@ -141,6 +170,7 @@
   <div class="content-tabs">
     <button class="ctab active" data-tab="diario" onclick="showTab('diario')">diário</button>
     <button class="ctab" data-tab="listas" onclick="showTab('listas')">listas · 4</button>
+    <button class="ctab" data-tab="wishlist" onclick="showTab('wishlist')">wishlist · <span id="wishCount">6</span></button>
   </div>
 
   <div class="content-panel active" id="panel-diario">
@@ -183,7 +213,76 @@
     </div>
   </div>
 
-  <footer class="legend">Fotos reais (assets/posts) só em 1 favorito e 1 post do diário; o resto usa cores de marca. Botão de seguir ao lado do nome (clique pra alternar seguir/seguindo). Abas "diário/listas" separam histórico cronológico de curadoria intencional.</footer>
+  <div class="content-panel" id="panel-wishlist">
+    <div class="wish-head">
+      <div class="section-title" style="padding:0;">quero conhecer</div>
+      <div class="count" id="wishLeft">6 na fila</div>
+    </div>
+    <div class="wish-chips">
+      <button class="chip active" data-filter="todos" onclick="filterWish('todos')">todos</button>
+      <button class="chip" data-filter="jantar" onclick="filterWish('jantar')">jantar</button>
+      <button class="chip" data-filter="bar" onclick="filterWish('bar')">bar</button>
+      <button class="chip" data-filter="cafe" onclick="filterWish('cafe')">café</button>
+    </div>
+    <div class="wishes">
+      <div class="wish-card" data-tag="jantar">
+        <div class="wish-thumb" style="background:#3E5C78;"></div>
+        <div class="wish-body">
+          <div class="title disp">Shin-Zushi</div>
+          <div class="meta">Liberdade · japonês · $$$</div>
+          <div class="social"><span class="dots"><span style="background:#E63E75;"></span><span style="background:#F2A93B;"></span></span><span>2 amigos foram · média <b>9.3</b></span></div>
+        </div>
+        <button class="been-btn" onclick="toggleBeen(this)">fui</button>
+      </div>
+      <div class="wish-card" data-tag="cafe">
+        <div class="wish-thumb" style="background:#C98A3F;"></div>
+        <div class="wish-body">
+          <div class="title disp">Padaria Santa Esquina</div>
+          <div class="meta">Pinheiros · café da manhã · $</div>
+          <div class="social"><span class="dots"><span style="background:#7A9A3D;"></span></span><span>salvo de @lu_mesa · média <b>8.7</b></span></div>
+        </div>
+        <button class="been-btn" onclick="toggleBeen(this)">fui</button>
+      </div>
+      <div class="wish-card" data-tag="jantar">
+        <div class="wish-thumb" style="background:#8A3550;"></div>
+        <div class="wish-body">
+          <div class="title disp">Cantina do Nonno</div>
+          <div class="meta">Bixiga · italiano · $$</div>
+          <div class="social"><span class="dots"><span style="background:#5E3E6B;"></span><span style="background:#C98A3F;"></span><span style="background:#3E6B5E;"></span></span><span>3 amigos foram · média <b>8.9</b></span></div>
+        </div>
+        <button class="been-btn" onclick="toggleBeen(this)">fui</button>
+      </div>
+      <div class="wish-card" data-tag="bar">
+        <div class="wish-thumb" style="background:#5A6B3A;"></div>
+        <div class="wish-body">
+          <div class="title disp">Bar Fiorella</div>
+          <div class="meta">Vila Madalena · boteco · $$</div>
+          <div class="social"><span class="dots"><span style="background:#F2A93B;"></span></span><span>salvo de @tiago.come · média <b>8.1</b></span></div>
+        </div>
+        <button class="been-btn" onclick="toggleBeen(this)">fui</button>
+      </div>
+      <div class="wish-card" data-tag="cafe">
+        <div class="wish-thumb" style="background:#7A5A3E;"></div>
+        <div class="wish-body">
+          <div class="title disp">Coffee Lab Rua Fradique</div>
+          <div class="meta">Vila Madalena · café · $$</div>
+          <div class="social"><span class="dots"><span style="background:#E63E75;"></span><span style="background:#3E5C78;"></span></span><span>2 amigos foram · média <b>9.0</b></span></div>
+        </div>
+        <button class="been-btn" onclick="toggleBeen(this)">fui</button>
+      </div>
+      <div class="wish-card" data-tag="bar">
+        <div class="wish-thumb" style="background:#5E3E6B;"></div>
+        <div class="wish-body">
+          <div class="title disp">Taqueria La Güera</div>
+          <div class="meta">Pinheiros · mexicano · $</div>
+          <div class="social"><span class="dots"><span style="background:#8A3550;"></span></span><span>salvo de @nina.prova · ainda sem nota</span></div>
+        </div>
+        <button class="been-btn" onclick="toggleBeen(this)">fui</button>
+      </div>
+    </div>
+  </div>
+
+  <footer class="legend">Fotos reais (assets/posts) só em 1 favorito e 1 post do diário; o resto usa cores de marca. Botão de seguir ao lado do nome (clique pra alternar seguir/seguindo). Abas "diário/listas" separam histórico cronológico de curadoria intencional; a aba "wishlist" guarda os lugares que a pessoa quer conhecer, com filtro por ocasião, quem da rede já foi e um botão "fui" pra tirar da fila.</footer>
   <div class="nav-links">
     <a href="../03/feed.html">feed</a>
     <a href="../03/perfil.html">perfil v1</a>
@@ -205,6 +304,19 @@
   function showTab(tab){
     document.querySelectorAll('.ctab').forEach(function(b){ b.classList.toggle('active', b.dataset.tab === tab); });
     document.querySelectorAll('.content-panel').forEach(function(p){ p.classList.toggle('active', p.id === 'panel-' + tab); });
+  }
+  function filterWish(tag){
+    document.querySelectorAll('.chip').forEach(function(c){ c.classList.toggle('active', c.dataset.filter === tag); });
+    document.querySelectorAll('.wish-card').forEach(function(w){ w.classList.toggle('hidden', tag !== 'todos' && w.dataset.tag !== tag); });
+  }
+  function toggleBeen(btn){
+    var card = btn.closest('.wish-card');
+    var done = card.classList.toggle('visited');
+    btn.classList.toggle('done', done);
+    btn.textContent = done ? 'fui ✓' : 'fui';
+    var left = document.querySelectorAll('.wish-card:not(.visited)').length;
+    document.getElementById('wishCount').textContent = left;
+    document.getElementById('wishLeft').textContent = left + ' na fila';
   }
 </script>
 </body>

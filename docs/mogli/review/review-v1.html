@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>tim — adicionar review v1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700;800&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FBF2E4; --ink:#241A22; --sub:rgba(36,26,34,0.58);
+    --mustard:#F2A93B; --pink:#E63E75; --pickle:#7A9A3D;
+    --line:rgba(36,26,34,0.10); --soft:rgba(36,26,34,0.05);
+  }
+  :root[data-theme="dark"]{ --bg:#121212; --ink:#F2F0EF; --sub:rgba(242,240,239,0.55); --line:rgba(242,240,239,0.10); --soft:rgba(242,240,239,0.06); }
+
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{margin:0; background:#241A22; color:var(--ink); font-family:'Instrument Sans',sans-serif; -webkit-font-smoothing:antialiased; display:flex; justify-content:center;}
+  .phone{width:100%; max-width:400px; height:100vh; height:100dvh; max-height:860px; background:var(--bg); position:relative; overflow:hidden; display:flex; flex-direction:column;}
+  @media (min-height:861px){ body{align-items:center;} .phone{border-radius:28px;} }
+
+  header{padding:14px 16px 12px; padding-top:calc(14px + env(safe-area-inset-top,0px)); display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--line); gap:8px;}
+  header .x{background:none; border:none; color:var(--ink); font-size:22px; cursor:pointer; width:36px; height:36px; padding:0;}
+  h1{font-family:'Bricolage Grotesque'; font-weight:800; font-size:18px; margin:0; flex:1; text-align:center;}
+  .theme-btn{width:30px; height:30px; border-radius:50%; background:none; border:1px solid var(--line); color:var(--ink); font-size:14px; cursor:pointer; padding:0;}
+  .pub{font-family:'Bricolage Grotesque'; font-weight:700; font-size:14px; padding:8px 16px; border-radius:20px; border:none; background:var(--pink); color:#fff; cursor:pointer; transition:opacity .2s;}
+  .pub:disabled{opacity:.35; cursor:default;}
+
+  .scroll{flex:1; overflow-y:auto; padding-bottom:40px;}
+  .sec{padding:16px;}
+  .lbl{font-family:'Bricolage Grotesque'; font-weight:700; font-size:13px; color:var(--sub); margin:0 0 8px;}
+
+  /* restaurante */
+  .rest{display:flex; align-items:center; gap:12px; padding:12px; border-radius:14px; background:var(--soft); cursor:pointer;}
+  .rest .ic{width:44px; height:44px; border-radius:10px; background:var(--mustard); display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0;}
+  .rest .n{font-family:'Bricolage Grotesque'; font-weight:800; font-size:17px;}
+  .rest .a{font-size:12.5px; color:var(--sub);}
+  .rest .ch{margin-left:auto; color:var(--sub); font-size:13px;}
+  .rest.empty .n{color:var(--sub); font-weight:700;}
+
+  /* foto com nota */
+  .photo{margin-top:12px; height:240px; border-radius:14px; position:relative; overflow:hidden; background:var(--soft); border:1.5px dashed var(--line); display:flex; align-items:center; justify-content:center; flex-direction:column; gap:6px; cursor:pointer; color:var(--sub); font-size:13px;}
+  .photo .big{font-size:30px;}
+  .photo.has{border:none; background:linear-gradient(135deg,#8a4b2a,#d48a3c 45%,#f2c27b);}
+  .photo.has .ph-hint{display:none;}
+  .photo .count{position:absolute; top:10px; right:10px; background:rgba(0,0,0,.45); color:#fff; font-size:11.5px; padding:4px 8px; border-radius:10px; display:none;}
+  .photo.has .count{display:block;}
+  .stars-on-photo{position:absolute; left:0; right:0; bottom:12px; display:none; justify-content:center; gap:4px; filter:drop-shadow(0 0 3px rgba(0,0,0,.35));}
+  .photo.has .stars-on-photo{display:flex;}
+
+  /* nota */
+  .rating{display:flex; align-items:center; gap:6px;}
+  .star{position:relative; width:36px; height:36px; font-size:34px; line-height:36px; color:var(--line); cursor:pointer; user-select:none;}
+  .star .fill{position:absolute; inset:0; overflow:hidden; color:var(--mustard); width:0;}
+  .star .h{position:absolute; top:0; bottom:0; width:50%; z-index:2;}
+  .star .h.l{left:0;} .star .h.r{right:0;}
+  .rating .val{margin-left:8px; font-family:'Bricolage Grotesque'; font-weight:700; font-size:15px; min-width:56px;}
+  .clear{background:none; border:none; color:var(--sub); font-size:12px; text-decoration:underline; cursor:pointer; padding:4px 0; margin-top:4px;}
+  .hint{font-size:12px; color:var(--sub); margin-top:6px;}
+
+  /* data */
+  .date{display:inline-flex; align-items:center; gap:6px; margin-top:14px; font-size:13px; color:var(--sub); background:none; border:none; padding:6px 0; cursor:pointer;}
+  .date b{color:var(--ink); font-weight:600; border-bottom:1px dashed var(--sub);}
+  .date input{position:absolute; opacity:0; pointer-events:none; width:0;}
+
+  /* mais */
+  .more-btn{display:flex; width:calc(100% - 32px); margin:4px 16px 0; align-items:center; justify-content:space-between; padding:14px 16px; border-radius:14px; border:1.5px solid var(--ink); background:none; color:var(--ink); font-family:'Bricolage Grotesque'; font-weight:700; font-size:15px; cursor:pointer;}
+  .more-btn span{font-size:12.5px; font-family:'Instrument Sans'; font-weight:500; color:var(--sub);}
+  .more{display:none; border-top:1px solid var(--line); margin-top:16px;}
+  .more.open{display:block;}
+  .more .sec{border-bottom:1px solid var(--line);}
+
+  textarea{width:100%; min-height:110px; border:none; background:var(--soft); border-radius:12px; padding:12px; color:var(--ink); font:inherit; font-size:14.5px; line-height:1.45; resize:vertical;}
+  textarea::placeholder, input::placeholder{color:var(--sub);}
+
+  .chips{display:flex; flex-wrap:wrap; gap:8px;}
+  .chip{font-size:13px; padding:8px 12px; min-height:36px; border-radius:18px; border:1.5px solid var(--line); background:none; color:var(--ink); cursor:pointer; font-family:inherit;}
+  .chip.on{background:var(--pickle); border-color:var(--pickle); color:#fff;}
+  .chip.price{font-family:'Bricolage Grotesque'; font-weight:700; min-width:56px;}
+  .chip.price.on{background:var(--ink); border-color:var(--ink); color:var(--bg);}
+  .chip.del{border-style:dashed; color:var(--sub);}
+
+  .addrow{display:flex; gap:8px; margin-top:10px;}
+  .addrow input{flex:1; border:none; background:var(--soft); border-radius:12px; padding:10px 12px; color:var(--ink); font:inherit; font-size:14px; min-height:40px;}
+  .addrow button{border:none; background:var(--ink); color:var(--bg); border-radius:12px; padding:0 14px; font-family:'Bricolage Grotesque'; font-weight:700; cursor:pointer;}
+
+  .dish{display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid var(--line);}
+  .dish:last-child{border-bottom:none;}
+  .dish .nm{flex:1; font-size:14px;}
+  .vote{width:36px; height:36px; border-radius:50%; border:1.5px solid var(--line); background:none; cursor:pointer; font-size:15px; display:flex; align-items:center; justify-content:center; padding:0; filter:grayscale(1); opacity:.6;}
+  .vote.on{filter:none; opacity:1; border-color:transparent; background:var(--soft);}
+  .rm{background:none; border:none; color:var(--sub); cursor:pointer; font-size:16px; width:28px;}
+
+  .person{display:inline-flex; align-items:center; gap:6px; padding:4px 10px 4px 4px; border-radius:18px; background:var(--soft); font-size:13px;}
+  .person .c{width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; font-family:'Bricolage Grotesque'; font-weight:800; font-size:11px;}
+  .person .c.free{background:var(--line); color:var(--ink);}
+  .person small{color:var(--sub);}
+  .sug{margin-top:10px; display:flex; flex-direction:column; gap:2px;}
+  .sug .row{display:flex; align-items:center; gap:10px; padding:6px 0; cursor:pointer; font-size:13.5px;}
+  .sug .row .c{width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; font-family:'Bricolage Grotesque'; font-weight:800; font-size:12px;}
+  .sug .row span{color:var(--sub); font-size:12px;}
+
+  .vis{display:flex; align-items:center; justify-content:space-between; font-size:14px;}
+  .switch{width:46px; height:28px; border-radius:14px; background:var(--line); position:relative; border:none; cursor:pointer;}
+  .switch::after{content:''; position:absolute; top:3px; left:3px; width:22px; height:22px; border-radius:50%; background:#fff; transition:left .2s; box-shadow:0 1px 3px rgba(0,0,0,.2);}
+  .switch.on{background:var(--pickle);} .switch.on::after{left:21px;}
+
+  /* folha de busca */
+  .sheet{position:absolute; inset:0; background:var(--bg); z-index:10; display:flex; flex-direction:column; transform:translateY(100%); transition:transform .28s ease;}
+  .sheet.open{transform:none;}
+  .search{margin:12px 16px; display:flex; align-items:center; gap:8px; background:var(--soft); border-radius:12px; padding:0 12px;}
+  .search input{flex:1; border:none; background:none; padding:12px 0; color:var(--ink); font:inherit; font-size:15px; outline:none;}
+  .res{display:flex; align-items:center; gap:12px; padding:10px 16px; cursor:pointer;}
+  .res:active{background:var(--soft);}
+  .res .ic{width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0;}
+  .res .n{font-weight:600; font-size:14.5px;}
+  .res .a{font-size:12px; color:var(--sub);}
+  .res .d{margin-left:auto; font-size:12px; color:var(--sub);}
+  .manual{margin:16px; font-size:13px; color:var(--sub); text-align:center;}
+  .manual a{color:var(--pink); font-weight:600; cursor:pointer;}
+
+  .toast{position:absolute; left:50%; bottom:30px; transform:translateX(-50%) translateY(10px); background:var(--ink); color:var(--bg); font-size:13px; padding:10px 16px; border-radius:10px; opacity:0; transition:all .25s; pointer-events:none; white-space:nowrap; z-index:20;}
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+
+  .note{font-size:11.5px; color:var(--sub); text-align:center; padding:16px 24px 0;}
+</style>
+</head>
+<body>
+<div class="phone">
+  <header>
+    <button class="x" aria-label="fechar" onclick="toast('fecha e volta pra tela anterior')">×</button>
+    <h1>registrar visita</h1>
+    <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" aria-label="trocar tema">🌙</button>
+    <button class="pub" id="pub" disabled onclick="publish()">publicar</button>
+  </header>
+
+  <div class="scroll">
+    <!-- 1. restaurante -->
+    <div class="sec">
+      <div class="rest empty" id="rest" onclick="openSheet()">
+        <div class="ic">🔍</div>
+        <div><div class="n" id="restName">onde você comeu?</div><div class="a" id="restAddr">busque ou escolha um lugar perto</div></div>
+        <span class="ch" id="restCh"></span>
+      </div>
+
+      <!-- atalho grande de foto -->
+      <div class="photo" id="photo" onclick="addPhoto()">
+        <div class="ph-hint big">📷</div>
+        <div class="ph-hint">adicionar fotos</div>
+        <div class="count" id="pcount">1/1</div>
+        <div class="stars-on-photo" id="photoStars" aria-hidden="true"></div>
+      </div>
+    </div>
+
+    <!-- 2. nota -->
+    <div class="sec" style="padding-top:0">
+      <p class="lbl">sua nota <span style="font-weight:500">(opcional)</span></p>
+      <div class="rating" id="rating" role="slider" aria-label="nota" aria-valuemin="0" aria-valuemax="5" aria-valuenow="0"></div>
+      <div class="hint" id="rhint">toque na metade da estrela pra dar meia</div>
+
+      <!-- 3. data -->
+      <label class="date">📅 <b id="dateTxt">hoje</b> · toque pra trocar
+        <input type="date" id="dateIn" onchange="setDate(this.value)">
+      </label>
+    </div>
+
+    <!-- 4. quer contar mais -->
+    <button class="more-btn" id="moreBtn" onclick="toggleMore()">quer contar mais? <span>texto, etiquetas, pratos, quem foi, gasto ▾</span></button>
+
+    <div class="more" id="more">
+      <div class="sec">
+        <p class="lbl">como foi</p>
+        <textarea placeholder="conta como foi a noite. o que valeu, o que não valeu…"></textarea>
+      </div>
+
+      <div class="sec">
+        <p class="lbl">etiquetas</p>
+        <div class="chips" id="tags"></div>
+      </div>
+
+      <div class="sec">
+        <p class="lbl">pratos</p>
+        <div id="dishes"></div>
+        <div class="addrow"><input id="dishIn" placeholder="nome do prato" onkeydown="if(event.key==='Enter')addDish()"><button onclick="addDish()">+</button></div>
+      </div>
+
+      <div class="sec">
+        <p class="lbl">quem foi com você</p>
+        <div class="chips" id="people"></div>
+        <div class="addrow"><input id="pplIn" placeholder="@usuário ou nome de quem não tem conta" oninput="suggest(this.value)" onkeydown="if(event.key==='Enter')addFree()"><button onclick="addFree()">+</button></div>
+        <div class="sug" id="sug"></div>
+        <div class="hint">quem tem conta recebe um convite pra dar a própria nota</div>
+      </div>
+
+      <div class="sec">
+        <p class="lbl">quanto gastou por pessoa</p>
+        <div class="chips" id="price"></div>
+        <div class="hint" id="priceHint">&nbsp;</div>
+      </div>
+
+      <div class="sec" style="border-bottom:none">
+        <div class="vis"><span>só pra quem me segue</span><button class="switch" id="priv" onclick="this.classList.toggle('on')" aria-label="visibilidade"></button></div>
+      </div>
+    </div>
+
+    <div class="note">protótipo v1 · só restaurante já libera o "publicar" (check-in rápido)</div>
+  </div>
+
+  <!-- folha de busca de restaurante -->
+  <div class="sheet" id="sheet">
+    <header>
+      <button class="x" aria-label="voltar" onclick="closeSheet()">‹</button>
+      <h1>onde você comeu?</h1><span style="width:36px"></span>
+    </header>
+    <div class="search">🔍<input id="q" placeholder="nome do restaurante" oninput="renderRes(this.value)"></div>
+    <p class="lbl" style="padding:4px 16px 0" id="resLbl">perto de você agora</p>
+    <div id="resList"></div>
+    <div class="manual">não achou? <a onclick="pick({n:document.getElementById('q').value||'Lugar novo',a:'cadastro manual · localização atual',e:'📍',c:'#7A9A3D'})">cadastrar lugar</a></div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+  const PLACES=[
+    {n:'Boteco da Ana',a:'Vila Madalena',d:'80 m',e:'🍺',c:'#F2A93B'},
+    {n:'Sushi Kenzo',a:'Pinheiros',d:'350 m',e:'🍣',c:'#E63E75'},
+    {n:'Cantina Nonna Rosa',a:'Bela Vista',d:'1,2 km',e:'🍝',c:'#7A9A3D'},
+    {n:'Padaria Flor do Trigo',a:'Vila Madalena',d:'400 m',e:'🥐',c:'#F2A93B'},
+    {n:'Taqueria El Patio',a:'Pinheiros',d:'900 m',e:'🌮',c:'#E63E75'},
+    {n:'Bar do Zé',a:'Lapa',d:'3 km',e:'🍢',c:'#241A22'},
+  ];
+  const TAGS=['volto sim','não volto','boa pra ir sozinho','bom pra date','bom pra grupo','vale a fila','atendimento top','bom custo-benefício','barulhento','pet friendly'];
+  const USERS=[{u:'bea_come_tudo',c:'#E63E75'},{u:'joao.come',c:'#7A9A3D'},{u:'paulinha',c:'#F2A93B'},{u:'lucas.tim',c:'#241A22'}];
+  const PRICES=[['$','até R$ 50'],['$$','R$ 50 a 100'],['$$$','R$ 100 a 200'],['$$$$','mais de R$ 200']];
+
+  let rating=0, restaurant=null, photos=0;
+  const $=id=>document.getElementById(id);
+
+  /* tema */
+  function toggleTheme(){const r=document.documentElement;const d=r.dataset.theme==='dark';r.dataset.theme=d?'light':'dark';$('themeBtn').textContent=d?'🌙':'☀️';}
+
+  /* estrelas */
+  function renderStars(){
+    const box=$('rating'); box.innerHTML='';
+    for(let i=1;i<=5;i++){
+      const s=document.createElement('div'); s.className='star';
+      const f=Math.max(0,Math.min(1,rating-(i-1)));
+      s.innerHTML=`★<div class="fill" style="width:${f*100}%">★</div><div class="h l"></div><div class="h r"></div>`;
+      s.querySelector('.l').onclick=()=>setRating(i-0.5);
+      s.querySelector('.r').onclick=()=>setRating(i);
+      box.appendChild(s);
+    }
+    const v=document.createElement('span'); v.className='val';
+    v.textContent=rating?rating.toString().replace('.',',')+' / 5':'sem nota';
+    box.appendChild(v);
+    if(rating){const c=document.createElement('button');c.className='clear';c.textContent='tirar nota';c.onclick=()=>setRating(0);box.appendChild(c);}
+    box.setAttribute('aria-valuenow',rating);
+    // estrelas sobre a foto
+    let h=''; for(let i=1;i<=5;i++){const f=Math.max(0,Math.min(1,rating-(i-1)));
+      h+=`<span style="position:relative;font-size:16px;color:rgba(255,255,255,.35)">★<span style="position:absolute;left:0;top:0;overflow:hidden;width:${f*100}%;color:rgba(255,255,255,.92)">★</span></span>`;}
+    $('photoStars').innerHTML=rating?h:'';
+  }
+  function setRating(v){rating=(rating===v)?0:v; renderStars(); $('rhint').textContent=rating?'é assim que a nota vai aparecer na foto':'toque na metade da estrela pra dar meia';}
+
+  /* restaurante */
+  function openSheet(){ $('sheet').classList.add('open'); renderRes(''); setTimeout(()=>$('q').focus(),300); }
+  function closeSheet(){ $('sheet').classList.remove('open'); }
+  function renderRes(q){
+    const l=$('resList'); q=q.toLowerCase();
+    const list=PLACES.filter(p=>!q||p.n.toLowerCase().includes(q));
+    $('resLbl').textContent=q?'resultados':'perto de você agora';
+    l.innerHTML=list.map((p,i)=>`<div class="res" onclick='pick(${JSON.stringify(p)})'><div class="ic" style="background:${p.c}22">${p.e}</div><div><div class="n">${p.n}</div><div class="a">${p.a}</div></div><span class="d">${p.d}</span></div>`).join('')
+      || '<div class="manual">nada encontrado com esse nome</div>';
+  }
+  function pick(p){
+    restaurant=p; closeSheet();
+    $('rest').classList.remove('empty');
+    $('rest').querySelector('.ic').textContent=p.e; $('rest').querySelector('.ic').style.background=p.c+'33';
+    $('restName').textContent=p.n; $('restAddr').textContent=p.a; $('restCh').textContent='trocar';
+    $('pub').disabled=false;
+  }
+
+  /* fotos */
+  function addPhoto(){ photos=Math.min(photos+1,10); $('photo').classList.add('has'); $('pcount').textContent=photos+' foto'+(photos>1?'s':'')+' · toque pra mais'; }
+
+  /* data */
+  function setDate(v){ if(!v)return; const [y,m,d]=v.split('-'); const t=new Date(); const iso=t.toISOString().slice(0,10);
+    $('dateTxt').textContent= v===iso?'hoje':`${d}/${m}/${y}`; }
+
+  /* mais */
+  function toggleMore(){ const m=$('more'); m.classList.toggle('open'); $('moreBtn').querySelector('span').textContent=m.classList.contains('open')?'fechar ▴':'texto, etiquetas, pratos, quem foi, gasto ▾'; }
+
+  /* etiquetas */
+  $('tags').innerHTML=TAGS.map(t=>`<button class="chip" onclick="this.classList.toggle('on')">${t}</button>`).join('');
+
+  /* pratos */
+  let dishes=[{n:'bolinho de mandioca',v:'up'},{n:'pastel de queijo',v:null}];
+  function renderDishes(){
+    $('dishes').innerHTML=dishes.map((d,i)=>`<div class="dish"><span class="nm">${d.n}</span>
+      <button class="vote ${d.v==='up'?'on':''}" onclick="vote(${i},'up')" aria-label="valeu">❤️</button>
+      <button class="vote ${d.v==='down'?'on':''}" onclick="vote(${i},'down')" aria-label="não valeu">👎</button>
+      <button class="rm" onclick="dishes.splice(${i},1);renderDishes()" aria-label="remover">×</button></div>`).join('');
+  }
+  function vote(i,v){dishes[i].v=dishes[i].v===v?null:v; renderDishes();}
+  function addDish(){const v=$('dishIn').value.trim(); if(!v)return; dishes.push({n:v,v:null}); $('dishIn').value=''; renderDishes();}
+
+  /* acompanhantes */
+  let people=[];
+  function renderPeople(){
+    $('people').innerHTML=people.map((p,i)=>p.u
+      ?`<span class="person"><span class="c" style="background:${p.c}">${p.u[0].toUpperCase()}</span>@${p.u} <small>· convite</small> <button class="rm" onclick="people.splice(${i},1);renderPeople()">×</button></span>`
+      :`<span class="person"><span class="c free">${p.n[0].toUpperCase()}</span>${p.n} <small>· sem conta</small> <button class="rm" onclick="people.splice(${i},1);renderPeople()">×</button></span>`).join('');
+  }
+  function suggest(q){
+    q=q.replace('@','').toLowerCase();
+    if(!q){$('sug').innerHTML='';return;}
+    const l=USERS.filter(u=>u.u.includes(q)&&!people.some(p=>p.u===u.u));
+    $('sug').innerHTML=l.map(u=>`<div class="row" onclick="addUser('${u.u}')"><span class="c" style="background:${u.c}">${u.u[0].toUpperCase()}</span>@${u.u} <span>· você segue</span></div>`).join('');
+  }
+  function addUser(u){people.push(USERS.find(x=>x.u===u)); $('pplIn').value=''; $('sug').innerHTML=''; renderPeople();}
+  function addFree(){const v=$('pplIn').value.trim().replace(/^@/,''); if(!v)return; const u=USERS.find(x=>x.u===v); if(u) return addUser(v); people.push({n:v}); $('pplIn').value=''; $('sug').innerHTML=''; renderPeople();}
+
+  /* gasto */
+  $('price').innerHTML=PRICES.map(([p,h])=>`<button class="chip price" data-h="${h}" onclick="setPrice(this)">${p}</button>`).join('');
+  function setPrice(b){const on=b.classList.contains('on'); document.querySelectorAll('.chip.price').forEach(x=>x.classList.remove('on')); if(!on){b.classList.add('on'); $('priceHint').textContent=b.dataset.h;} else $('priceHint').innerHTML='&nbsp;';}
+
+  /* publicar */
+  function publish(){
+    const full = photos || document.querySelector('textarea').value.trim();
+    toast(full?`Tim! visita no ${restaurant.n} publicada`:`Tim! check-in no ${restaurant.n}`);
+  }
+  function toast(t){const e=$('toast'); e.textContent=t; e.classList.add('show'); setTimeout(()=>e.classList.remove('show'),2200);}
+
+  renderStars(); renderDishes();
+</script>
+</body>
+</html>

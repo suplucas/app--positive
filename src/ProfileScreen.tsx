@@ -12,13 +12,14 @@ import {
 import type { ImageSourcePropType } from 'react-native';
 import { Avatar } from './Avatar';
 import { NoteBadge } from './NoteBadge';
-import type { HighlightCard as HL, DiaryEntry } from './mockData';
+import type { HighlightCard as HL, DiaryEntry, WishItem } from './mockData';
 import { PERFIL } from './mockData';
 import { SectionTitle } from './SectionTitle';
 import { MOCK_POST_PHOTOS } from './postPhotos';
 import { fonts, palette, spacing, useTheme } from './theme';
 
-type Tab = 'diario' | 'listas';
+type Tab = 'diario' | 'listas' | 'wishlist';
+type WishFilter = 'todos' | 'jantar' | 'bar' | 'cafe';
 type Versao = 'v1' | 'v2' | 'v3';
 
 // Foto local por índice (assets/posts) para as células/favoritos mock.
@@ -150,17 +151,19 @@ function PerfilV2() {
           onPress={() => setTab('listas')}
           color={t.sub}
           activeColor={t.ink}
-          testID="tab-listas"
+          testID={'tab-listas'}
+        />
+        <TabButton
+          label={`wishlist · ${PERFIL.wishlist.length}`}
+          active={tab === 'wishlist'}
+          onPress={() => setTab('wishlist')}
+          color={t.sub}
+          activeColor={t.ink}
+          testID={'tab-wishlist'}
         />
       </View>
 
-      {tab === 'diario' ? <Diary /> : <Lists />}
-
-      <Text style={[s.legend, { color: t.sub }]}>
-        Botão de seguir ao lado do nome (toque para alternar seguir/seguindo).
-        Abas “diário/listas” separam histórico cronológico de curadoria
-        intencional — cada uma com o próprio conteúdo abaixo.
-      </Text>
+      {tab === 'diario' ? <Diary /> : tab === 'listas' ? <Lists /> : <Wishlist />}
     </>
   );
 }
@@ -451,6 +454,102 @@ function Diary() {
   );
 }
 
+function Wishlist() {
+  const t = useTheme();
+  const [filter, setFilter] = useState<WishFilter>('todos');
+  const [visited, setVisited] = useState<Set<number>>(new Set());
+
+  const FILTERS: { key: WishFilter; label: string }[] = [
+    { key: 'todos',  label: 'todos'  },
+    { key: 'jantar', label: 'jantar' },
+    { key: 'bar',    label: 'bar'    },
+    { key: 'cafe',   label: 'café'   },
+  ];
+
+  const items = PERFIL.wishlist
+    .map((w: WishItem, i: number) => ({ w, i }))
+    .filter(({ w }: { w: WishItem }) => filter === 'todos' || w.tag === filter);
+
+  const queueCount = PERFIL.wishlist.filter((_: WishItem, i: number) => !visited.has(i)).length;
+
+  function toggleVisited(idx: number) {
+    setVisited((prev) => {
+      const next = new Set(prev);
+      if (next.has(idx)) next.delete(idx); else next.add(idx);
+      return next;
+    });
+  }
+
+  return (
+    <View>
+      <View style={s.wishHead}>
+        <Text style={[s.wishLabel, { color: t.sub }]}>quero conhecer</Text>
+        <Text style={[s.wishLeft, { color: t.sub }]}>{queueCount} na fila</Text>
+      </View>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={s.chipsRow}
+        contentContainerStyle={s.chipsContent}
+      >
+        {FILTERS.map((f) => (
+          <Pressable
+            key={f.key}
+            onPress={() => setFilter(f.key)}
+            style={[
+              s.filterChip,
+              { borderColor: t.line },
+              filter === f.key && { backgroundColor: t.ink, borderColor: t.ink },
+            ]}
+          >
+            <Text style={[s.filterChipText, { color: filter === f.key ? t.bg : t.ink }]}>
+              {f.label}
+            </Text>
+          </Pressable>
+        ))}
+      </ScrollView>
+      <View style={s.wishList}>
+        {items.map(({ w, i }: { w: WishItem; i: number }) => {
+          const isVisited = visited.has(i);
+          return (
+            <View key={w.place} style={[s.wishCard, { borderBottomColor: t.line }]}>
+              <View style={[s.wishThumb, { backgroundColor: w.cor }]} />
+              <View style={s.wishBody}>
+                <Text style={[s.wishName, { color: t.ink }, isVisited && s.wishStrike]} numberOfLines={1}>
+                  {w.place}
+                </Text>
+                <Text style={[s.wishMeta, { color: t.sub }]}>
+                  {w.bairro} · {w.tipo} · {w.preco}
+                </Text>
+                <View style={s.socialRow}>
+                  <View style={s.dots}>
+                    {w.socialDots.map((cor: string, di: number) => (
+                      <View key={di} style={[s.dot, { backgroundColor: cor, marginLeft: di === 0 ? 0 : -4 }]} />
+                    ))}
+                  </View>
+                  <Text style={[s.socialText, { color: t.sub }]}>{w.socialText}</Text>
+                </View>
+              </View>
+              <Pressable
+                onPress={() => toggleVisited(i)}
+                style={[
+                  s.beenBtn,
+                  { borderColor: t.ink },
+                  isVisited && { backgroundColor: palette.picles, borderColor: palette.picles },
+                ]}
+              >
+                <Text style={[s.beenBtnText, { color: isVisited ? palette.papel : t.ink }]}>
+                  {isVisited ? 'fui ✓' : 'fui'}
+                </Text>
+              </Pressable>
+            </View>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
 function Lists() {
   const t = useTheme();
   return (
@@ -733,7 +832,7 @@ const s = StyleSheet.create({
   bentoSmall: { flex: 1 },
   hlCard: { borderRadius: 14, overflow: 'hidden', justifyContent: 'flex-end' },
   hlOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: 'rgba(20,14,18,0.45)',
   },
   hlBody: { padding: 10 },
@@ -786,4 +885,74 @@ const s = StyleSheet.create({
   entryMeta: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 },
   entryMetaText: { fontSize: 11.5 },
   entryEx: { fontSize: 12.5, lineHeight: 17, marginTop: 5 },
+  // wishlist styles
+  wishHead: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+    paddingHorizontal: spacing.padrao,
+    paddingTop: spacing.padrao,
+    paddingBottom: 2,
+  },
+  wishLabel: {
+    fontFamily: fonts.display700,
+    fontSize: 13,
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+  },
+  wishLeft: { fontSize: 12 },
+  chipsRow: { paddingTop: spacing.interno },
+  chipsContent: {
+    paddingHorizontal: spacing.padrao,
+    gap: 6,
+    paddingBottom: spacing.micro,
+  },
+  filterChip: {
+    paddingHorizontal: 11,
+    paddingVertical: 5,
+    borderRadius: 20,
+    borderWidth: 1,
+    minHeight: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  filterChipText: { fontFamily: fonts.corpo600, fontSize: 11.5 },
+  wishList: {
+    paddingHorizontal: spacing.padrao,
+    paddingTop: spacing.micro,
+    paddingBottom: 20,
+  },
+  wishCard: {
+    flexDirection: 'row',
+    gap: 12,
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  wishThumb: { width: 52, height: 52, borderRadius: 10, flexShrink: 0 },
+  wishBody: { flex: 1, minWidth: 0 },
+  wishName: { fontFamily: fonts.display700, fontSize: 14 },
+  wishStrike: { textDecorationLine: 'line-through', opacity: 0.55 },
+  wishMeta: { fontSize: 12, marginTop: 2 },
+  socialRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 },
+  dots: { flexDirection: 'row' },
+  dot: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    borderWidth: 1.5,
+    borderColor: palette.papel,
+  },
+  socialText: { fontSize: 11.5, flexShrink: 1 },
+  beenBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 20,
+    borderWidth: 1.5,
+    flexShrink: 0,
+    minHeight: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  beenBtnText: { fontFamily: fonts.display700, fontSize: 11.5 },
 });

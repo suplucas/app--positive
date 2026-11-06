@@ -27,6 +27,9 @@ import { FeedQuote } from './src/FeedQuote';
 import { MOCK_USER } from './src/mockFeed';
 import { MOCK_POST_PHOTOS, photoFor } from './src/postPhotos';
 import { ComposeScreen } from './src/ComposeScreen';
+import { SearchScreen } from './src/SearchScreen';
+import { NotificationsScreen } from './src/NotificationsScreen';
+import { ReviewScreen } from './src/ReviewScreen';
 import { Navbar, type Screen } from './src/Navbar';
 import { Podium } from './src/Podium';
 import { ProfileScreen } from './src/ProfileScreen';
@@ -66,6 +69,7 @@ export default function App() {
   const toggleTheme = () => setThemeOverride(mode === 'dark' ? 'light' : 'dark');
 
   const [screen, setScreen] = useState<Screen>('feed');
+  const [composeVersion, setComposeVersion] = useState<'v1' | 'v2'>('v1');
   const [userId, setUserId] = useState<string>('user_1');
   const { items, status, error, hasMore, refresh, loadMore } = useFeed(userId);
 
@@ -126,7 +130,7 @@ export default function App() {
     <ThemeContext.Provider value={theme}>
       <SafeAreaView style={[styles.root, { backgroundColor: theme.bg }]}>
         <StatusBar style={mode === 'dark' ? 'light' : 'dark'} />
-        <View style={[styles.header, { borderBottomColor: theme.line }]}>
+        {screen !== 'buscar' ? <View style={[styles.header, { borderBottomColor: theme.line }]}>
           <View style={styles.headerRow}>
             <Text style={[styles.word, { color: theme.ink }]}>
               {screen === 'feed' ? (
@@ -136,10 +140,29 @@ export default function App() {
                 </>
               ) : screen === 'perfil' ? (
                 'perfil'
+              ) : screen === 'notif' ? (
+                'atividade'
+              ) : screen === 'compose' ? (
+                'avaliar'
               ) : (
                 'avaliar'
               )}
             </Text>
+            {screen === 'compose' ? (
+              <View style={styles.versionPill}>
+                {(['v1', 'v2'] as const).map(v => (
+                  <Pressable
+                    key={v}
+                    onPress={() => setComposeVersion(v)}
+                    style={[styles.versionBtn,
+                      composeVersion === v && { backgroundColor: theme.ink }]}
+                  >
+                    <Text style={[styles.versionBtnText,
+                      { color: composeVersion === v ? theme.bg : theme.sub }]}>{v}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            ) : null}
             <Pressable
               onPress={toggleTheme}
               hitSlop={7}
@@ -196,7 +219,7 @@ export default function App() {
               ) : null}
             </>
           ) : null}
-        </View>
+        </View> : null}
 
         {screen === 'feed' ? (
           <FlatList<Review>
@@ -227,8 +250,17 @@ export default function App() {
               />
             }
           />
+        ) : screen === 'buscar' ? (
+          <SearchScreen />
+        ) : screen === 'notif' ? (
+          <NotificationsScreen />
         ) : screen === 'perfil' ? (
           <ProfileScreen />
+        ) : composeVersion === 'v2' ? (
+          <ReviewScreen
+            onCancel={() => setScreen('feed')}
+            onPosted={() => { setScreen('feed'); void refresh(); }}
+          />
         ) : (
           <ComposeScreen
             userId={userId}
@@ -295,4 +327,16 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   bannerText: { fontSize: 12 },
+  versionPill: {
+    flexDirection: 'row',
+    borderRadius: 20,
+    overflow: 'hidden',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(36,26,34,0.15)',
+  },
+  versionBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+  },
+  versionBtnText: { fontFamily: fonts.display700, fontSize: 12 },
 });
