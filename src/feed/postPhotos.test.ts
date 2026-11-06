@@ -5,7 +5,7 @@ import {
   photoFor,
   photosFor,
   photoAt,
-} from './feed/postPhotos';
+} from './postPhotos';
 
 describe('postPhotos', () => {
   it('expõe as fotos mock de assets/posts', () => {

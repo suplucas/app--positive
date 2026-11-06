@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { restaurantFor } from './restaurant/restaurantMock';
-import { restaurantNames } from './restaurant/restaurantNames';
+import { restaurantFor } from './restaurantMock';
+import { restaurantNames } from './restaurantNames';
 
 const [cnpjSeed] = Object.entries(restaurantNames)[0];
 

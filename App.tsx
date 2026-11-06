@@ -1,11 +1,4 @@
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type ReactNode,
-} from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import {
   Animated,
   Alert,
@@ -37,6 +30,7 @@ import { AuthFlow } from './src/auth/AuthFlow';
 import { EditProfileScreen } from './src/profile/EditProfileScreen';
 import { EmptyState } from './src/common/EmptyState';
 import { ErrorBoundary } from './src/common/ErrorBoundary';
+import { LayerScreen } from './src/common/LayerScreen';
 import { FeedCard } from './src/feed/FeedCard';
 import { FeedPhoto } from './src/feed/FeedPhoto';
 import { FeedQuote } from './src/feed/FeedQuote';
@@ -61,7 +55,6 @@ import {
   lightTheme,
   palette,
   spacing,
-  useTheme,
   type Theme,
 } from './src/common/theme';
 import { friendlyApiError, restaurantName } from './src/common/format';
@@ -568,13 +561,6 @@ function MainApp({
 const styles = StyleSheet.create({
   root: { flex: 1 },
   content: { flex: 1 },
-  layer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
   header: {
     paddingTop: spacing.padrao,
     paddingHorizontal: spacing.padrao,
@@ -593,40 +579,3 @@ const styles = StyleSheet.create({
   bannerText: { fontSize: 12 },
   retryText: { fontSize: 12, fontFamily: fonts.corpo600, fontWeight: '600' },
 });
-
-// Camada de sub-tela: absoluto sobre o conteúdo principal, com fade +
-// slide de 180ms na entrada (useNativeDriver). A saída é instantânea —
-// a camada unmounta e revela o que estava embaixo.
-function LayerScreen({ children }: { children: ReactNode }) {
-  const t = useTheme();
-  const anim = useRef(new Animated.Value(0)).current;
-  useEffect(() => {
-    Animated.timing(anim, {
-      toValue: 1,
-      duration: 180,
-      easing: Easing.out(Easing.quad),
-      useNativeDriver: true,
-    }).start();
-  }, [anim]);
-  return (
-    <Animated.View
-      style={[
-        styles.layer,
-        {
-          backgroundColor: t.bg,
-          opacity: anim,
-          transform: [
-            {
-              translateY: anim.interpolate({
-                inputRange: [0, 1],
-                outputRange: [12, 0],
-              }),
-            },
-          ],
-        },
-      ]}
-    >
-      {children}
-    </Animated.View>
-  );
-}
