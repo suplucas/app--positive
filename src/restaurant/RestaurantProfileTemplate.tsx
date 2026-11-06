@@ -4,6 +4,7 @@ import { FeedQuote } from '../feed/FeedQuote';
 import { SectionTitle } from '../common/SectionTitle';
 import type { Review } from '../common/types';
 import { fonts, palette, spacing, useTheme } from '../common/theme';
+import { layout } from '../common/layout';
 
 // Template de apresentação do perfil do restaurante (docs_05). Não
 // conhece mock nem API: recebe `data` pronta. O RestaurantScreen é o
@@ -59,7 +60,12 @@ export function RestaurantProfileTemplate({
 
   return (
     <ScrollView style={{ backgroundColor: t.bg }}>
-      <View style={[s.topbar, { backgroundColor: t.bg }]}>
+      <View
+        style={[
+          layout.topbar,
+          { backgroundColor: t.bg, justifyContent: 'space-between' },
+        ]}
+      >
         <Pressable
           testID="voltar"
           onPress={onBack}
@@ -68,7 +74,7 @@ export function RestaurantProfileTemplate({
           accessibilityRole="button"
           accessibilityLabel="voltar"
         >
-          <Text style={[s.tbtnText, { color: '#fff' }]}>←</Text>
+          <Text style={[layout.backIcon, { color: '#fff' }]}>←</Text>
         </Pressable>
       </View>
 
@@ -223,13 +229,6 @@ function Stat({
 }
 
 const s = StyleSheet.create({
-  topbar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: spacing.padrao,
-    paddingHorizontal: spacing.padrao,
-  },
   tbtn: {
     width: 32,
     height: 32,
@@ -237,7 +236,6 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  tbtnText: { fontSize: 14 },
   cover: { height: 200 },
   coverNote: {
     position: 'absolute',

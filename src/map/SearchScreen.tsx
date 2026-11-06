@@ -12,6 +12,7 @@ import type { PlaceHit } from '../api/types';
 import type { Review } from '../common/types';
 import type { UserProfile } from '../api/types';
 import { fonts, palette, spacing, useTheme } from '../common/theme';
+import { layout } from '../common/layout';
 import type { RestaurantHit } from '../common/format';
 
 // Busca global: lugares (conteúdo), reviews e perfis em uma única tela.
@@ -85,16 +86,19 @@ export function SearchScreen({
       style={{ backgroundColor: t.bg }}
       contentContainerStyle={s.scroll}
     >
-      <View style={[s.header, { borderBottomColor: t.line }]}>
+      <View
+        style={[layout.topbar, layout.divider, { borderBottomColor: t.line }]}
+      >
         {onBack ? (
           <Pressable
             testID="busca-voltar"
             onPress={onBack}
+            style={layout.backHit}
             hitSlop={8}
             accessibilityRole="button"
             accessibilityLabel="voltar"
           >
-            <Text style={[s.back, { color: t.sub }]}>‹</Text>
+            <Text style={[layout.backIcon, { color: t.sub }]}>‹</Text>
           </Pressable>
         ) : null}
         <TextInput
@@ -284,16 +288,6 @@ export function SearchScreen({
 
 const s = StyleSheet.create({
   scroll: { paddingBottom: spacing.bloco },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    paddingHorizontal: spacing.padrao,
-    paddingTop: spacing.interno,
-    paddingBottom: spacing.interno,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  back: { fontSize: 22, lineHeight: 24 },
   input: {
     flex: 1,
     borderWidth: 1.5,

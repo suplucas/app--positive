@@ -11,6 +11,7 @@ import {
 import { Avatar } from '../common/Avatar';
 import { pickPhoto } from '../compose/pickPhoto';
 import { fonts, palette, spacing, useTheme } from '../common/theme';
+import { layout } from '../common/layout';
 
 // Entrada de edição de perfil. Apresentação pura — quem salva é o
 // EditProfileScreen (PUT /users/:id com photoUrl).
@@ -79,11 +80,18 @@ export function EditProfileForm({
 
   return (
     <View style={{ flex: 1, backgroundColor: t.bg }}>
-      <View style={[s.subHeader, { borderBottomColor: t.line }]}>
+      <View
+        style={[
+          layout.topbar,
+          layout.divider,
+          { borderBottomColor: t.line, justifyContent: 'space-between' },
+        ]}
+      >
         <Pressable
           testID="cancelar-perfil"
           onPress={onBack}
           hitSlop={6}
+          style={layout.actionHit}
           accessibilityRole="button"
         >
           <Text style={[s.hbtn, { color: t.sub }]}>cancelar</Text>
@@ -180,21 +188,13 @@ export function EditProfileForm({
 
 const s = StyleSheet.create({
   scroll: { paddingBottom: spacing.bloco },
-  subHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.padrao,
-    paddingVertical: spacing.padrao - 2,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
   hbtn: { fontSize: 13, fontFamily: fonts.corpo600, fontWeight: '600' },
   htitle: { fontFamily: fonts.display800, fontSize: 14 },
   saveBtn: {
     borderRadius: 16,
     paddingHorizontal: spacing.padrao,
     paddingVertical: 7,
-    minHeight: 32,
+    minHeight: 44,
     alignItems: 'center',
     justifyContent: 'center',
   },

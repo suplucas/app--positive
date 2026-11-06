@@ -12,6 +12,7 @@ import { formatRelative, getNote, restaurantName } from '../common/format';
 import { SectionTitle } from '../common/SectionTitle';
 import { useComments } from './useComments';
 import { fonts, palette, spacing, useTheme } from '../common/theme';
+import { layout } from '../common/layout';
 import type { Review } from '../common/types';
 
 // Thread de comentários da review (docs/12): abre pelo 💬 dos cards de
@@ -49,7 +50,9 @@ export function CommentThreadScreen({
       contentContainerStyle={s.scroll}
       keyboardShouldPersistTaps="handled"
     >
-      <View style={s.topbar}>
+      <View
+        style={[layout.topbar, layout.divider, { borderBottomColor: t.line }]}
+      >
         <Pressable
           testID="voltar"
           onPress={onBack}
@@ -58,7 +61,7 @@ export function CommentThreadScreen({
           accessibilityRole="button"
           accessibilityLabel="voltar"
         >
-          <Text style={[s.tbtnText, { color: '#fff' }]}>←</Text>
+          <Text style={[layout.backIcon, { color: '#fff' }]}>←</Text>
         </Pressable>
       </View>
 
@@ -162,7 +165,6 @@ export function CommentThreadScreen({
 
 const s = StyleSheet.create({
   scroll: { paddingBottom: spacing.bloco },
-  topbar: { paddingTop: spacing.padrao, paddingHorizontal: spacing.padrao },
   tbtn: {
     width: 32,
     height: 32,
@@ -170,7 +172,6 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  tbtnText: { fontSize: 14 },
   original: {
     flexDirection: 'row',
     gap: 10,

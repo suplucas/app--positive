@@ -25,6 +25,7 @@ import {
 } from '../common/format';
 import { pickPhoto } from './pickPhoto';
 import { fonts, palette, spacing, useTheme } from '../common/theme';
+import { layout } from '../common/layout';
 
 // Flairs disponíveis (docs_04): até 2 por avaliação, o primeiro
 // selecionado sai quando entra o terceiro (mesma regra do mock).
@@ -267,11 +268,18 @@ export function ComposeV2({
   return (
     <View style={{ flex: 1, backgroundColor: t.bg }}>
       {/* Sub-cabeçalho do mock docs/16: cancelar · nova avaliação · tim! */}
-      <View style={[s.subHeader, { borderBottomColor: t.line }]}>
+      <View
+        style={[
+          layout.topbar,
+          layout.divider,
+          { borderBottomColor: t.line, justifyContent: 'space-between' },
+        ]}
+      >
         <Pressable
           testID="cancelar-v2"
           onPress={onCancel}
           hitSlop={6}
+          style={layout.actionHit}
           accessibilityRole="button"
         >
           <Text style={[s.hbtn, { color: t.sub }]}>cancelar</Text>
@@ -545,22 +553,13 @@ export function ComposeV2({
 
 const s = StyleSheet.create({
   scroll: { paddingBottom: spacing.bloco },
-  // Sub-cabeçalho (docs/16).
-  subHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.padrao,
-    paddingVertical: spacing.padrao - 2,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
   hbtn: { fontSize: 13, fontFamily: fonts.corpo600, fontWeight: '600' },
   htitle: { fontFamily: fonts.display800, fontSize: 14 },
   publishBtn: {
     borderRadius: 16,
     paddingHorizontal: spacing.padrao,
     paddingVertical: 7,
-    minHeight: 32,
+    minHeight: 44,
     alignItems: 'center',
     justifyContent: 'center',
   },

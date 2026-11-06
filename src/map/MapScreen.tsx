@@ -18,6 +18,7 @@ import { WebView, type WebViewMessageEvent } from 'react-native-webview';
 import { buildMapHtml, buildPinData, jsonForScript } from './mapHtml';
 import { pinColor, type MapPlace } from './mapMock';
 import { fonts, palette, spacing, useTheme } from '../common/theme';
+import { layout } from '../common/layout';
 import { PageTitle } from '../common/PageTitle';
 import { usePlaces, DEFAULT_BBOX, type Bbox } from './usePlaces';
 import { searchPlaces } from '../api/place';
@@ -225,8 +226,8 @@ export function MapScreen({
 
   return (
     <View testID="mapa-tela" style={[s.root, { backgroundColor: t.bg }]}>
-      {/* Header: chip + título + busca na mesma linha */}
-      <View style={s.header}>
+      {/* Header: título + busca na mesma linha */}
+      <View style={[layout.topbar, { justifyContent: 'space-between' }]}>
         {/*         <View style={s.chipWrap}>
           <View style={s.chip}>
             <Text style={[s.chipText, { color: t.sub }]}>perto de você</Text>
@@ -237,11 +238,12 @@ export function MapScreen({
           <Pressable
             testID="mapa-busca-voltar"
             onPress={onBack}
+            style={layout.backHit}
             hitSlop={8}
             accessibilityRole="button"
             accessibilityLabel="voltar"
           >
-            <Text style={[s.searchBack, { color: t.sub }]}>‹</Text>
+            <Text style={[layout.backIcon, { color: t.sub }]}>‹</Text>
           </Pressable>
           <TextInput
             testID="mapa-busca-input"
@@ -420,15 +422,6 @@ const s = StyleSheet.create({
     right: 0,
     bottom: 0,
   },
-  // Header em linha: título à esquerda, busca à direita.
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: spacing.padrao,
-    paddingTop: spacing.padrao,
-    paddingBottom: spacing.interno,
-  },
   chipWrap: {
     marginRight: spacing.interno,
   },
@@ -539,7 +532,6 @@ const s = StyleSheet.create({
     paddingHorizontal: spacing.interno,
     paddingVertical: spacing.interno - 2,
   },
-  searchBack: { fontSize: 18, marginRight: 8 },
   searchInput: {
     flex: 1,
     fontSize: 14,

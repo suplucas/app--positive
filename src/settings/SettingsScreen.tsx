@@ -1,5 +1,6 @@
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { fonts, spacing, useTheme } from '../common/theme';
+import { layout } from '../common/layout';
 
 // Tela de configurações (acessada pelo perfil): tema e sair da conta.
 export type ThemeMode = 'system' | 'light' | 'dark';
@@ -32,16 +33,18 @@ export function SettingsScreen({
       style={{ backgroundColor: t.bg }}
       contentContainerStyle={s.scroll}
     >
-      <View style={[s.topbar, { borderBottomColor: t.line }]}>
+      <View
+        style={[layout.topbar, layout.divider, { borderBottomColor: t.line }]}
+      >
         <Pressable
           testID="voltar"
           onPress={onBack}
-          style={s.backHit}
+          style={layout.backHit}
           hitSlop={8}
           accessibilityRole="button"
           accessibilityLabel="voltar para o perfil"
         >
-          <Text style={[s.backText, { color: t.sub }]}>←</Text>
+          <Text style={[layout.backIcon, { color: t.sub }]}>←</Text>
         </Pressable>
         <Text style={[s.title, { color: t.ink }]}>configurações</Text>
       </View>
@@ -120,17 +123,6 @@ function Chip({
 
 const s = StyleSheet.create({
   scroll: { paddingBottom: spacing.bloco },
-  topbar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.interno,
-    paddingHorizontal: spacing.padrao,
-    paddingTop: spacing.padrao,
-    paddingBottom: spacing.interno,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  backHit: { minWidth: 44, minHeight: 44, justifyContent: 'center' },
-  backText: { fontSize: 18 },
   title: { fontFamily: fonts.display800, fontSize: 16 },
   section: {
     paddingHorizontal: spacing.padrao,

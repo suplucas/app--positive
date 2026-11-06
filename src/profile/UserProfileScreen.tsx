@@ -3,6 +3,7 @@ import { Avatar } from '../common/Avatar';
 import { FeedCard } from '../feed/FeedCard';
 import { SectionTitle } from '../common/SectionTitle';
 import { fonts, palette, spacing, useTheme } from '../common/theme';
+import { layout } from '../common/layout';
 import { useUserProfile } from './useUserProfile';
 
 export function UserProfileScreen({
@@ -45,15 +46,18 @@ export function UserProfileScreen({
 
   return (
     <ScrollView style={{ backgroundColor: t.bg }}>
-      <View style={s.topbar}>
+      <View
+        style={[layout.topbar, layout.divider, { borderBottomColor: t.line }]}
+      >
         <Pressable
           testID="user-voltar"
           onPress={onBack}
+          style={layout.backHit}
           hitSlop={8}
           accessibilityRole="button"
           accessibilityLabel="voltar"
         >
-          <Text style={[s.back, { color: t.sub }]}>←</Text>
+          <Text style={[layout.backIcon, { color: t.sub }]}>←</Text>
         </Pressable>
       </View>
 
@@ -121,8 +125,6 @@ export function UserProfileScreen({
 
 const s = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  topbar: { paddingHorizontal: spacing.padrao, paddingTop: spacing.padrao },
-  back: { fontSize: 20 },
   bioBlock: {
     flexDirection: 'row',
     gap: 14,

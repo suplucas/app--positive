@@ -1,6 +1,7 @@
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { formatRelative } from '../common/format';
 import { fonts, spacing, useTheme } from '../common/theme';
+import { layout } from '../common/layout';
 import { useNotifications } from '../comments/useNotifications';
 import type { AppNotification } from '../api/types';
 
@@ -41,7 +42,9 @@ export function NotificationScreen({
       contentContainerStyle={s.scroll}
     >
       {onBack ? (
-        <View style={s.topbar}>
+        <View
+          style={[layout.topbar, layout.divider, { borderBottomColor: t.line }]}
+        >
           <Pressable
             testID="voltar"
             onPress={onBack}
@@ -50,7 +53,7 @@ export function NotificationScreen({
             accessibilityRole="button"
             accessibilityLabel="voltar"
           >
-            <Text style={[s.tbtnText, { color: '#fff' }]}>←</Text>
+            <Text style={[layout.backIcon, { color: '#fff' }]}>←</Text>
           </Pressable>
         </View>
       ) : null}
@@ -120,7 +123,6 @@ export function NotificationScreen({
 
 const s = StyleSheet.create({
   scroll: { paddingTop: spacing.interno, paddingBottom: spacing.bloco },
-  topbar: { paddingBottom: spacing.interno, paddingHorizontal: spacing.padrao },
   tbtn: {
     width: 32,
     height: 32,
@@ -128,7 +130,6 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  tbtnText: { fontSize: 14 },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
