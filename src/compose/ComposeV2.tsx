@@ -476,7 +476,11 @@ export function ComposeV2({
           <>
             <View style={s.shelf}>
               {photos.map((src, i) => (
-                <View key={i} testID={`foto-thumb-${i}`} style={s.thumb}>
+                <View
+                  key={i}
+                  testID={`foto-thumb-${i}`}
+                  style={[s.thumb, { borderColor: t.line }]}
+                >
                   <Image
                     testID={i === 0 ? 'foto-preview' : undefined}
                     source={src}
@@ -679,7 +683,6 @@ const s = StyleSheet.create({
     borderRadius: radius.card,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(36,26,34,0.10)',
   },
   thumbImg: { width: '100%', height: '100%' },
   thumbX: {

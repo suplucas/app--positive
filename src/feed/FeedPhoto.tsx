@@ -259,7 +259,7 @@ const s = StyleSheet.create({
     position: 'absolute',
     bottom: 10,
     right: 12,
-    backgroundColor: 'rgba(36,26,34,0.82)',
+    backgroundColor: palette.overlayStrong,
     borderRadius: 8,
     paddingHorizontal: spacing.interno,
     paddingVertical: 3,

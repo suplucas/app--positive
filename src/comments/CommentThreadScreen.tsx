@@ -63,12 +63,12 @@ export function CommentThreadScreen({
         <Pressable
           testID="voltar"
           onPress={onBack}
-          style={[s.tbtn, { backgroundColor: 'rgba(36,26,34,0.55)' }]}
+          style={[s.tbtn, { backgroundColor: palette.overlay }]}
           hitSlop={6}
           accessibilityRole="button"
           accessibilityLabel="voltar"
         >
-          <Text style={[layout.backIcon, { color: '#fff' }]}>←</Text>
+          <Text style={[layout.backIcon, { color: palette.papel }]}>←</Text>
         </Pressable>
       </View>
 

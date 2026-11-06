@@ -76,12 +76,12 @@ export function RestaurantProfileTemplate({
         <Pressable
           testID="voltar"
           onPress={onBack}
-          style={[s.tbtn, { backgroundColor: 'rgba(36,26,34,0.55)' }]}
+          style={[s.tbtn, { backgroundColor: palette.overlay }]}
           hitSlop={6}
           accessibilityRole="button"
           accessibilityLabel="voltar"
         >
-          <Text style={[layout.backIcon, { color: '#fff' }]}>←</Text>
+          <Text style={[layout.backIcon, { color: palette.papel }]}>←</Text>
         </Pressable>
       </View>
 
@@ -176,7 +176,12 @@ export function RestaurantProfileTemplate({
                 : { backgroundColor: 'rgba(122,154,61,0.20)' },
             ]}
           >
-            <Text style={[s.chipText, { color: i === 0 ? t.bg : '#4C6027' }]}>
+            <Text
+              style={[
+                s.chipText,
+                { color: i === 0 ? t.bg : palette.piclesInk },
+              ]}
+            >
               {f.label} · {f.count}
             </Text>
           </View>
@@ -256,7 +261,7 @@ const s = StyleSheet.create({
   coverNoteText: {
     fontFamily: fonts.display800,
     fontSize: type.title,
-    color: '#fff',
+    color: palette.papel,
   },
   info: { paddingHorizontal: spacing.padrao, paddingTop: spacing.padrao },
   name: { fontFamily: fonts.display800, fontSize: 21, lineHeight: 25 },

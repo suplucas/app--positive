@@ -1,6 +1,13 @@
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { formatRelative } from '../common/format';
-import { fonts, radius, spacing, type, useTheme } from '../common/theme';
+import {
+  fonts,
+  palette,
+  radius,
+  spacing,
+  type,
+  useTheme,
+} from '../common/theme';
 import { layout } from '../common/layout';
 import { useNotifications } from '../comments/useNotifications';
 import type { AppNotification } from '../api/types';
@@ -48,12 +55,12 @@ export function NotificationScreen({
           <Pressable
             testID="voltar"
             onPress={onBack}
-            style={[s.tbtn, { backgroundColor: 'rgba(36,26,34,0.55)' }]}
+            style={[s.tbtn, { backgroundColor: palette.overlay }]}
             hitSlop={6}
             accessibilityRole="button"
             accessibilityLabel="voltar"
           >
-            <Text style={[layout.backIcon, { color: '#fff' }]}>←</Text>
+            <Text style={[layout.backIcon, { color: palette.papel }]}>←</Text>
           </Pressable>
         </View>
       ) : null}

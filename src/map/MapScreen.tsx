@@ -500,7 +500,7 @@ const s = StyleSheet.create({
     padding: spacing.micro,
   },
   cardNote: {
-    backgroundColor: 'rgba(36,26,34,0.82)',
+    backgroundColor: palette.overlayStrong,
     borderRadius: radius.chip,
     paddingHorizontal: spacing.micro,
     paddingVertical: 1,
