@@ -9,14 +9,38 @@ export const palette = {
   mostarda: '#F2A93B',
   lambeLambe: '#E63E75',
   picles: '#7A9A3D',
+  piclesInk: '#4C6027',
+  overlay: 'rgba(36,26,34,0.55)',
+  overlayStrong: 'rgba(36,26,34,0.82)',
 } as const;
 
 export const spacing = {
   micro: 4,
   interno: 8,
+  medio: 12,
   padrao: 16,
+  grande: 20,
   secao: 24,
   bloco: 32,
+} as const;
+
+export const type = {
+  caption: 11,
+  small: 12,
+  body: 13,
+  bodyLarge: 14,
+  title: 16,
+  heading: 18,
+  page: 22,
+  hero: 30,
+} as const;
+
+export const radius = {
+  chip: 5,
+  thumb: 10,
+  card: 12,
+  panel: 16,
+  pill: 999,
 } as const;
 
 export const fonts = {

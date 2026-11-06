@@ -6,7 +6,7 @@
 
 As cores são inspiradas em condimentos e acompanhamentos — identificam o "sabor" da crítica, não o alimento em si.
 
-| Token | Hex | Uso | Contraste ( Sobre berinjela ) |
+| Token | Hex | Uso | Contraste (sobre berinjela) |
 |-------|-----|-----|------------------------------|
 | **Berinjela** | `#241A22` | Fundo base, texto principal | ~11.8:1 (AAA) |
 | **Papel** | `#FBF2E4` | Fundo claro, cards | — |
@@ -31,7 +31,9 @@ As cores são inspiradas em condimentos e acompanhamentos — identificam o "sab
 |-------|------------|----------|
 | Micro | 4 | Ícones, padding mínimo |
 | Interno | 8 | Espaçamento entre componentes |
+| Médio | 12 | Respiro intermediário |
 | Padrão | 16 | Espaçamento padrão |
+| Grande | 20 | Respiro entre grupos próximos |
 | Seção | 24 | Separador entre blocos maiores |
 | Bloco | 32 | Margem de página/seção |
 
