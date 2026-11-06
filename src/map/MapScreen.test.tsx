@@ -2,9 +2,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { act, create, type ReactTestRenderer } from 'react-test-renderer';
 import { createElement } from 'react';
 import { MapScreen } from './MapScreen';
-import { getPlaces } from '../api/place';
+import { getPlaces, searchPlaces } from '../api/place';
 
-vi.mock('../api/place', () => ({ getPlaces: vi.fn() }));
+vi.mock('../api/place', () => ({ getPlaces: vi.fn(), searchPlaces: vi.fn() }));
 
 // WebView é nativo: stub com ref para capturar os `injectJavaScript`
 // (setPins/fitToBounds) e conferir o comportamento sem reload.
@@ -104,6 +104,7 @@ beforeEach(() => {
   injected.length = 0;
   vi.mocked(getPlaces).mockReset();
   vi.mocked(getPlaces).mockResolvedValue(pins);
+  vi.mocked(searchPlaces).mockResolvedValue([]);
 });
 
 describe('MapScreen (mapa OSM/Leaflet)', () => {
@@ -355,5 +356,39 @@ describe('MapScreen (mapa OSM/Leaflet)', () => {
     expect(byID(r, 'mapa-voltar-erro')).toBeTruthy();
     act(() => byID(r, 'mapa-voltar-erro').props.onPress());
     expect(onBack).toHaveBeenCalled();
+  });
+
+  it('resultado OSM não mostra código na tela', async () => {
+    vi.mocked(searchPlaces).mockResolvedValue([
+      {
+        id: 'osm:1',
+        source: 'osm',
+        nome: 'Bar do Zé',
+        endereco: 'Rua A',
+        categoria: 'bar',
+        bairro: 'Centro',
+        lat: -23.5,
+        lng: -46.6,
+      },
+    ]);
+    const { r } = await render();
+    act(() => {
+      byID(r, 'mapa-busca-input').props.onChangeText('bar');
+    });
+    act(() => {
+      byID(r, 'mapa-busca-input').props.onSubmitEditing({
+        nativeEvent: { text: 'bar' },
+      });
+    });
+    await act(async () => {});
+    expect(allText(r)).toContain('bar · Centro · osm');
+    expect(allText(r)).not.toContain('hit.source');
+  });
+
+  it('sem onBack não renderiza seta de voltar', async () => {
+    const { r } = await render();
+    expect(r.root.findAllByProps({ testID: 'mapa-busca-voltar' })).toHaveLength(
+      0,
+    );
   });
 });

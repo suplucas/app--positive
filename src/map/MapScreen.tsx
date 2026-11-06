@@ -235,23 +235,20 @@ export function MapScreen({
     <View testID="mapa-tela" style={[s.root, { backgroundColor: t.bg }]}>
       {/* Header: título + busca na mesma linha */}
       <View style={[layout.topbar, { justifyContent: 'space-between' }]}>
-        {/*         <View style={s.chipWrap}>
-          <View style={s.chip}>
-            <Text style={[s.chipText, { color: t.sub }]}>perto de você</Text>
-          </View>
-        </View> */}
         <PageTitle>explorar</PageTitle>
         <View style={s.searchWrap}>
-          <Pressable
-            testID="mapa-busca-voltar"
-            onPress={onBack}
-            style={layout.backHit}
-            hitSlop={8}
-            accessibilityRole="button"
-            accessibilityLabel="voltar"
-          >
-            <Text style={[layout.backIcon, { color: t.sub }]}>‹</Text>
-          </Pressable>
+          {onBack ? (
+            <Pressable
+              testID="mapa-busca-voltar"
+              onPress={onBack}
+              style={layout.backHit}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel="voltar"
+            >
+              <Text style={[layout.backIcon, { color: t.sub }]}>‹</Text>
+            </Pressable>
+          ) : null}
           <TextInput
             testID="mapa-busca-input"
             value={searchQuery}
@@ -309,8 +306,7 @@ export function MapScreen({
               <Text style={[s.resultMeta, { color: t.sub }]}>
                 {[hit.categoria, hit.bairro ?? hit.endereco]
                   .filter(Boolean)
-                  .join(' · ')}{' '}
-                + (hit.source === 'osm' ? ' · osm' : '')
+                  .join(' · ') + (hit.source === 'osm' ? ' · osm' : '')}
               </Text>
             </Pressable>
           ))}
@@ -525,19 +521,14 @@ const s = StyleSheet.create({
     paddingHorizontal: spacing.padrao,
     paddingVertical: spacing.medio,
   },
-  // Barra de busca ao lado do título no header.
+  // Barra de busca ao lado do título no header (seta + input + × em linha).
   searchWrap: {
     flex: 1,
     maxWidth: 260,
     marginLeft: spacing.secao,
-  },
-  searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FBF2E4',
-    borderRadius: 22,
-    paddingHorizontal: spacing.interno,
-    paddingVertical: spacing.interno,
+    gap: spacing.interno,
   },
   searchInput: {
     flex: 1,
@@ -545,13 +536,13 @@ const s = StyleSheet.create({
     fontFamily: fonts.corpo,
   },
   searchClear: { fontSize: type.heading },
-  searchLoading: { fontSize: type.small, marginLeft: 8 },
+  searchLoading: { fontSize: type.small },
   searchErrorWrap: {
     alignItems: 'center',
     paddingHorizontal: spacing.padrao,
     paddingBottom: spacing.interno,
   },
-  searchError: { fontSize: type.small, color: '#241A22' },
+  searchError: { fontSize: type.small },
   resultsWrap: {
     maxHeight: 260,
     paddingHorizontal: spacing.padrao,
@@ -570,6 +561,5 @@ const s = StyleSheet.create({
   },
   resultMeta: {
     fontSize: type.small,
-    color: '#241A22',
   },
 });
