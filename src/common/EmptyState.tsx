@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { fonts, palette, spacing, useTheme } from './theme';
+import { fonts, palette, radius, spacing, type, useTheme } from './theme';
 
 // Estado vazio reutilizável (feed, listas). Título + subtítulo + ação
 // opcional. Sem dependência de dados — só apresentação.
@@ -56,19 +56,19 @@ const s = StyleSheet.create({
     textAlign: 'center',
   },
   sub: {
-    fontSize: 13,
+    fontSize: type.body,
     lineHeight: 19,
     textAlign: 'center',
   },
   btn: {
     marginTop: spacing.interno,
-    borderRadius: 16,
+    borderRadius: radius.panel,
     paddingHorizontal: spacing.padrao,
-    paddingVertical: 10,
+    paddingVertical: spacing.medio,
   },
   btnText: {
     color: palette.papel,
     fontFamily: fonts.display700,
-    fontSize: 13,
+    fontSize: type.body,
   },
 });

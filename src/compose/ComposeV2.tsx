@@ -24,7 +24,14 @@ import {
   type RestaurantHit,
 } from '../common/format';
 import { pickPhoto } from './pickPhoto';
-import { fonts, palette, spacing, useTheme } from '../common/theme';
+import {
+  fonts,
+  palette,
+  radius,
+  spacing,
+  type,
+  useTheme,
+} from '../common/theme';
 import { layout } from '../common/layout';
 
 // Flairs disponíveis (docs_04): até 2 por avaliação, o primeiro
@@ -553,12 +560,12 @@ export function ComposeV2({
 
 const s = StyleSheet.create({
   scroll: { paddingBottom: spacing.bloco },
-  hbtn: { fontSize: 13, fontFamily: fonts.corpo600, fontWeight: '600' },
-  htitle: { fontFamily: fonts.display800, fontSize: 14 },
+  hbtn: { fontSize: type.body, fontFamily: fonts.corpo600, fontWeight: '600' },
+  htitle: { fontFamily: fonts.display800, fontSize: type.bodyLarge },
   publishBtn: {
-    borderRadius: 16,
+    borderRadius: radius.panel,
     paddingHorizontal: spacing.padrao,
-    paddingVertical: 7,
+    paddingVertical: spacing.interno,
     minHeight: 44,
     alignItems: 'center',
     justifyContent: 'center',
@@ -566,13 +573,13 @@ const s = StyleSheet.create({
   publishBtnText: {
     color: palette.papel,
     fontFamily: fonts.display700,
-    fontSize: 13,
+    fontSize: type.body,
   },
   input: {
     borderRadius: 6,
     paddingHorizontal: spacing.padrao,
-    paddingVertical: spacing.interno + 4,
-    fontSize: 14,
+    paddingVertical: spacing.medio,
+    fontSize: type.bodyLarge,
     fontFamily: fonts.corpo,
     marginHorizontal: spacing.padrao,
     marginBottom: spacing.interno,
@@ -581,22 +588,26 @@ const s = StyleSheet.create({
   commentInput: {
     minHeight: 88,
     textAlignVertical: 'top',
-    paddingTop: spacing.interno + 4,
+    paddingTop: spacing.medio,
   },
   place: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: spacing.medio,
     marginHorizontal: spacing.padrao,
     borderRadius: 14,
     paddingHorizontal: spacing.padrao,
-    paddingVertical: spacing.interno + 4,
+    paddingVertical: spacing.medio,
     minHeight: 44,
   },
-  pin: { fontSize: 16 },
-  placeNome: { fontFamily: fonts.display700, fontSize: 14 },
+  pin: { fontSize: type.title },
+  placeNome: { fontFamily: fonts.display700, fontSize: type.bodyLarge },
   placeSub: { fontSize: 11.5, marginTop: 1 },
-  placeTrocar: { fontSize: 12, fontFamily: fonts.corpo600, fontWeight: '600' },
+  placeTrocar: {
+    fontSize: type.small,
+    fontFamily: fonts.corpo600,
+    fontWeight: '600',
+  },
   result: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -607,10 +618,10 @@ const s = StyleSheet.create({
     minHeight: 44,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  resultNome: { fontSize: 14, fontFamily: fonts.corpo500, flex: 1 },
+  resultNome: { fontSize: type.bodyLarge, fontFamily: fonts.corpo500, flex: 1 },
   resultCnpj: { fontSize: 11.5 },
   empty: {
-    fontSize: 13,
+    fontSize: type.body,
     marginHorizontal: spacing.padrao,
     marginBottom: spacing.interno,
   },
@@ -630,9 +641,9 @@ const s = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 1.5,
     paddingHorizontal: 12,
-    paddingVertical: 7,
+    paddingVertical: spacing.interno,
   },
-  flairText: { fontSize: 12, fontFamily: fonts.corpo500 },
+  flairText: { fontSize: type.small, fontFamily: fonts.corpo500 },
   photoBox: {
     flexDirection: 'column',
     alignItems: 'center',
@@ -640,15 +651,19 @@ const s = StyleSheet.create({
     gap: spacing.interno,
     marginHorizontal: spacing.padrao,
     paddingHorizontal: spacing.padrao,
-    paddingVertical: spacing.interno + 8,
-    borderRadius: 12,
+    paddingVertical: spacing.padrao,
+    borderRadius: radius.card,
     borderWidth: 1.5,
     borderStyle: 'dashed',
     borderColor: palette.picles,
     backgroundColor: palette.papel,
   },
   cam: { fontSize: 24, lineHeight: 1 },
-  photoText: { fontSize: 13, fontFamily: fonts.corpo500, fontWeight: '600' },
+  photoText: {
+    fontSize: type.body,
+    fontFamily: fonts.corpo500,
+    fontWeight: '600',
+  },
   photoSub: { fontSize: 11.5, marginTop: 2, textAlign: 'center' },
   shelf: {
     flexDirection: 'row',
@@ -661,7 +676,7 @@ const s = StyleSheet.create({
     position: 'relative',
     width: 92,
     height: 92,
-    borderRadius: 12,
+    borderRadius: radius.card,
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: 'rgba(36,26,34,0.10)',
@@ -680,7 +695,7 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  thumbXText: { fontSize: 16, lineHeight: 18, color: palette.picles },
+  thumbXText: { fontSize: type.title, lineHeight: 18, color: palette.picles },
   addTile: {
     flexDirection: 'column',
     alignItems: 'center',
@@ -688,20 +703,20 @@ const s = StyleSheet.create({
     gap: spacing.interno,
     width: 92,
     height: 92,
-    borderRadius: 12,
+    borderRadius: radius.card,
     borderWidth: 1.5,
     borderStyle: 'dashed',
     borderColor: palette.picles,
     backgroundColor: palette.papel,
   },
   photoHint: {
-    fontSize: 11,
+    fontSize: type.caption,
     marginHorizontal: spacing.padrao,
     marginTop: spacing.interno,
     textAlign: 'center',
   },
   preview: {
-    borderRadius: 16,
+    borderRadius: radius.panel,
     marginHorizontal: spacing.padrao,
     padding: spacing.padrao,
   },
@@ -712,7 +727,7 @@ const s = StyleSheet.create({
     gap: spacing.interno,
   },
   previewPlace: {
-    fontSize: 11,
+    fontSize: type.caption,
     fontFamily: fonts.corpo600,
     fontWeight: '600',
     flex: 1,
@@ -720,20 +735,20 @@ const s = StyleSheet.create({
   previewNote: { fontFamily: fonts.display800, fontSize: 15 },
   previewText: {
     fontFamily: fonts.display700,
-    fontSize: 16,
+    fontSize: type.title,
     lineHeight: 22,
-    marginTop: 10,
+    marginTop: spacing.medio,
   },
   previewLabel: {
-    fontSize: 11,
+    fontSize: type.caption,
     marginHorizontal: spacing.padrao,
     marginTop: spacing.interno,
   },
   error: {
     marginHorizontal: spacing.padrao,
     marginBottom: spacing.interno,
-    borderRadius: 5,
+    borderRadius: radius.chip,
     padding: spacing.interno,
   },
-  errorText: { fontSize: 12 },
+  errorText: { fontSize: type.small },
 });

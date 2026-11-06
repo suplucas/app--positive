@@ -3,7 +3,14 @@ import { FeedCard } from '../feed/FeedCard';
 import { FeedQuote } from '../feed/FeedQuote';
 import { SectionTitle } from '../common/SectionTitle';
 import type { Review } from '../common/types';
-import { fonts, palette, spacing, useTheme } from '../common/theme';
+import {
+  fonts,
+  palette,
+  radius,
+  spacing,
+  type,
+  useTheme,
+} from '../common/theme';
 import { layout } from '../common/layout';
 
 // Template de apresentação do perfil do restaurante (docs_05). Não
@@ -232,7 +239,7 @@ const s = StyleSheet.create({
   tbtn: {
     width: 32,
     height: 32,
-    borderRadius: 16,
+    borderRadius: radius.panel,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -242,13 +249,13 @@ const s = StyleSheet.create({
     top: 14,
     right: 14,
     backgroundColor: 'rgba(0,0,0,0.6)',
-    borderRadius: 10,
-    paddingHorizontal: 10,
+    borderRadius: radius.thumb,
+    paddingHorizontal: spacing.medio,
     paddingVertical: 4,
   },
   coverNoteText: {
     fontFamily: fonts.display800,
-    fontSize: 16,
+    fontSize: type.title,
     color: '#fff',
   },
   info: { paddingHorizontal: spacing.padrao, paddingTop: spacing.padrao },
@@ -264,7 +271,7 @@ const s = StyleSheet.create({
   },
   stat: { flex: 1, alignItems: 'center' },
   statN: { fontFamily: fonts.display800, fontSize: 17 },
-  statL: { fontSize: 11, marginTop: 1 },
+  statL: { fontSize: type.caption, marginTop: 1 },
   actions: {
     flexDirection: 'row',
     gap: spacing.interno,
@@ -273,7 +280,7 @@ const s = StyleSheet.create({
   btn: {
     flex: 1,
     borderRadius: 14,
-    paddingVertical: 11,
+    paddingVertical: spacing.medio,
     borderWidth: 1.5,
     alignItems: 'center',
   },
@@ -285,15 +292,19 @@ const s = StyleSheet.create({
   flairWrap: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 7,
+    gap: spacing.interno,
     paddingHorizontal: spacing.padrao,
     paddingTop: spacing.interno,
   },
-  chip: { borderRadius: 20, paddingHorizontal: 11, paddingVertical: 5 },
+  chip: {
+    borderRadius: 20,
+    paddingHorizontal: spacing.medio,
+    paddingVertical: spacing.micro,
+  },
   chipText: { fontSize: 11.5, fontFamily: fonts.corpo500 },
-  list: { borderTopWidth: StyleSheet.hairlineWidth, marginTop: 10 },
+  list: { borderTopWidth: StyleSheet.hairlineWidth, marginTop: spacing.medio },
   legend: {
-    fontSize: 12,
+    fontSize: type.small,
     lineHeight: 18,
     paddingHorizontal: spacing.padrao,
     paddingTop: spacing.padrao,

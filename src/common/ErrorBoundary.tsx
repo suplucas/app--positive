@@ -1,6 +1,6 @@
 import { Component, type ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { fonts, palette, spacing } from './theme';
+import { fonts, palette, radius, spacing, type } from './theme';
 
 // Error boundary global (E3/docs/14): um erro de render em qualquer
 // tela não derruba o app inteiro — vira fallback de produto com
@@ -75,11 +75,11 @@ const s = StyleSheet.create({
   },
   title: {
     fontFamily: fonts.display800,
-    fontSize: 22,
+    fontSize: type.page,
     textAlign: 'center',
   },
   sub: {
-    fontSize: 13,
+    fontSize: type.body,
     lineHeight: 19,
     marginTop: spacing.interno,
     textAlign: 'center',
@@ -87,7 +87,7 @@ const s = StyleSheet.create({
   btn: {
     marginTop: spacing.secao,
     minHeight: 44,
-    borderRadius: 12,
+    borderRadius: radius.card,
     paddingHorizontal: spacing.padrao,
     alignItems: 'center',
     justifyContent: 'center',
@@ -96,6 +96,6 @@ const s = StyleSheet.create({
     color: palette.papel,
     fontFamily: fonts.corpo600,
     fontWeight: '600',
-    fontSize: 14,
+    fontSize: type.bodyLarge,
   },
 });

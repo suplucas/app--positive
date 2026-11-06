@@ -4,7 +4,14 @@ import { ExpandableText } from '../common/ExpandableText';
 import { Flair } from './Flair';
 import { NoteBadge } from './NoteBadge';
 import { formatRelative, getNote, restaurantName } from '../common/format';
-import { fonts, palette, spacing, useTheme } from '../common/theme';
+import {
+  fonts,
+  palette,
+  radius,
+  spacing,
+  type,
+  useTheme,
+} from '../common/theme';
 import type { Review } from '../common/types';
 
 // Linha do feed: texto-primeiro, avatar à esquerda, nota à direita
@@ -146,7 +153,7 @@ export function FeedCard({
 const s = StyleSheet.create({
   row: {
     flexDirection: 'row',
-    gap: 11,
+    gap: spacing.medio,
     alignItems: 'flex-start',
     paddingVertical: spacing.padrao,
     paddingHorizontal: spacing.padrao,
@@ -156,18 +163,18 @@ const s = StyleSheet.create({
   top: {
     flexDirection: 'row',
     alignItems: 'baseline',
-    gap: 6,
+    gap: spacing.interno,
     flexWrap: 'wrap',
   },
   uname: { fontFamily: fonts.display700, fontSize: 13.5 },
-  place: { fontSize: 13 },
+  place: { fontSize: type.body },
   placeName: { fontFamily: fonts.corpo600, fontWeight: '600' },
-  caption: { fontSize: 13, lineHeight: 19, marginTop: spacing.micro },
+  caption: { fontSize: type.body, lineHeight: 19, marginTop: spacing.micro },
   meta: {
     flexDirection: 'row',
     gap: spacing.padrao,
     alignItems: 'center',
-    marginTop: 6,
+    marginTop: spacing.interno,
   },
   metaText: { fontSize: 11.5 },
 });

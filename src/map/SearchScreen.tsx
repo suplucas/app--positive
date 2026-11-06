@@ -11,7 +11,14 @@ import { searchGlobal, type SearchResult } from '../api/search';
 import type { PlaceHit } from '../api/types';
 import type { Review } from '../common/types';
 import type { UserProfile } from '../api/types';
-import { fonts, palette, spacing, useTheme } from '../common/theme';
+import {
+  fonts,
+  palette,
+  radius,
+  spacing,
+  type,
+  useTheme,
+} from '../common/theme';
 import { layout } from '../common/layout';
 import type { RestaurantHit } from '../common/format';
 
@@ -293,21 +300,21 @@ const s = StyleSheet.create({
     borderWidth: 1.5,
     borderRadius: 14,
     paddingHorizontal: spacing.padrao,
-    paddingVertical: 10,
-    fontSize: 14,
+    paddingVertical: spacing.medio,
+    fontSize: type.bodyLarge,
     fontFamily: fonts.corpo,
     minHeight: 42,
   },
   sectionTitle: {
     fontFamily: fonts.display700,
-    fontSize: 12,
+    fontSize: type.small,
     paddingHorizontal: spacing.padrao,
     paddingTop: spacing.padrao,
     paddingBottom: spacing.interno,
     letterSpacing: 0.05,
   },
   empty: {
-    fontSize: 13,
+    fontSize: type.body,
     lineHeight: 19,
     paddingHorizontal: spacing.padrao,
     paddingTop: spacing.interno,
@@ -327,15 +334,19 @@ const s = StyleSheet.create({
     paddingVertical: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  thumb: { width: 52, height: 52, borderRadius: 10 },
+  thumb: { width: 52, height: 52, borderRadius: radius.thumb },
   rowBody: { flex: 1, minWidth: 0 },
-  name: { fontFamily: fonts.display700, fontSize: 14 },
-  meta: { fontSize: 12, marginTop: 2 },
-  note: { fontFamily: fonts.display800, fontSize: 14, flexShrink: 0 },
+  name: { fontFamily: fonts.display700, fontSize: type.bodyLarge },
+  meta: { fontSize: type.small, marginTop: 2 },
+  note: {
+    fontFamily: fonts.display800,
+    fontSize: type.bodyLarge,
+    flexShrink: 0,
+  },
   retry: {
     borderRadius: 14,
     paddingHorizontal: spacing.padrao,
-    paddingVertical: 10,
+    paddingVertical: spacing.medio,
   },
-  retryText: { color: palette.papel, fontSize: 13, fontWeight: '600' },
+  retryText: { color: palette.papel, fontSize: type.body, fontWeight: '600' },
 });

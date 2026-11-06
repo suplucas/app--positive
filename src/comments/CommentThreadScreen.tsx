@@ -11,7 +11,14 @@ import { Avatar } from '../common/Avatar';
 import { formatRelative, getNote, restaurantName } from '../common/format';
 import { SectionTitle } from '../common/SectionTitle';
 import { useComments } from './useComments';
-import { fonts, palette, spacing, useTheme } from '../common/theme';
+import {
+  fonts,
+  palette,
+  radius,
+  spacing,
+  type,
+  useTheme,
+} from '../common/theme';
 import { layout } from '../common/layout';
 import type { Review } from '../common/types';
 
@@ -168,15 +175,15 @@ const s = StyleSheet.create({
   tbtn: {
     width: 32,
     height: 32,
-    borderRadius: 16,
+    borderRadius: radius.panel,
     alignItems: 'center',
     justifyContent: 'center',
   },
   original: {
     flexDirection: 'row',
-    gap: 10,
+    gap: spacing.medio,
     marginHorizontal: spacing.padrao,
-    borderRadius: 12,
+    borderRadius: radius.card,
     padding: spacing.interno,
     marginBottom: spacing.interno,
   },
@@ -184,23 +191,23 @@ const s = StyleSheet.create({
   origTop: {
     flexDirection: 'row',
     alignItems: 'baseline',
-    gap: 6,
+    gap: spacing.interno,
     flexWrap: 'wrap',
   },
-  origUser: { fontFamily: fonts.display700, fontSize: 13 },
+  origUser: { fontFamily: fonts.display700, fontSize: type.body },
   origPlace: { fontSize: 11.5 },
-  origText: { fontSize: 13, lineHeight: 19, marginTop: 4 },
+  origText: { fontSize: type.body, lineHeight: 19, marginTop: 4 },
   item: {
     flexDirection: 'row',
-    gap: 10,
+    gap: spacing.medio,
     paddingHorizontal: spacing.padrao,
     paddingVertical: spacing.interno,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   itemBody: { flex: 1, minWidth: 0 },
   itemUser: { fontFamily: fonts.display700, fontSize: 12.5 },
-  itemText: { fontSize: 13, lineHeight: 19, marginTop: 2 },
-  itemTime: { fontSize: 11, marginTop: 3 },
+  itemText: { fontSize: type.body, lineHeight: 19, marginTop: 2 },
+  itemTime: { fontSize: type.caption, marginTop: 3 },
   composer: {
     flexDirection: 'row',
     gap: spacing.interno,
@@ -215,16 +222,16 @@ const s = StyleSheet.create({
     flex: 1,
     fontSize: 13.5,
     fontFamily: fonts.corpo,
-    paddingVertical: 10,
+    paddingVertical: spacing.medio,
   },
   send: {
-    borderRadius: 16,
+    borderRadius: radius.panel,
     paddingVertical: 8,
-    paddingHorizontal: 14,
+    paddingHorizontal: spacing.padrao,
     marginRight: 4,
   },
   sendText: {
-    fontSize: 12,
+    fontSize: type.small,
     fontFamily: fonts.corpo600,
     fontWeight: '600',
     color: palette.papel,

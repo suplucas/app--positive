@@ -1,6 +1,13 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import { fonts, palette, spacing, useTheme } from '../common/theme';
+import {
+  fonts,
+  palette,
+  radius,
+  spacing,
+  type,
+  useTheme,
+} from '../common/theme';
 import { friendlyAuthError } from './authError';
 
 export function LoginScreen({
@@ -86,10 +93,14 @@ const s = StyleSheet.create({
     paddingHorizontal: spacing.secao,
     gap: spacing.interno,
   },
-  brand: { fontFamily: fonts.display800, fontSize: 30, textAlign: 'center' },
+  brand: {
+    fontFamily: fonts.display800,
+    fontSize: type.hero,
+    textAlign: 'center',
+  },
   title: {
     fontFamily: fonts.display700,
-    fontSize: 18,
+    fontSize: type.heading,
     textAlign: 'center',
     marginBottom: spacing.interno,
   },
@@ -98,15 +109,23 @@ const s = StyleSheet.create({
     borderRadius: 14,
     paddingHorizontal: spacing.padrao,
     paddingVertical: 12,
-    fontSize: 14,
+    fontSize: type.bodyLarge,
     fontFamily: fonts.corpo,
   },
   error: { fontSize: 12.5 },
   btn: {
     borderRadius: 14,
-    paddingVertical: 13,
+    paddingVertical: spacing.medio,
     alignItems: 'center',
   },
-  btnText: { color: palette.papel, fontFamily: fonts.display700, fontSize: 14 },
-  link: { textAlign: 'center', fontSize: 13, marginTop: spacing.interno },
+  btnText: {
+    color: palette.papel,
+    fontFamily: fonts.display700,
+    fontSize: type.bodyLarge,
+  },
+  link: {
+    textAlign: 'center',
+    fontSize: type.body,
+    marginTop: spacing.interno,
+  },
 });

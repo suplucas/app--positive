@@ -9,7 +9,14 @@ import type { SavedRestaurant } from '../api/user';
 import type { UserProfile } from '../api/types';
 import { SectionTitle } from '../common/SectionTitle';
 import { useProfile } from './useProfile';
-import { fonts, palette, spacing, useTheme } from '../common/theme';
+import {
+  fonts,
+  palette,
+  radius,
+  spacing,
+  type,
+  useTheme,
+} from '../common/theme';
 import type { Review } from '../common/types';
 
 type Tab = 'queroir' | 'diario';
@@ -87,7 +94,7 @@ export function ProfileScreen({
             accessibilityRole="button"
             accessibilityLabel="abrir notificações"
           >
-            <Text style={{ fontSize: 14 }}>♡</Text>
+            <Text style={{ fontSize: type.bodyLarge }}>♡</Text>
           </Pressable>
         ) : null}
         {onSettings ? (
@@ -99,7 +106,7 @@ export function ProfileScreen({
             accessibilityRole="button"
             accessibilityLabel="abrir configurações"
           >
-            <Text style={{ fontSize: 14 }}>⚙</Text>
+            <Text style={{ fontSize: type.bodyLarge }}>⚙</Text>
           </Pressable>
         ) : null}
       </View>
@@ -368,29 +375,29 @@ const s = StyleSheet.create({
   },
   bioBlock: {
     flexDirection: 'row',
-    gap: 14,
+    gap: spacing.padrao,
     alignItems: 'flex-start',
-    paddingTop: spacing.secao - 4,
+    paddingTop: spacing.grande,
     paddingHorizontal: spacing.padrao,
     paddingBottom: spacing.micro,
   },
   who: { flex: 1, minWidth: 0 },
-  nameRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  name: { fontFamily: fonts.display800, fontSize: 18, flexShrink: 1 },
+  nameRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.medio },
+  name: { fontFamily: fonts.display800, fontSize: type.heading, flexShrink: 1 },
   followBtn: {
     marginLeft: 'auto',
     borderWidth: 1.5,
     borderRadius: 20,
     paddingHorizontal: spacing.padrao,
-    paddingVertical: 6,
+    paddingVertical: spacing.interno,
     minHeight: 32,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  followText: { fontFamily: fonts.display700, fontSize: 12 },
+  followText: { fontFamily: fonts.display700, fontSize: type.small },
   handle: { fontSize: 12.5, marginTop: 1 },
   bio: {
-    fontSize: 13,
+    fontSize: type.body,
     marginTop: spacing.interno,
     lineHeight: 19,
   },
@@ -408,25 +415,30 @@ const s = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   stat: { flex: 1, alignItems: 'center' },
-  statN: { fontFamily: fonts.display800, fontSize: 16 },
-  statL: { fontSize: 11, marginTop: 1 },
+  statN: { fontFamily: fonts.display800, fontSize: type.title },
+  statL: { fontSize: type.caption, marginTop: 1 },
   shelf: {
     flexDirection: 'row',
     gap: spacing.interno,
     paddingHorizontal: spacing.padrao,
     paddingBottom: spacing.micro,
   },
-  sq: { flex: 1, aspectRatio: 1, borderRadius: 10, overflow: 'hidden' },
+  sq: {
+    flex: 1,
+    aspectRatio: 1,
+    borderRadius: radius.thumb,
+    overflow: 'hidden',
+  },
   fill: { width: '100%', height: '100%' },
   contentTabs: {
     flexDirection: 'row',
     gap: 20,
     paddingHorizontal: spacing.padrao,
-    paddingTop: spacing.padrao - 2,
+    paddingTop: spacing.padrao,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   ctab: {
-    paddingBottom: spacing.interno + 2,
+    paddingBottom: spacing.medio,
     borderBottomWidth: 2,
     minHeight: 32,
   },
@@ -434,22 +446,22 @@ const s = StyleSheet.create({
   diaryGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 5,
+    gap: spacing.micro,
     paddingHorizontal: spacing.padrao,
-    paddingTop: spacing.interno + 2,
+    paddingTop: spacing.medio,
     paddingBottom: spacing.interno,
   },
   cell: {
     width: '48%',
     aspectRatio: 1,
-    borderRadius: 12,
+    borderRadius: radius.card,
     overflow: 'hidden',
   },
   cellQuote: {
     width: '100%',
     aspectRatio: 2,
-    borderRadius: 12,
-    padding: 10,
+    borderRadius: radius.card,
+    padding: spacing.medio,
     justifyContent: 'space-between',
   },
   qmeta: {
@@ -464,7 +476,7 @@ const s = StyleSheet.create({
     fontWeight: '600',
     flexShrink: 1,
   },
-  qNote: { fontFamily: fonts.display800, fontSize: 16 },
+  qNote: { fontFamily: fonts.display800, fontSize: type.title },
   qText: { fontFamily: fonts.display700, fontSize: 27, lineHeight: 25 },
   lists: {
     paddingHorizontal: spacing.padrao,
@@ -481,25 +493,25 @@ const s = StyleSheet.create({
   collage: {
     width: 64,
     height: 64,
-    borderRadius: 10,
+    borderRadius: radius.thumb,
     overflow: 'hidden',
     flexDirection: 'row',
-    gap: 2,
+    gap: 2, // óptico: junção apertada das fotos dentro da colagem de 64px
   },
   collageTall: { flex: 1 },
   collageCol: { flex: 1, gap: 2 },
   collageSmall: { flex: 1 },
   listBody: { flex: 1, minWidth: 0 },
-  listTitle: { fontFamily: fonts.display700, fontSize: 14 },
-  listMeta: { fontSize: 12, marginTop: 3 },
+  listTitle: { fontFamily: fonts.display700, fontSize: type.bodyLarge },
+  listMeta: { fontSize: type.small, marginTop: 3 },
   legend: {
-    fontSize: 12,
+    fontSize: type.small,
     lineHeight: 18,
     paddingHorizontal: spacing.padrao,
     paddingTop: spacing.padrao,
   },
   emptyDiary: {
-    fontSize: 13,
+    fontSize: type.body,
     paddingHorizontal: spacing.padrao,
     paddingTop: spacing.secao,
   },

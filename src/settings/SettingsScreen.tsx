@@ -1,5 +1,5 @@
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { fonts, spacing, useTheme } from '../common/theme';
+import { fonts, radius, spacing, type, useTheme } from '../common/theme';
 import { layout } from '../common/layout';
 
 // Tela de configurações (acessada pelo perfil): tema e sair da conta.
@@ -123,7 +123,7 @@ function Chip({
 
 const s = StyleSheet.create({
   scroll: { paddingBottom: spacing.bloco },
-  title: { fontFamily: fonts.display800, fontSize: 16 },
+  title: { fontFamily: fonts.display800, fontSize: type.title },
   section: {
     paddingHorizontal: spacing.padrao,
     paddingTop: spacing.padrao,
@@ -139,10 +139,10 @@ const s = StyleSheet.create({
   chip: {
     minHeight: 44,
     paddingHorizontal: spacing.padrao,
-    borderRadius: 16,
+    borderRadius: radius.panel,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  chipText: { fontSize: 13, fontFamily: fonts.corpo500 },
+  chipText: { fontSize: type.body, fontFamily: fonts.corpo500 },
   chipTextActive: { fontWeight: '600' },
 });

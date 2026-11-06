@@ -2,7 +2,14 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Avatar } from '../common/Avatar';
 import { FeedCard } from '../feed/FeedCard';
 import { SectionTitle } from '../common/SectionTitle';
-import { fonts, palette, spacing, useTheme } from '../common/theme';
+import {
+  fonts,
+  palette,
+  radius,
+  spacing,
+  type,
+  useTheme,
+} from '../common/theme';
 import { layout } from '../common/layout';
 import { useUserProfile } from './useUserProfile';
 
@@ -127,15 +134,15 @@ const s = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   bioBlock: {
     flexDirection: 'row',
-    gap: 14,
+    gap: spacing.padrao,
     alignItems: 'flex-start',
     paddingHorizontal: spacing.padrao,
-    paddingTop: spacing.secao - 4,
+    paddingTop: spacing.grande,
   },
   who: { flex: 1, minWidth: 0 },
   name: { fontFamily: fonts.display800, fontSize: 20 },
   handle: { fontSize: 12.5, marginTop: 1 },
-  bio: { fontSize: 13, marginTop: spacing.interno, lineHeight: 19 },
+  bio: { fontSize: type.body, marginTop: spacing.interno, lineHeight: 19 },
   follow: {
     alignSelf: 'flex-start',
     marginHorizontal: spacing.padrao,
@@ -148,7 +155,7 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  followText: { fontFamily: fonts.display700, fontSize: 13 },
+  followText: { fontFamily: fonts.display700, fontSize: type.body },
   stats: {
     flexDirection: 'row',
     paddingHorizontal: spacing.padrao,
@@ -157,10 +164,10 @@ const s = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   stat: { flex: 1, alignItems: 'center' },
-  statN: { fontFamily: fonts.display800, fontSize: 16 },
-  statL: { fontSize: 11, marginTop: 1 },
+  statN: { fontFamily: fonts.display800, fontSize: type.title },
+  statL: { fontSize: type.caption, marginTop: 1 },
   empty: {
-    fontSize: 13,
+    fontSize: type.body,
     paddingHorizontal: spacing.padrao,
     paddingTop: spacing.interno,
   },

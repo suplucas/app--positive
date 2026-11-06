@@ -1,5 +1,12 @@
 import { StyleSheet, Text, View } from 'react-native';
-import { fonts, palette, spacing, useTheme } from '../common/theme';
+import {
+  fonts,
+  palette,
+  radius,
+  spacing,
+  type,
+  useTheme,
+} from '../common/theme';
 
 // Flair real da review (um dos labels escolhidos no compose). Quieto
 // por padrão; forte pinta a cor cheia (máx. 1 por tela — quem decide é
@@ -27,13 +34,13 @@ export function Flair({
 
 const s = StyleSheet.create({
   base: {
-    borderRadius: 5,
+    borderRadius: radius.chip,
     paddingHorizontal: spacing.interno,
     paddingVertical: 2,
     alignSelf: 'flex-start',
   },
   text: {
     fontFamily: fonts.corpo500,
-    fontSize: 11,
+    fontSize: type.caption,
   },
 });

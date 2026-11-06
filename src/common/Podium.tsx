@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { PODIO } from './mockData';
 import { SectionTitle } from './SectionTitle';
-import { fonts, palette, spacing, useTheme } from './theme';
+import { fonts, palette, radius, spacing, type, useTheme } from './theme';
 
 const PLATE_HEIGHT: Record<1 | 2 | 3, number> = { 1: 96, 2: 76, 3: 60 };
 const PLATE_BG: Record<1 | 2 | 3, string> = {
@@ -53,10 +53,10 @@ const s = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   pod: { flex: 1, alignItems: 'center' },
-  medal: { fontSize: 13, marginBottom: 2 },
+  medal: { fontSize: type.body, marginBottom: 2 },
   plate: {
     width: '100%',
-    borderRadius: 10,
+    borderRadius: radius.thumb,
     borderTopLeftRadius: 10,
     borderTopRightRadius: 10,
     borderBottomLeftRadius: 4,
@@ -72,7 +72,7 @@ const s = StyleSheet.create({
   },
   note: {
     fontFamily: fonts.display800,
-    fontSize: 14,
+    fontSize: type.bodyLarge,
     marginTop: 2,
   },
 });

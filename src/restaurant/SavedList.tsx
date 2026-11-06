@@ -2,7 +2,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { SavedRestaurant } from '../api/user';
 import { avatarColor } from '../common/format';
 import { restaurantFor } from './restaurantMock';
-import { fonts, spacing, useTheme } from '../common/theme';
+import { fonts, radius, spacing, type, useTheme } from '../common/theme';
 
 // Lista "quero ir" (docs/16): vira a aba do perfil. Fonte única é o
 // `savedCnpjs` do App; aqui só renderiza (linha = miniatura + nome +
@@ -93,10 +93,10 @@ const s = StyleSheet.create({
     paddingVertical: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  thumb: { width: 52, height: 52, borderRadius: 10, flexShrink: 0 },
+  thumb: { width: 52, height: 52, borderRadius: radius.thumb, flexShrink: 0 },
   rowBody: { flex: 1, minWidth: 0 },
-  name: { fontFamily: fonts.display700, fontSize: 14 },
-  meta: { fontSize: 12, marginTop: 2 },
+  name: { fontFamily: fonts.display700, fontSize: type.bodyLarge },
+  meta: { fontSize: type.small, marginTop: 2 },
   remove: {
     width: 30,
     height: 30,
@@ -106,5 +106,5 @@ const s = StyleSheet.create({
     justifyContent: 'center',
     flexShrink: 0,
   },
-  removeText: { fontSize: 14 },
+  removeText: { fontSize: type.bodyLarge },
 });

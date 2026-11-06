@@ -10,7 +10,14 @@ import {
 } from 'react-native';
 import { Avatar } from '../common/Avatar';
 import { pickPhoto } from '../compose/pickPhoto';
-import { fonts, palette, spacing, useTheme } from '../common/theme';
+import {
+  fonts,
+  palette,
+  radius,
+  spacing,
+  type,
+  useTheme,
+} from '../common/theme';
 import { layout } from '../common/layout';
 
 // Entrada de edição de perfil. Apresentação pura — quem salva é o
@@ -188,12 +195,12 @@ export function EditProfileForm({
 
 const s = StyleSheet.create({
   scroll: { paddingBottom: spacing.bloco },
-  hbtn: { fontSize: 13, fontFamily: fonts.corpo600, fontWeight: '600' },
-  htitle: { fontFamily: fonts.display800, fontSize: 14 },
+  hbtn: { fontSize: type.body, fontFamily: fonts.corpo600, fontWeight: '600' },
+  htitle: { fontFamily: fonts.display800, fontSize: type.bodyLarge },
   saveBtn: {
-    borderRadius: 16,
+    borderRadius: radius.panel,
     paddingHorizontal: spacing.padrao,
-    paddingVertical: 7,
+    paddingVertical: spacing.interno,
     minHeight: 44,
     alignItems: 'center',
     justifyContent: 'center',
@@ -201,7 +208,7 @@ const s = StyleSheet.create({
   saveBtnText: {
     color: palette.papel,
     fontFamily: fonts.display700,
-    fontSize: 13,
+    fontSize: type.body,
   },
   photoBlock: {
     alignItems: 'center',
@@ -209,7 +216,7 @@ const s = StyleSheet.create({
     paddingVertical: spacing.bloco - 4,
   },
   photoActions: { flexDirection: 'row', gap: spacing.padrao },
-  link: { fontSize: 13, fontFamily: fonts.corpo600, fontWeight: '600' },
+  link: { fontSize: type.body, fontFamily: fonts.corpo600, fontWeight: '600' },
   label: {
     fontFamily: fonts.display700,
     fontSize: 11.5,
@@ -221,8 +228,8 @@ const s = StyleSheet.create({
   input: {
     borderRadius: 6,
     paddingHorizontal: spacing.padrao,
-    paddingVertical: spacing.interno + 4,
-    fontSize: 14,
+    paddingVertical: spacing.medio,
+    fontSize: type.bodyLarge,
     fontFamily: fonts.corpo,
     marginHorizontal: spacing.padrao,
     marginBottom: spacing.padrao,
@@ -232,8 +239,8 @@ const s = StyleSheet.create({
   error: {
     marginHorizontal: spacing.padrao,
     marginBottom: spacing.interno,
-    borderRadius: 5,
+    borderRadius: radius.chip,
     padding: spacing.interno,
   },
-  errorText: { fontSize: 12 },
+  errorText: { fontSize: type.small },
 });

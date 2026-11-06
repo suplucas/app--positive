@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View } from 'react-native';
-import { fonts, useTheme } from '../common/theme';
+import { fonts, radius, spacing, useTheme } from '../common/theme';
 
 // Nota numérica sempre visível ao lado do conteúdo (identidade §09).
 // variant 'chip' fica nos quadrados da estante/diário do perfil.
@@ -33,9 +33,9 @@ const s = StyleSheet.create({
     bottom: 5,
     right: 5,
     backgroundColor: 'rgba(36,26,34,0.82)',
-    borderRadius: 5,
-    paddingHorizontal: 5,
-    paddingVertical: 1,
+    borderRadius: radius.chip,
+    paddingHorizontal: spacing.micro,
+    paddingVertical: 1, // óptico: chip minúsculo de nota no canto da foto
   },
   chipText: {
     fontFamily: fonts.display800,

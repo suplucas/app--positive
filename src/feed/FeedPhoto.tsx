@@ -12,7 +12,14 @@ import {
 import { Avatar } from '../common/Avatar';
 import { Flair } from './Flair';
 import { formatRelative, getNote, restaurantName } from '../common/format';
-import { fonts, palette, spacing, useTheme } from '../common/theme';
+import {
+  fonts,
+  palette,
+  radius,
+  spacing,
+  type,
+  useTheme,
+} from '../common/theme';
 import type { Review } from '../common/types';
 
 // Post com foto: mídia edge-to-edge (sangra na borda), nota sobre a
@@ -222,13 +229,13 @@ export function FeedPhoto({
 
 const s = StyleSheet.create({
   post: {
-    paddingVertical: spacing.padrao - 3,
+    paddingVertical: spacing.medio,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   uname: { fontFamily: fonts.display700, fontSize: 13.5 },
   place: { fontSize: 12.5, flexShrink: 1 },
   placeName: { fontFamily: fonts.corpo600, fontWeight: '600' },
-  time: { marginLeft: 'auto', fontSize: 12 },
+  time: { marginLeft: 'auto', fontSize: type.small },
   photoWrap: { position: 'relative' },
   photo: { width: '100%' },
   // Leve escuro no topo da foto p/ a linha de texto ter contraste
@@ -248,7 +255,7 @@ const s = StyleSheet.create({
     right: 12,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 9,
+    gap: spacing.interno,
   },
   noteBottom: {
     position: 'absolute',
@@ -256,12 +263,12 @@ const s = StyleSheet.create({
     right: 12,
     backgroundColor: 'rgba(36,26,34,0.82)',
     borderRadius: 8,
-    paddingHorizontal: 9,
+    paddingHorizontal: spacing.interno,
     paddingVertical: 3,
   },
   noteText: {
     fontFamily: fonts.display800,
-    fontSize: 14,
+    fontSize: type.bodyLarge,
     color: palette.papel,
   },
   // Carrossel (docs/15): um único momento de movimento — o dot ativo é
@@ -272,7 +279,7 @@ const s = StyleSheet.create({
     left: 12,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
+    gap: spacing.micro,
   },
   dot: {
     width: 5,
@@ -287,7 +294,7 @@ const s = StyleSheet.create({
     backgroundColor: palette.lambeLambe,
   },
   count: {
-    fontSize: 11,
+    fontSize: type.caption,
     fontFamily: fonts.display700,
     color: palette.papel,
     marginLeft: 3,
@@ -295,16 +302,16 @@ const s = StyleSheet.create({
     textShadowRadius: 4,
   },
   caption: {
-    fontSize: 13,
+    fontSize: type.body,
     lineHeight: 19,
     paddingHorizontal: spacing.padrao,
-    paddingTop: spacing.interno + 2,
+    paddingTop: spacing.medio,
   },
   actions: {
     flexDirection: 'row',
     gap: spacing.padrao,
     paddingHorizontal: spacing.padrao,
-    paddingTop: spacing.interno + 2,
+    paddingTop: spacing.medio,
   },
-  action: { fontSize: 12 },
+  action: { fontSize: type.small },
 });

@@ -1,6 +1,6 @@
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { formatRelative } from '../common/format';
-import { fonts, spacing, useTheme } from '../common/theme';
+import { fonts, radius, spacing, type, useTheme } from '../common/theme';
 import { layout } from '../common/layout';
 import { useNotifications } from '../comments/useNotifications';
 import type { AppNotification } from '../api/types';
@@ -126,7 +126,7 @@ const s = StyleSheet.create({
   tbtn: {
     width: 32,
     height: 32,
-    borderRadius: 16,
+    borderRadius: radius.panel,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -135,15 +135,15 @@ const s = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
     paddingHorizontal: spacing.padrao,
-    paddingVertical: 13,
+    paddingVertical: spacing.medio,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   icon: { fontSize: 15, width: 22, textAlign: 'center' },
   body: { flex: 1, minWidth: 0 },
-  text: { fontSize: 13, fontFamily: fonts.corpo500, lineHeight: 19 },
+  text: { fontSize: type.body, fontFamily: fonts.corpo500, lineHeight: 19 },
   time: { fontSize: 11.5, flexShrink: 0 },
   footer: {
-    fontSize: 12,
+    fontSize: type.small,
     lineHeight: 18,
     paddingHorizontal: spacing.padrao,
     paddingTop: spacing.padrao,

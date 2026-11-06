@@ -1,5 +1,5 @@
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
-import { fonts, palette, spacing, useTheme } from './theme';
+import { fonts, palette, radius, spacing, type, useTheme } from './theme';
 
 export type Screen = 'feed' | 'busca' | 'mapa' | 'perfil' | 'compose';
 
@@ -121,7 +121,7 @@ const s = StyleSheet.create({
     borderTopColor: palette.berinjela,
     paddingTop: spacing.interno,
     paddingHorizontal: spacing.interno,
-    paddingBottom: spacing.interno + 4, // espaço para barra de gestos do Android
+    paddingBottom: spacing.medio, // espaço para barra de gestos do Android
     backgroundColor: palette.papel,
     // Elevação: o navbar flutua sobre o conteúdo, não cola nele.
     shadowColor: palette.berinjela,
@@ -137,7 +137,7 @@ const s = StyleSheet.create({
     justifyContent: 'center',
     gap: 3,
   },
-  itemIcon: { fontSize: 18, lineHeight: 20 },
+  itemIcon: { fontSize: type.heading, lineHeight: 20 },
   itemLabel: { fontSize: 10.5, fontFamily: fonts.corpo },
   addHit: {
     width: 44,
@@ -156,7 +156,7 @@ const s = StyleSheet.create({
   },
   addIcon: {
     color: '#FBF2E4',
-    fontSize: 18,
+    fontSize: type.heading,
     lineHeight: 20,
     fontFamily: fonts.corpo500,
   },

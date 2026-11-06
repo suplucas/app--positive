@@ -17,7 +17,14 @@ import {
 import { WebView, type WebViewMessageEvent } from 'react-native-webview';
 import { buildMapHtml, buildPinData, jsonForScript } from './mapHtml';
 import { pinColor, type MapPlace } from './mapMock';
-import { fonts, palette, spacing, useTheme } from '../common/theme';
+import {
+  fonts,
+  palette,
+  radius,
+  spacing,
+  type,
+  useTheme,
+} from '../common/theme';
 import { layout } from '../common/layout';
 import { PageTitle } from '../common/PageTitle';
 import { usePlaces, DEFAULT_BBOX, type Bbox } from './usePlaces';
@@ -426,10 +433,10 @@ const s = StyleSheet.create({
     marginRight: spacing.interno,
   },
   chip: {
-    borderRadius: 999,
+    borderRadius: radius.pill,
     borderWidth: StyleSheet.hairlineWidth,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+    paddingHorizontal: spacing.medio,
+    paddingVertical: spacing.micro,
     shadowColor: palette.berinjela,
     shadowOpacity: 0.12,
     shadowRadius: 8,
@@ -469,7 +476,7 @@ const s = StyleSheet.create({
     alignItems: 'baseline',
     justifyContent: 'space-between',
     paddingHorizontal: spacing.padrao,
-    marginBottom: spacing.interno + 2,
+    marginBottom: spacing.medio,
   },
   actions: {
     flexDirection: 'row',
@@ -479,7 +486,7 @@ const s = StyleSheet.create({
   sheetTitle: { fontFamily: fonts.display700, fontSize: 15 },
   sheetMeta: { fontSize: 10.5 },
   empty: {
-    fontSize: 12,
+    fontSize: type.small,
     paddingHorizontal: spacing.padrao,
     paddingBottom: spacing.padrao,
   },
@@ -491,15 +498,15 @@ const s = StyleSheet.create({
   cardPhoto: {
     width: '100%',
     height: 92,
-    borderRadius: 12,
+    borderRadius: radius.card,
     justifyContent: 'flex-end',
     alignItems: 'flex-end',
-    padding: 5,
+    padding: spacing.micro,
   },
   cardNote: {
     backgroundColor: 'rgba(36,26,34,0.82)',
-    borderRadius: 5,
-    paddingHorizontal: 5,
+    borderRadius: radius.chip,
+    paddingHorizontal: spacing.micro,
     paddingVertical: 1,
   },
   cardNoteText: {
@@ -510,13 +517,13 @@ const s = StyleSheet.create({
   cardName: {
     fontFamily: fonts.display700,
     fontSize: 12.5,
-    marginTop: 6,
+    marginTop: spacing.interno,
   },
-  cardMeta: { fontSize: 11, marginTop: 1 },
+  cardMeta: { fontSize: type.caption, marginTop: 1 },
   retry: {
     borderRadius: 14,
     paddingHorizontal: spacing.padrao,
-    paddingVertical: 10,
+    paddingVertical: spacing.medio,
   },
   // Barra de busca ao lado do título no header.
   searchWrap: {
@@ -530,21 +537,21 @@ const s = StyleSheet.create({
     backgroundColor: '#FBF2E4',
     borderRadius: 22,
     paddingHorizontal: spacing.interno,
-    paddingVertical: spacing.interno - 2,
+    paddingVertical: spacing.interno,
   },
   searchInput: {
     flex: 1,
-    fontSize: 14,
+    fontSize: type.bodyLarge,
     fontFamily: fonts.corpo,
   },
-  searchClear: { fontSize: 18 },
-  searchLoading: { fontSize: 12, marginLeft: 8 },
+  searchClear: { fontSize: type.heading },
+  searchLoading: { fontSize: type.small, marginLeft: 8 },
   searchErrorWrap: {
     alignItems: 'center',
     paddingHorizontal: spacing.padrao,
     paddingBottom: spacing.interno,
   },
-  searchError: { fontSize: 12, color: '#241A22' },
+  searchError: { fontSize: type.small, color: '#241A22' },
   resultsWrap: {
     maxHeight: 260,
     paddingHorizontal: spacing.padrao,
@@ -557,12 +564,12 @@ const s = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   resultName: {
-    fontSize: 14,
+    fontSize: type.bodyLarge,
     fontFamily: fonts.corpo500,
     flex: 1,
   },
   resultMeta: {
-    fontSize: 12,
+    fontSize: type.small,
     color: '#241A22',
   },
 });

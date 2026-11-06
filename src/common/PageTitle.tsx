@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { StyleSheet, Text } from 'react-native';
-import { fonts, useTheme } from './theme';
+import { fonts, type, useTheme } from './theme';
 
 // Título do header de cada página (feed/busca/mapa/perfil/avaliar).
 // Tamanho consolidado em 22px; o wordmark do feed mantém o "im" rosa.
@@ -12,7 +12,7 @@ export function PageTitle({ children }: { children: ReactNode }) {
 const s = StyleSheet.create({
   word: {
     fontFamily: fonts.display800,
-    fontSize: 22,
+    fontSize: type.page,
     lineHeight: 26,
   },
 });

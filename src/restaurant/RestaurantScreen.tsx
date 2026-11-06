@@ -6,7 +6,7 @@ import {
   type RestaurantProfileData,
 } from './RestaurantProfileTemplate';
 import { restaurantFor, type RestaurantData } from './restaurantMock';
-import { palette, spacing, useTheme } from '../common/theme';
+import { palette, spacing, type, useTheme } from '../common/theme';
 import { useRestaurant } from './useRestaurant';
 
 const CAPAS = [palette.mostarda, palette.lambeLambe, palette.picles, '#8A3550'];
@@ -177,16 +177,16 @@ const s = StyleSheet.create({
     paddingHorizontal: spacing.padrao,
     gap: spacing.interno,
   },
-  message: { fontSize: 14, textAlign: 'center' },
+  message: { fontSize: type.bodyLarge, textAlign: 'center' },
   retry: {
     borderRadius: 14,
     paddingHorizontal: spacing.padrao,
-    paddingVertical: 10,
+    paddingVertical: spacing.medio,
   },
   actions: {
     flexDirection: 'row',
     gap: spacing.interno,
     marginTop: spacing.interno,
   },
-  retryText: { color: palette.papel, fontSize: 13, fontWeight: '600' },
+  retryText: { color: palette.papel, fontSize: type.body, fontWeight: '600' },
 });

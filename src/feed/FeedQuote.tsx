@@ -3,7 +3,7 @@ import { Avatar } from '../common/Avatar';
 import { ExpandableText } from '../common/ExpandableText';
 import { Flair } from './Flair';
 import { formatRelative, getNote, restaurantName } from '../common/format';
-import { fonts, palette, spacing } from '../common/theme';
+import { fonts, palette, radius, spacing, type } from '../common/theme';
 import type { Review } from '../common/types';
 
 // Quote card: avaliação textual em destaque (frase forte, sem foto) —
@@ -137,24 +137,24 @@ export function FeedQuote({
 const s = StyleSheet.create({
   card: {
     marginHorizontal: spacing.padrao,
-    marginVertical: spacing.interno + 2,
-    borderRadius: 16,
+    marginVertical: spacing.medio,
+    borderRadius: radius.panel,
     paddingHorizontal: spacing.padrao,
-    paddingTop: spacing.padrao - 2,
+    paddingTop: spacing.padrao,
     paddingBottom: spacing.padrao,
   },
-  top: { flexDirection: 'row', alignItems: 'center', gap: 9 },
-  uname: { fontFamily: fonts.display700, fontSize: 13 },
+  top: { flexDirection: 'row', alignItems: 'center', gap: spacing.interno },
+  uname: { fontFamily: fonts.display700, fontSize: type.body },
   note: {
     marginLeft: 'auto',
     fontFamily: fonts.display800,
-    fontSize: 14,
+    fontSize: type.bodyLarge,
   },
   text: {
     fontFamily: fonts.display700,
     fontSize: 20,
     lineHeight: 26,
-    marginTop: 14,
+    marginTop: spacing.padrao,
     marginBottom: 12,
   },
   meta: {

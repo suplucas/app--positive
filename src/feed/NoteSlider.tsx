@@ -7,7 +7,7 @@ import {
   View,
   type ScrollViewInstance,
 } from 'react-native';
-import { fonts, palette, useTheme } from '../common/theme';
+import { fonts, palette, spacing, type, useTheme } from '../common/theme';
 
 // Slider de nota na escala 0.0–10.0 em passos de 0.5 (docs_04): scroll
 // horizontal com 21 ticks, marca central rosa e valor grande. O valor é
@@ -134,7 +134,7 @@ const s = StyleSheet.create({
     fontFamily: fonts.display700,
     fontSize: 11.5,
     textAlign: 'center',
-    marginBottom: 6,
+    marginBottom: spacing.interno,
   },
   value: {
     fontFamily: fonts.display800,
@@ -142,7 +142,7 @@ const s = StyleSheet.create({
     lineHeight: 42,
     textAlign: 'center',
   },
-  wrap: { position: 'relative', height: 52, marginTop: 10 },
+  wrap: { position: 'relative', height: 52, marginTop: spacing.medio },
   // trilha em LINHA (default do RN é column — sem isso os ticks empilham e
   // o scroll horizontal não tem largura p/ rolar).
   track: { flexDirection: 'row', height: 52, alignItems: 'flex-end' },
@@ -166,7 +166,7 @@ const s = StyleSheet.create({
   },
   tickActive: { opacity: 1, transform: [{ scale: 1 }] },
   numSlot: { height: 14, alignItems: 'center', justifyContent: 'flex-end' },
-  num: { fontFamily: fonts.display700, fontSize: 11 },
+  num: { fontFamily: fonts.display700, fontSize: type.caption },
   line: { width: 2, height: 14, borderRadius: 1 },
   lineMajor: { width: 2.5, height: 22 },
 });
