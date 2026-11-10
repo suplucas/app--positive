@@ -42,7 +42,7 @@ export function Navbar({
           <Text style={s.addIcon}>+</Text>
         </View>
       </Pressable>
-      <NavItem label="mapa" icon="📍" active={active === 'mapa'} onPress={() => onNavigate('mapa')} />
+      <NavItem label="mapa" icon="⊞" active={active === 'mapa'} onPress={() => onNavigate('mapa')} />
       <NavItem label="perfil" icon="●" active={active === 'perfil'} onPress={() => onNavigate('perfil')} />
     </Animated.View>
   );
@@ -72,14 +72,6 @@ function NavItem({
       accessibilityState={{ selected: active, disabled }}
     >
       <Text style={[s.itemIcon, { color: t.ink, opacity }]}>{icon}</Text>
-      <Text
-        style={[
-          s.itemLabel,
-          { color: t.ink, opacity, fontWeight: active ? '600' : '400' },
-        ]}
-      >
-        {label}
-      </Text>
     </Pressable>
   );
 }
