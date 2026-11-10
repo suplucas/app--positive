@@ -9,8 +9,6 @@ import { fonts, palette, spacing, useTheme } from './theme';
 
 export type Screen = 'feed' | 'busca' | 'mapa' | 'perfil' | 'compose';
 
-// Navbar flutuante: some quando rola para baixo, volte quando sobe.
-// `navAnim` é um Animated.Value entre 0 (visível) e 1 (escondido).
 export function Navbar({
   active,
   onNavigate,
@@ -25,13 +23,10 @@ export function Navbar({
   const t = useTheme();
   return (
     <Animated.View
-      style={[
-        s.bar,
-        { backgroundColor: t.bg, borderTopColor: t.line },
-      ]}
+      style={[s.bar, { backgroundColor: t.bg, borderTopColor: t.line }]}
     >
-      <NavItem label="feed" icon="⌂" active={active === 'feed'} onPress={() => onNavigate('feed')} />
-      <NavItem label="buscar" icon="⌕" active={active === 'busca'} onPress={() => onNavigate('busca')} />
+      <NavItem icon="⌂" active={active === 'feed'} label="feed" onPress={() => onNavigate('feed')} />
+      <NavItem icon="⌕" active={active === 'busca'} label="buscar" onPress={() => onNavigate('busca')} />
       <Pressable
         style={s.addHit}
         onPress={onCompose}
@@ -42,23 +37,45 @@ export function Navbar({
           <Text style={s.addIcon}>+</Text>
         </View>
       </Pressable>
-      <NavItem label="mapa" icon="⊞" active={active === 'mapa'} onPress={() => onNavigate('mapa')} />
-      <NavItem label="perfil" icon="●" active={active === 'perfil'} onPress={() => onNavigate('perfil')} />
+      {/* Pino de mapa com Views */}
+      <Pressable
+        style={s.item}
+        onPress={() => onNavigate('mapa')}
+        accessibilityRole="button"
+        accessibilityState={{ selected: active === 'mapa' }}
+        accessibilityLabel="mapa"
+      >
+        <PinIcon color={t.ink} bg={t.bg} opacity={active === 'mapa' ? 1 : 0.5} />
+      </Pressable>
+      <NavItem icon="●" active={active === 'perfil'} label="perfil" onPress={() => onNavigate('perfil')} />
     </Animated.View>
   );
 }
 
+function PinIcon({ color, bg, opacity }: { color: string; bg: string; opacity: number }) {
+  return (
+    <View style={{ alignItems: 'center', width: 22, height: 28, opacity }}>
+      {/* Cabeça do pino */}
+      <View style={[s.pinHead, { backgroundColor: color }]}>
+        <View style={[s.pinHole, { backgroundColor: bg }]} />
+      </View>
+      {/* Cauda triangular */}
+      <View style={[s.pinTail, { borderTopColor: color }]} />
+    </View>
+  );
+}
+
 function NavItem({
-  label,
   icon,
   active,
   disabled = false,
+  label,
   onPress,
 }: {
-  label: string;
   icon: string;
   active: boolean;
   disabled?: boolean;
+  label: string;
   onPress: () => void;
 }) {
   const t = useTheme();
@@ -69,6 +86,7 @@ function NavItem({
       disabled={disabled}
       onPress={onPress}
       accessibilityRole="button"
+      accessibilityLabel={label}
       accessibilityState={{ selected: active, disabled }}
     >
       <Text style={[s.itemIcon, { color: t.ink, opacity }]}>{icon}</Text>
@@ -91,10 +109,8 @@ const s = StyleSheet.create({
     minHeight: 44,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 3,
   },
-  itemIcon: { fontSize: 18, lineHeight: 20 },
-  itemLabel: { fontSize: 10.5, fontFamily: fonts.corpo },
+  itemIcon: { fontSize: 24, lineHeight: 26 },
   addHit: {
     width: 44,
     height: 44,
@@ -103,12 +119,34 @@ const s = StyleSheet.create({
     marginTop: -16,
   },
   add: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: '#E63E75',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  addIcon: { color: '#FBF2E4', fontSize: 18, lineHeight: 20, fontFamily: fonts.corpo500 },
+  addIcon: { color: '#FBF2E4', fontSize: 20, lineHeight: 22, fontFamily: fonts.corpo500 },
+  pinHead: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pinHole: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  pinTail: {
+    width: 0,
+    height: 0,
+    borderLeftWidth: 5.5,
+    borderRightWidth: 5.5,
+    borderTopWidth: 8,
+    borderLeftColor: 'transparent',
+    borderRightColor: 'transparent',
+    marginTop: -1,
+  },
 });
