@@ -1,39 +1,21 @@
-import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { fonts, palette, spacing, type, useTheme } from './theme';
 
 export type Screen = 'feed' | 'busca' | 'mapa' | 'perfil' | 'compose';
 
-// Navbar flutuante: some quando rola para baixo, volte quando sobe.
-// `navAnim` é um Animated.Value entre 0 (visível) e 1 (escondido).
+// Navbar fixa no rodapé: sempre visível, sem sumir ao rolar.
 export function Navbar({
   active,
   onNavigate,
   onCompose,
-  navAnim,
 }: {
   active: Screen;
   onNavigate: (s: Screen) => void;
   onCompose: () => void;
-  navAnim: Animated.Value;
 }) {
   const t = useTheme();
   return (
-    <Animated.View
-      style={[
-        s.bar,
-        { backgroundColor: t.bg, borderTopColor: t.line },
-        {
-          transform: [
-            {
-              translateY: navAnim.interpolate({
-                inputRange: [0, 1],
-                outputRange: [0, 56],
-              }),
-            },
-          ],
-        },
-      ]}
-    >
+    <View style={[s.bar, { backgroundColor: t.bg, borderTopColor: t.line }]}>
       <NavItem
         label="feed"
         icon="⌂"
@@ -68,7 +50,7 @@ export function Navbar({
         active={active === 'perfil'}
         onPress={() => onNavigate('perfil')}
       />
-    </Animated.View>
+    </View>
   );
 }
 
@@ -113,22 +95,10 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: palette.berinjela,
     paddingTop: spacing.interno,
     paddingHorizontal: spacing.interno,
-    paddingBottom: spacing.medio, // espaço para barra de gestos do Android
-    backgroundColor: palette.papel,
-    // Elevação: o navbar flutua sobre o conteúdo, não cola nele.
-    shadowColor: palette.berinjela,
-    shadowOpacity: 0.12,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: -6 },
-    elevation: 8,
+    paddingBottom: spacing.interno + 4,
   },
   item: {
     minWidth: 44,

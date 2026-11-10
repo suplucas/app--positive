@@ -52,7 +52,6 @@ describe('EditProfileScreen', () => {
     expect(updateMock).toHaveBeenCalledWith('user_1', {
       name: 'Bea',
       bio: 'bio atual',
-      photoUrl: null,
     });
     expect(onSaved).toHaveBeenCalled();
   });

@@ -13,7 +13,7 @@ function render(props: Partial<Props> = {}) {
       userId: 'user_1',
       initialName: 'Bea Ferraz',
       initialBio: 'comendo por aí',
-      initialPhotoUrl: null,
+      initialPhotoUri: null,
       onSave,
       onBack,
       ...props,
@@ -38,7 +38,6 @@ describe('EditProfileForm', () => {
     expect(onSave).toHaveBeenCalledWith({
       name: 'Bea Atualizada',
       bio: 'bio nova',
-      photoUrl: null,
     });
   });
 
@@ -52,7 +51,6 @@ describe('EditProfileForm', () => {
     expect(onSave).toHaveBeenCalledWith({
       name: 'Bea Ferraz',
       bio: null,
-      photoUrl: null,
     });
   });
 

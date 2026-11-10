@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { uploadAvatarPhoto } from '../api/api';
 import { updateUserProfile, type UserProfileEdit } from '../api/user';
 import type { UserProfile } from '../api/types';
 import { EditProfileForm, type EditProfileInput } from './EditProfileForm';
 import { useProfile } from './useProfile';
 import { useTheme } from '../common/theme';
+import { resolvePhotoUrl } from '../common/format';
 
 // Container da edição de perfil: carrega o perfil atual (ou usa o
 // injetado) e faz PUT /users/:id com nome, bio e photoUrl.
@@ -41,8 +43,14 @@ export function EditProfileScreen({
         const body: UserProfileEdit = {
           name: input.name,
           bio: input.bio,
-          photoUrl: input.photoUrl ?? null,
         };
+        // Só toca em photoUrl quando a foto foi trocada/removida; sem
+        // isso, salvar nome/bio apagaria a foto atual.
+        if (input.photoUri !== undefined) {
+          body.photoUrl = input.photoUri
+            ? await uploadAvatarPhoto(userId, input.photoUri)
+            : null;
+        }
         await updateUserProfile(userId, body);
         onSaved();
       } catch (e) {
@@ -57,7 +65,9 @@ export function EditProfileScreen({
       userId={userId}
       initialName={profile.name}
       initialBio={profile.bio}
-      initialPhotoUrl={profile.photoUrl ?? null}
+      initialPhotoUri={
+        profile.photoUrl ? resolvePhotoUrl(profile.photoUrl) : null
+      }
       onSave={save}
       onBack={onBack}
       saving={saving}

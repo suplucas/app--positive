@@ -9,9 +9,8 @@ import {
   View,
 } from 'react-native';
 import { getAuthToken } from '../api/client';
-import { postReview, updateReview } from '../api/api';
+import { postReview, updateReview, uploadReviewPhoto } from '../api/api';
 import type { ReviewEdit } from '../api/api';
-import { uploadPhoto } from '../api/uploadPhoto';
 import { importPlace, searchPlaces } from '../api/place';
 import type { PlaceHit } from '../api/types';
 import { NoteSlider } from '../feed/NoteSlider';
@@ -101,7 +100,7 @@ export function ComposeV2({
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   // Foto da galeria: `photo` é a URI local (preview imediato) e
-  // `photoUrl` a URL pública no S3 após o upload (enviada no body).
+  // `photoUrl` a URL pública no storage após o upload (enviada no body).
   const [photo, setPhoto] = useState<string | null>(null);
   const [photoUrl, setPhotoUrl] = useState<string | null>(
     () => editReview?.photoUrl ?? null,
@@ -209,7 +208,7 @@ export function ComposeV2({
           : null;
       if (!uri) return;
       setPhoto(uri);
-      const url = await uploadPhoto(uri);
+      const url = await uploadReviewPhoto(userId, uri);
       setPhotoUrl(url);
     } catch (e) {
       setPhoto(null);

@@ -20,12 +20,12 @@ import {
 } from '../common/theme';
 import { layout } from '../common/layout';
 
-// Entrada de edição de perfil. Apresentação pura — quem salva é o
-// EditProfileScreen (PUT /users/:id com photoUrl).
+// Entrada de edição de perfil. Apresentação pura — quem salva (upload +
+// PUT /users/:id) é o EditProfileScreen.
 export type EditProfileInput = {
   name: string;
   bio: string | null;
-  photoUrl?: string | null;
+  photoUri?: string | null;
 };
 
 // Formulário de edição do próprio perfil: nome, bio e foto.
@@ -33,7 +33,7 @@ export function EditProfileForm({
   userId,
   initialName,
   initialBio,
-  initialPhotoUrl,
+  initialPhotoUri,
   onPickPhoto,
   onSave,
   onBack,
@@ -43,7 +43,7 @@ export function EditProfileForm({
   userId: string;
   initialName: string;
   initialBio?: string | null;
-  initialPhotoUrl?: string | null;
+  initialPhotoUri?: string | null;
   // Seam p/ testes injetarem a galeria sem tocar no native.
   onPickPhoto?: () => Promise<ImageSourcePropType | null>;
   onSave: (input: EditProfileInput) => void;
@@ -55,8 +55,9 @@ export function EditProfileForm({
   const [name, setName] = useState(initialName);
   const [bio, setBio] = useState(initialBio ?? '');
   const [photo, setPhoto] = useState<ImageSourcePropType | null>(
-    initialPhotoUrl ? { uri: initialPhotoUrl } : null,
+    initialPhotoUri ? { uri: initialPhotoUri } : null,
   );
+  const [photoTouched, setPhotoTouched] = useState(false);
 
   const canSave = name.trim() !== '' && !saving;
 
@@ -64,12 +65,14 @@ export function EditProfileForm({
     void (onPickPhoto ?? pickPhoto)().then((src) => {
       if (src) {
         setPhoto(src);
+        setPhotoTouched(true);
       }
     });
   };
 
   const removePhoto = () => {
     setPhoto(null);
+    setPhotoTouched(true);
   };
 
   const submit = () => {
@@ -81,7 +84,7 @@ export function EditProfileForm({
     onSave({
       name: name.trim(),
       bio: bio.trim() === '' ? null : bio.trim(),
-      photoUrl: uri ?? null,
+      ...(photoTouched ? { photoUri: uri ?? null } : {}),
     });
   };
 
