@@ -2,18 +2,16 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { act, create, ReactTestRenderer } from 'react-test-renderer';
 import { createElement } from 'react';
 import { useFeed } from './useFeed';
-import { getFeed, likeReview, deleteReview } from '../api/api';
+import { getFeed, likeReview } from '../api/api';
 import type { FeedResponse } from '../common/types';
 
 vi.mock('../api/api', () => ({
   getFeed: vi.fn(),
   likeReview: vi.fn(),
-  deleteReview: vi.fn(),
 }));
 
 const getFeedMock = vi.mocked(getFeed);
 const likeReviewMock = vi.mocked(likeReview);
-const deleteReviewMock = vi.mocked(deleteReview);
 
 const page20 = (page: number) => ({
   page,
@@ -267,31 +265,4 @@ describe('useFeed', () => {
     expect(h.get().items).toHaveLength(20);
   });
 
-  it('remove otimista tira o item e chama a API', async () => {
-    getFeedMock.mockResolvedValue(page20(1));
-    deleteReviewMock.mockResolvedValue(undefined);
-    const h = renderHook('user_1');
-    await act(async () => {});
-    const target = h.get().items[3]!;
-    await act(async () => {
-      await h.get().remove(target);
-    });
-    expect(h.get().items.some((r) => r.id === target.id)).toBe(false);
-    expect(deleteReviewMock).toHaveBeenCalledWith('user_1', target.id);
-  });
-
-  it('restaura o item se a API de delete falhar', async () => {
-    getFeedMock.mockResolvedValue(page20(1));
-    deleteReviewMock.mockRejectedValue(new Error('404'));
-    const h = renderHook('user_1');
-    await act(async () => {});
-    const target = h.get().items[3]!;
-    await act(async () => {
-      await h
-        .get()
-        .remove(target)
-        .catch(() => {});
-    });
-    expect(h.get().items.some((r) => r.id === target.id)).toBe(true);
-  });
 });

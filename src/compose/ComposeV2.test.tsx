@@ -2,17 +2,15 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { create, ReactTestRenderer, act } from 'react-test-renderer';
 import { createElement } from 'react';
 import { ComposeV2 } from './ComposeV2';
-import { postReview, updateReview } from '../api/api';
+import { postReview } from '../api/api';
 import { restaurantNames } from '../restaurant/restaurantNames';
 import type { Review } from '../common/types';
 
 vi.mock('../api/api', () => ({
   postReview: vi.fn(),
-  updateReview: vi.fn(),
 }));
 
 const postReviewMock = vi.mocked(postReview);
-const updateReviewMock = vi.mocked(updateReview);
 
 // Usa um restaurante real do mapa do seed.
 const [cnpjExemplo, nomeExemplo] = Object.entries(restaurantNames)[0];
@@ -223,67 +221,6 @@ describe('ComposeV2', () => {
   });
 });
 
-describe('ComposeV2 (editar avaliação própria)', () => {
-  const ownReview: Review = {
-    id: 42,
-    userId: 'user_1',
-    restaurantId: cnpjExemplo,
-    rating: 4.5,
-    comment: 'bom demais',
-    likes: 3,
-    createdAt: '2026-09-24T00:00:00.000Z',
-    flairs: ['achado'],
-    photoUrl: '/uploads/foto.jpg',
-  };
-
-  it('salvar chama PUT /reviews com os campos editados', async () => {
-    updateReviewMock.mockResolvedValue({ ...ownReview });
-    const onPosted = vi.fn();
-    const r = render({ editReview: ownReview, onPosted });
-    await act(async () => {
-      byID(r, 'publicar-v2').props.onPress();
-    });
-    const [userId, id, payload] = updateReviewMock.mock.calls[0]!;
-    expect(userId).toBe('user_1');
-    expect(id).toBe(42);
-    expect(payload).toEqual({
-      rating: 4.5,
-      comment: 'bom demais',
-      photoUrl: '/uploads/foto.jpg',
-      flairs: ['achado'],
-    });
-    expect(onPosted).toHaveBeenCalled();
-  });
-
-  it('alterar a nota reflete no PUT', async () => {
-    updateReviewMock.mockResolvedValue({ ...ownReview });
-    const r = render({ editReview: ownReview });
-    act(() => byID(r, 'nota-tick-8.0').props.onPress());
-    await act(async () => {
-      byID(r, 'publicar-v2').props.onPress();
-    });
-    expect(updateReviewMock).toHaveBeenCalledWith(
-      'user_1',
-      42,
-      expect.objectContaining({ rating: 4 }),
-    );
-  });
-
-  it('erro de rede mostra mensagem e mantém na tela (sem onPosted)', async () => {
-    updateReviewMock.mockRejectedValue(
-      new Error('PUT /reviews/42 failed: 500'),
-    );
-    const onPosted = vi.fn();
-    const r = render({ editReview: ownReview, onPosted });
-    await act(async () => {
-      byID(r, 'publicar-v2').props.onPress();
-    });
-    expect(onPosted).not.toHaveBeenCalled();
-    expect(JSON.stringify(r.toJSON())).toContain(
-      'Não consegui publicar sua avaliação.',
-    );
-  });
-});
 
 // Texts de um subtree (instâncias não expõem toJSON nesta versão do
 // react-test-renderer; só a raiz).
@@ -312,6 +249,5 @@ function selectedFlairs(r: ReactTestRenderer): string[] {
 
 beforeEach(() => {
   postReviewMock.mockReset();
-  updateReviewMock.mockReset();
   postReviewMock.mockResolvedValue(reviewCreated);
 });

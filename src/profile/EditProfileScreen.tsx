@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { uploadAvatarPhoto } from '../api/api';
 import { updateUserProfile, type UserProfileEdit } from '../api/user';
 import type { UserProfile } from '../api/types';
 import { EditProfileForm, type EditProfileInput } from './EditProfileForm';
@@ -44,13 +43,6 @@ export function EditProfileScreen({
           name: input.name,
           bio: input.bio,
         };
-        // Só toca em photoUrl quando a foto foi trocada/removida; sem
-        // isso, salvar nome/bio apagaria a foto atual.
-        if (input.photoUri !== undefined) {
-          body.photoUrl = input.photoUri
-            ? await uploadAvatarPhoto(userId, input.photoUri)
-            : null;
-        }
         await updateUserProfile(userId, body);
         onSaved();
       } catch (e) {

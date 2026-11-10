@@ -1,6 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
 import {
-  Alert,
   FlatList,
   Pressable,
   RefreshControl,
@@ -115,8 +114,6 @@ function MainApp({
   const [osmPlace, setOsmPlace] = useState<PlaceHit | null>(null);
   const [profileUserId, setProfileUserId] = useState<string | null>(null);
   const [composeCnpj, setComposeCnpj] = useState<string | null>(null);
-  // Review sendo editada (MVP): quando setada, o compose vira modo edição.
-  const [editingReview, setEditingReview] = useState<Review | null>(null);
   // Lista "quero ir" (docs/10): persistida na API e compartilhada com
   // o toggle da página do restaurante.
   const saves = useSaves(userId);
@@ -139,30 +136,8 @@ function MainApp({
       savedCnpjs.includes(cnpj),
     );
   };
-  // Edição da própria review: abre o compose em modo edição (local travado).
-  const openEdit = (review: Review) => {
-    setEditingReview(review);
-    setComposeCnpj(null);
-    setComposePickedCnpj(null);
-    setScreen('compose');
-  };
-  // Apagar: confirma antes (ação destrutiva) e remove otimista no hook.
-  const confirmDelete = (review: Review) => {
-    Alert.alert(
-      'apagar avaliação',
-      'Sua avaliação sai do feed e do perfil. Não dá pra desfazer.',
-      [
-        { text: 'cancelar', style: 'cancel' },
-        {
-          text: 'apagar',
-          style: 'destructive',
-          onPress: () => void remove(review),
-        },
-      ],
-    );
-  };
   const feedVisible = screen === 'feed' && !restaurantId && !settingsOpen;
-  const { items, status, error, hasMore, refresh, loadMore, like, remove } =
+  const { items, status, error, hasMore, refresh, loadMore, like } =
     useFeed(userId);
 
   const onEndReached = useCallback(() => {
@@ -272,8 +247,6 @@ function MainApp({
                   void saves.toggle(cnpj, restaurantName(cnpj) ?? cnpj, true);
                 }}
                 onOpenRestaurant={(cnpj) => setRestaurantId(cnpj)}
-                onEditReview={openEdit}
-                onDeleteReview={confirmDelete}
                 onEditProfile={() => setEditProfileOpen(true)}
               />
             ) : (
@@ -297,7 +270,6 @@ function MainApp({
                       subtitle="Siga gente que come bem ou avalie um lugar pra começar."
                       actionLabel="avaliar um lugar"
                       onAction={() => {
-                        setEditingReview(null);
                         setComposeCnpj(null);
                         setScreen('compose');
                       }}
@@ -306,7 +278,6 @@ function MainApp({
                 }
                 renderItem={({ item }) => {
                   const d = decorated.get(item.id);
-                  const isOwn = String(item.userId) === String(userId);
                   const openPlace = () => {
                     if (item.restaurantId) {
                       setOsmPlace(null);
@@ -314,12 +285,7 @@ function MainApp({
                     }
                   };
                   const openComments = () => setCommentReview(item);
-                  const ownerProps = isOwn
-                    ? {
-                        onEdit: () => openEdit(item),
-                        onDelete: () => confirmDelete(item),
-                      }
-                    : {};
+                  const ownerProps = {};
                   if (d?.layout === 'photo' && d.photos) {
                     return (
                       <FeedPhoto
@@ -399,7 +365,6 @@ function MainApp({
                   }}
                   onEvaluate={() => {
                     if (restaurantId.startsWith('osm:')) return;
-                    setEditingReview(null);
                     setComposeCnpj(restaurantId);
                     setScreen('compose');
                   }}
@@ -412,8 +377,6 @@ function MainApp({
                       ? undefined
                       : () => toggleSaved(restaurantId)
                   }
-                  onEditReview={openEdit}
-                  onDeleteReview={confirmDelete}
                 />
               </LayerScreen>
             ) : null}
@@ -422,19 +385,15 @@ function MainApp({
                 <ComposeScreen
                   userId={userId}
                   initialCnpj={composeCnpj}
-                  editReview={editingReview}
                   onChangePlace={() => setComposePickerOpen(true)}
                   pickedCnpj={composePickedCnpj}
                   onCancel={() => {
-                    // Vem da página do restaurante? Ela continua viva lá embaixo.
-                    setEditingReview(null);
                     setComposeCnpj(null);
                     setComposePickedCnpj(null);
                     setComposePickerOpen(false);
                     setScreen('feed');
                   }}
                   onPosted={() => {
-                    setEditingReview(null);
                     setComposeCnpj(null);
                     setComposePickedCnpj(null);
                     setComposePickerOpen(false);
@@ -519,7 +478,6 @@ function MainApp({
                 setScreen(s);
               }}
               onCompose={() => {
-                setEditingReview(null);
                 setComposeCnpj(null);
                 setScreen('compose');
               }}

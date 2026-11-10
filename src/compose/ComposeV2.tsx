@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
-  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -8,21 +7,17 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { getAuthToken } from '../api/client';
-import { postReview, updateReview, uploadReviewPhoto } from '../api/api';
-import type { ReviewEdit } from '../api/api';
+import { postReview } from '../api/api';
 import { importPlace, searchPlaces } from '../api/place';
 import type { PlaceHit } from '../api/types';
 import { NoteSlider } from '../feed/NoteSlider';
 import { SectionTitle } from '../common/SectionTitle';
-import type { Review } from '../common/types';
 import {
   friendlyApiError,
   restaurantName,
   searchRestaurants,
   type RestaurantHit,
 } from '../common/format';
-import { pickPhoto } from './pickPhoto';
 import {
   fonts,
   palette,
@@ -43,10 +38,6 @@ export const FLAIRS = [
   'achado',
 ];
 const MAX_FLAIRS = 2;
-// Teto de fotos por avaliação (docs/15). Nesta fase a API persiste 1
-// foto por review; o compose já exibe o visual da prateleira para
-// futuramente subir várias fotos.
-export const MAX_PHOTOS = 1;
 
 // Slug estável p/ testID: 'boa pra ir só' → 'flair-boa-pra-ir-so'.
 export function flairSlug(label: string): string {
@@ -71,7 +62,6 @@ export function ComposeV2({
   onPosted,
   onChangePlace,
   pickedCnpj,
-  editReview,
 }: {
   userId: string;
   initialCnpj?: string | null;
@@ -80,32 +70,17 @@ export function ComposeV2({
   // docs/16: "trocar" abre a busca (picker); `pickedCnpj` volta do App.
   onChangePlace?: () => void;
   pickedCnpj?: string | null;
-  // MVP: edição da própria review — prefill e PUT em vez de POST.
-  editReview?: Review | null;
 }) {
   const t = useTheme();
-  const editing = editReview != null;
   const [query, setQuery] = useState('');
-  const [selected, setSelected] = useState<RestaurantHit | null>(() => {
-    const cnpj = editReview?.restaurantId ?? initialCnpj;
-    return cnpj ? { cnpj, nome: restaurantName(cnpj) ?? cnpj } : null;
-  });
-  const [note, setNote] = useState(() =>
-    editReview?.rating != null ? editReview.rating * 2 : 8,
+  const [selected, setSelected] = useState<RestaurantHit | null>(() =>
+    initialCnpj ? { cnpj: initialCnpj, nome: restaurantName(initialCnpj) ?? initialCnpj } : null,
   );
-  const [caption, setCaption] = useState(() => editReview?.comment ?? '');
-  const [flairs, setFlairs] = useState<string[]>(
-    () => editReview?.flairs ?? [],
-  );
+  const [note, setNote] = useState(8);
+  const [caption, setCaption] = useState('');
+  const [flairs, setFlairs] = useState<string[]>([]);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  // Foto da galeria: `photo` é a URI local (preview imediato) e
-  // `photoUrl` a URL pública no storage após o upload (enviada no body).
-  const [photo, setPhoto] = useState<string | null>(null);
-  const [photoUrl, setPhotoUrl] = useState<string | null>(
-    () => editReview?.photoUrl ?? null,
-  );
-  const [uploading, setUploading] = useState(false);
 
   const [apiResults, setApiResults] = useState<PlaceHit[]>([]);
 
@@ -173,14 +148,14 @@ export function ComposeV2({
 
   // Local escolhido no picker de busca (docs/16) que volta do App.
   useEffect(() => {
-    if (pickedCnpj && !editing) {
+    if (pickedCnpj) {
       setSelected({
         cnpj: pickedCnpj,
         nome: restaurantName(pickedCnpj) ?? pickedCnpj,
       });
       setQuery('');
     }
-  }, [pickedCnpj, editing]);
+  }, [pickedCnpj]);
 
   const canSend = selected !== null && !sending;
 
@@ -192,67 +167,16 @@ export function ComposeV2({
     });
   };
 
-  const photoSource = photo ?? photoUrl;
-  // `photos` deriva de `photo`/`photoUrl` (1 foto por vez nesta fase);
-  // o visual de prateleira já está pronto para várias fotos.
-  const photos = photoSource ? [{ uri: photoSource }] : [];
-
-  const onPickPhoto = async () => {
-    setError(null);
-    setUploading(true);
-    try {
-      const picked = await pickPhoto();
-      const uri =
-        picked && typeof picked === 'object' && 'uri' in picked
-          ? (picked as { uri: string }).uri
-          : null;
-      if (!uri) return;
-      setPhoto(uri);
-      const url = await uploadReviewPhoto(userId, uri);
-      setPhotoUrl(url);
-    } catch (e) {
-      setPhoto(null);
-      setError(
-        e instanceof Error ? e.message : 'não foi possível enviar a foto.',
-      );
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const addPhoto = onPickPhoto;
-
-  // índice ignorado nesta fase (1 foto por vez); usado quando houver várias.
-  const removePhoto = (_index?: number) => {
-    setPhoto(null);
-    setPhotoUrl(null);
-    setError(null);
-  };
-
   const submit = async () => {
     if (!canSend || selected === null) return;
     setSending(true);
     setError(null);
     try {
       const comment = caption.trim() === '' ? null : caption.trim();
-
-      if (editReview) {
-        const body: ReviewEdit = {
-          rating: note / 2,
-          comment,
-          ...(photoUrl ? { photoUrl } : {}),
-          ...(flairs.length > 0 ? { flairs } : {}),
-        };
-        await updateReview(userId, editReview.id, body);
-        onPosted();
-        return;
-      }
-
       await postReview(userId, {
         restaurantId: selected.cnpj,
         rating: note / 2,
         comment,
-        ...(photoUrl ? { photoUrl } : {}),
         ...(flairs.length > 0 ? { flairs } : {}),
       });
       onPosted();
@@ -290,9 +214,7 @@ export function ComposeV2({
         >
           <Text style={[s.hbtn, { color: t.sub }]}>cancelar</Text>
         </Pressable>
-        <Text style={[s.htitle, { color: t.ink }]}>
-          {editing ? 'editar avaliação' : 'nova avaliação'}
-        </Text>
+        <Text style={[s.htitle, { color: t.ink }]}>nova avaliação</Text>
         <Pressable
           testID="publicar-v2"
           onPress={() => void submit()}
@@ -304,9 +226,7 @@ export function ComposeV2({
           accessibilityRole="button"
           accessibilityState={{ disabled: !canSend, busy: sending }}
         >
-          <Text style={s.publishBtnText}>
-            {sending ? 'tim…' : editing ? 'salvar' : 'tim!'}
-          </Text>
+          <Text style={s.publishBtnText}>{sending ? 'tim…' : 'tim!'}</Text>
         </Pressable>
       </View>
 
@@ -317,47 +237,28 @@ export function ComposeV2({
       >
         <SectionTitle>onde você comeu</SectionTitle>
         {selected ? (
-          editing ? (
-            <View style={[s.place, { backgroundColor: t.quietBg }]}>
-              <Text style={s.pin}>📍</Text>
-              <View style={{ flex: 1 }}>
-                <Text style={[s.placeNome, { color: t.ink }]}>
-                  {selected.nome}
-                </Text>
-                <Text style={[s.placeSub, { color: t.sub }]}>
-                  {selected.cnpj}
-                </Text>
-              </View>
+          <Pressable
+            testID="trocar-restaurante"
+            onPress={() => {
+              if (onChangePlace) onChangePlace();
+              else {
+                setSelected(null);
+                setQuery('');
+              }
+            }}
+            style={[s.place, { backgroundColor: t.quietBg }]}
+            accessibilityRole="button"
+            accessibilityLabel="trocar restaurante"
+          >
+            <Text style={s.pin}>📍</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={[s.placeNome, { color: t.ink }]}>{selected.nome}</Text>
+              <Text style={[s.placeSub, { color: t.sub }]}>{selected.cnpj}</Text>
             </View>
-          ) : (
-            <Pressable
-              testID="trocar-restaurante"
-              onPress={() => {
-                // Com picker disponível abre a busca; senão, volta ao campo.
-                if (onChangePlace) onChangePlace();
-                else {
-                  setSelected(null);
-                  setQuery('');
-                }
-              }}
-              style={[s.place, { backgroundColor: t.quietBg }]}
-              accessibilityRole="button"
-              accessibilityLabel="trocar restaurante"
-            >
-              <Text style={s.pin}>📍</Text>
-              <View style={{ flex: 1 }}>
-                <Text style={[s.placeNome, { color: t.ink }]}>
-                  {selected.nome}
-                </Text>
-                <Text style={[s.placeSub, { color: t.sub }]}>
-                  {selected.cnpj}
-                </Text>
-              </View>
-              <Text style={[s.placeTrocar, { color: palette.lambeLambe }]}>
-                trocar
-              </Text>
-            </Pressable>
-          )
+            <Text style={[s.placeTrocar, { color: palette.lambeLambe }]}>
+              trocar
+            </Text>
+          </Pressable>
         ) : (
           <>
             <TextInput
@@ -449,77 +350,6 @@ export function ComposeV2({
             );
           })}
         </View>
-
-        <SectionTitle>
-          {photos.length > 0
-            ? `fotos · ${photos.length}/${MAX_PHOTOS}`
-            : 'foto (opcional)'}
-        </SectionTitle>
-        {photos.length === 0 ? (
-          <Pressable
-            testID="foto-add"
-            onPress={addPhoto}
-            disabled={uploading || !selected}
-            hitSlop={6}
-            accessibilityRole="button"
-            accessibilityLabel="adicionar foto da galeria"
-            style={[s.photoBox, { borderColor: t.line }]}
-          >
-            <Text style={s.cam}>📷</Text>
-            <Text style={[s.photoText, { color: t.sub }]}>adicionar foto</Text>
-            <Text style={[s.photoSub, { color: t.sub }]}>
-              da sua galeria · 1 foto · sem foto, vira um quote card
-            </Text>
-          </Pressable>
-        ) : (
-          <>
-            <View style={s.shelf}>
-              {photos.map((src, i) => (
-                <View
-                  key={i}
-                  testID={`foto-thumb-${i}`}
-                  style={[s.thumb, { borderColor: t.line }]}
-                >
-                  <Image
-                    testID={i === 0 ? 'foto-preview' : undefined}
-                    source={src}
-                    style={s.thumbImg}
-                    resizeMode="cover"
-                    accessibilityIgnoresInvertColors
-                  />
-                  <Pressable
-                    testID={`foto-tirar-${i}`}
-                    onPress={() => removePhoto(i)}
-                    style={s.thumbX}
-                    hitSlop={6}
-                    accessibilityRole="button"
-                    accessibilityLabel={`remover foto ${i + 1}`}
-                  >
-                    <Text style={s.thumbXText}>×</Text>
-                  </Pressable>
-                </View>
-              ))}
-              {photos.length < MAX_PHOTOS ? (
-                <Pressable
-                  testID="foto-add"
-                  onPress={addPhoto}
-                  disabled={uploading || !selected}
-                  style={[s.addTile, { borderColor: t.line }]}
-                  accessibilityRole="button"
-                  accessibilityLabel="adicionar outra foto"
-                >
-                  <Text style={s.cam}>📷</Text>
-                  <Text style={[s.photoSub, { color: t.sub }]}>
-                    {`foto ${photos.length + 1}`}
-                  </Text>
-                </Pressable>
-              ) : null}
-            </View>
-            <Text style={[s.photoHint, { color: t.sub }]}>
-              foto · vai para a API · × remove
-            </Text>
-          </>
-        )}
 
         <SectionTitle>preview</SectionTitle>
         <View
@@ -647,76 +477,6 @@ const s = StyleSheet.create({
     paddingVertical: spacing.interno,
   },
   flairText: { fontSize: type.small, fontFamily: fonts.corpo500 },
-  photoBox: {
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.interno,
-    marginHorizontal: spacing.padrao,
-    paddingHorizontal: spacing.padrao,
-    paddingVertical: spacing.padrao,
-    borderRadius: radius.card,
-    borderWidth: 1.5,
-    borderStyle: 'dashed',
-    borderColor: palette.picles,
-    backgroundColor: palette.papel,
-  },
-  cam: { fontSize: 24, lineHeight: 1 },
-  photoText: {
-    fontSize: type.body,
-    fontFamily: fonts.corpo500,
-    fontWeight: '600',
-  },
-  photoSub: { fontSize: 11.5, marginTop: 2, textAlign: 'center' },
-  shelf: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.interno,
-    marginHorizontal: spacing.padrao,
-    marginBottom: spacing.interno,
-  },
-  thumb: {
-    position: 'relative',
-    width: 92,
-    height: 92,
-    borderRadius: radius.card,
-    overflow: 'hidden',
-    borderWidth: 1,
-  },
-  thumbImg: { width: '100%', height: '100%' },
-  thumbX: {
-    position: 'absolute',
-    top: -6,
-    right: -6,
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    backgroundColor: palette.papel,
-    borderWidth: 1.5,
-    borderColor: palette.picles,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  thumbXText: { fontSize: type.title, lineHeight: 18, color: palette.picles },
-  addTile: {
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.interno,
-    width: 92,
-    height: 92,
-    borderRadius: radius.card,
-    borderWidth: 1.5,
-    borderStyle: 'dashed',
-    borderColor: palette.picles,
-    backgroundColor: palette.papel,
-  },
-  photoHint: {
-    fontSize: type.caption,
-    marginHorizontal: spacing.padrao,
-    marginTop: spacing.interno,
-    textAlign: 'center',
-  },
   preview: {
     borderRadius: radius.panel,
     marginHorizontal: spacing.padrao,

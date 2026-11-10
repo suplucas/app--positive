@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { deleteReview, getFeed, likeReview } from '../api/api';
+import { getFeed, likeReview } from '../api/api';
 import type { FeedStatus, Review } from '../common/types';
 
 const DEFAULT_LIMIT = 20;
@@ -89,21 +89,5 @@ export function useFeed(userId: string, limit: number = DEFAULT_LIMIT) {
     void loadPage(1, 'replace');
   }, [userId, loadPage]);
 
-  // Apaga a própria review: tira do feed na hora e desfaz se a API falhar.
-  const remove = useCallback(
-    async (review: Review) => {
-      const gen = genRef.current;
-      const snapshot = items;
-      setItems((prev) => prev.filter((item) => item.id !== review.id));
-      try {
-        await deleteReview(userId, review.id);
-      } catch (e) {
-        if (genRef.current === gen) setItems(snapshot);
-        throw e;
-      }
-    },
-    [items, userId],
-  );
-
-  return { items, status, error, hasMore, refresh, loadMore, like, remove };
+  return { items, status, error, hasMore, refresh, loadMore, like };
 }
