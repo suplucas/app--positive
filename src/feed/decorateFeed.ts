@@ -5,7 +5,7 @@ import type { QuoteTone } from './FeedQuote';
 import { MOCK_POST_PHOTOS, photoFor, photosFor } from './postPhotos';
 
 // Nota forte na escala 0-10: flair "chorei de tão bom" no máx. 1 por tela.
-const STRONG_NOTE = 9;
+const STRONG_NOTE = 0;
 
 // Formato de cada item do feed + tom das quote cards (alterna entre 3 cores).
 // `layout` explícito vence (feeds mock); senão deriva: foto pela regra de índice,
