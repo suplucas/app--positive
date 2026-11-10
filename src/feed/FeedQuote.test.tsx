@@ -81,9 +81,9 @@ describe('FeedQuote', () => {
     );
   });
 
-  it('mostra nota numérica na escala 0-10', () => {
+  it('mostra estrelas de avaliação', () => {
     const { text } = render();
-    expect(text).toContain('9.0');
+    expect(text).toContain('★');
   });
 
   it('usa o container sem depender de props de tema', () => {

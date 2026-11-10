@@ -9,19 +9,12 @@ import {
   useWindowDimensions,
   View,
 } from 'react-native';
-import { Avatar } from '../common/Avatar';
 import { Flair } from './Flair';
-import { formatRelative, getNote, restaurantName } from '../common/format';
-import { fonts, palette, spacing, type, useTheme } from '../common/theme';
+import { StarRating } from './StarRating';
+import { avatarColor, formatRelative, restaurantName } from '../common/format';
+import { fonts, palette, radius, spacing, type, useTheme } from '../common/theme';
 import type { Review } from '../common/types';
 
-// Post com foto: mídia edge-to-edge (sangra na borda), nota sobre a
-// imagem. Mesmo peso visual de um post, sem moldura de card. `photos`
-// com 2+ itens vira **carrossel** (docs/15): paginação nativa
-// (ScrollView + paging) com dots e contador; 1 foto mantém o
-// comportamento sem UI de carrossel. `onPress` (opcional) abre a
-// página do restaurante. O layout final tem autor/restaurante/tempo
-// dentro da imagem (com scrim no topo) e a nota no rodapé.
 export function FeedPhoto({
   review,
   photos,
@@ -35,24 +28,29 @@ export function FeedPhoto({
 }: {
   review: Review;
   photos: ImageSourcePropType[];
-  // Flair forte (máx. 1 por tela — quem decide é o decorateFeed).
   strong?: boolean;
   onPress?: () => void;
-  // docs/12: abre a thread de comentários (opcional, como `onPress`).
   onComments?: () => void;
   onLike?: () => void;
   onAuthorPress?: () => void;
-  // Editar/apagar: só o App passa quando a review é do próprio usuário.
   onEdit?: () => void;
   onDelete?: () => void;
 }) {
   const t = useTheme();
   const [saved, setSaved] = useState(false);
+  const [liked, setLiked] = useState(false);
   const [page, setPage] = useState(0);
   const { width: winW } = useWindowDimensions();
   const multi = photos.length > 1;
-  const photoH = 480;
+  const photoH = Math.round(winW * (5 / 4));
   const nome = restaurantName(review.restaurantId);
+  const avatarBg = avatarColor(review.userId);
+  const initial = review.userId.charAt(0).toUpperCase();
+
+  const handleLike = () => {
+    setLiked((v) => !v);
+    onLike?.();
+  };
 
   const media = multi ? (
     <ScrollView
@@ -87,41 +85,45 @@ export function FeedPhoto({
     />
   );
 
-  const meta = (
+  const body = (
     <>
+      {/* Header row: avatar initial, username, restaurant, stars */}
       <Pressable
+        style={s.fh}
         testID={`author-${review.id}`}
         onPress={onAuthorPress}
         disabled={!onAuthorPress}
         hitSlop={6}
         accessibilityRole={onAuthorPress ? 'button' : undefined}
       >
-        <Avatar userId={review.userId} size={30} />
+        <View style={[s.avatarCircle, { backgroundColor: avatarBg }]}>
+          <Text style={s.avatarInitial}>{initial}</Text>
+        </View>
+        <View style={s.who}>
+          <Text style={[s.uname, { color: t.ink }]}>@{review.userId}</Text>
+          {nome ? (
+            <Text style={[s.place, { color: t.sub }]} numberOfLines={1}>
+              <Text style={[s.placeBold, { color: t.ink }]}>{nome}</Text>
+            </Text>
+          ) : null}
+        </View>
+        <StarRating rating={review.rating} />
       </Pressable>
-      <Text style={[s.uname, { color: palette.papel }]}>{review.userId}</Text>
-      {nome ? (
-        <Text
-          style={[s.place, { color: 'rgba(242,240,239,0.75)' }]}
-          numberOfLines={1}
-        >
-          em <Text style={[s.placeName, { color: palette.papel }]}>{nome}</Text>
-        </Text>
-      ) : null}
-      <Text style={[s.time, { color: 'rgba(242,240,239,0.75)' }]}>
-        {formatRelative(review.createdAt)}
-      </Text>
-    </>
-  );
 
-  const body = (
-    <>
+      {/* Photo with bottom overlay */}
       <View style={s.photoWrap} testID={`photo-${review.id}-frame`}>
         {media}
-        <View testID={`photo-${review.id}-scrim`} style={s.scrim} />
-        <View style={s.topOverlay}>{meta}</View>
-        <View testID={`photo-${review.id}-note`} style={s.noteBottom}>
-          <Text style={s.noteText}>{getNote(review.rating)}</Text>
-        </View>
+        {/* gradient overlay at bottom */}
+        <View testID={`photo-${review.id}-scrim`} style={s.gradient} />
+        {/* title / caption over photo */}
+        {review.comment ? (
+          <View style={s.ftitle}>
+            <Text style={s.overlayText} numberOfLines={3}>
+              {review.comment}
+            </Text>
+          </View>
+        ) : null}
+        {/* carousel dots */}
         {multi ? (
           <View testID={`carousel-dots-${review.id}`} style={s.dots}>
             {photos.map((_, i) => (
@@ -138,26 +140,34 @@ export function FeedPhoto({
         ) : null}
       </View>
 
-      {review.comment ? (
-        <Text style={[s.caption, { color: t.ink }]}>{review.comment}</Text>
-      ) : null}
-
-      <View style={s.actions}>
-        {onLike ? (
+      {/* Action bar */}
+      <View style={s.actions} testID={`actions-${review.id}`}>
+        <Pressable
+          testID={`like-photo-${review.id}`}
+          onPress={handleLike}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel="curtir"
+          style={s.actionItem}
+        >
+          <Text style={[s.actionIcon, { color: liked ? palette.lambeLambe : t.sub }]}>
+            {liked ? '♥' : '♡'}
+          </Text>
+          <Text style={[s.actionCount, { color: t.sub }]}>
+            {review.likes + (liked ? 1 : 0)}
+          </Text>
+        </Pressable>
+        {onComments ? (
           <Pressable
-            testID={`like-photo-${review.id}`}
-            onPress={onLike}
+            testID={`comentar-photo-${review.id}`}
+            onPress={onComments}
             hitSlop={8}
             accessibilityRole="button"
-            accessibilityLabel="curtir avaliação"
+            accessibilityLabel="abrir comentários"
+            style={s.actionItem}
           >
-            <Text style={[s.action, { color: t.sub }]}>▲ {review.likes}</Text>
+            <Text style={[s.actionIcon, { color: t.sub }]}>💬</Text>
           </Pressable>
-        ) : (
-          <Text style={[s.action, { color: t.sub }]}>▲ {review.likes}</Text>
-        )}
-        {review.flairs?.[0] ? (
-          <Flair label={review.flairs[0]} strong={strong} />
         ) : null}
         {onEdit ? (
           <Pressable
@@ -167,7 +177,7 @@ export function FeedPhoto({
             accessibilityRole="button"
             accessibilityLabel="editar avaliação"
           >
-            <Text style={[s.action, { color: t.sub }]}>editar</Text>
+            <Text style={[s.actionText, { color: t.sub }]}>editar</Text>
           </Pressable>
         ) : null}
         {onDelete ? (
@@ -178,18 +188,7 @@ export function FeedPhoto({
             accessibilityRole="button"
             accessibilityLabel="apagar avaliação"
           >
-            <Text style={[s.action, { color: t.sub }]}>apagar</Text>
-          </Pressable>
-        ) : null}
-        {onComments ? (
-          <Pressable
-            testID={`comentar-photo-${review.id}`}
-            onPress={onComments}
-            hitSlop={8}
-            accessibilityRole="button"
-            accessibilityLabel="abrir comentários"
-          >
-            <Text style={[s.action, { color: t.sub }]}>💬</Text>
+            <Text style={[s.actionText, { color: palette.lambeLambe }]}>apagar</Text>
           </Pressable>
         ) : null}
         <Pressable
@@ -199,14 +198,26 @@ export function FeedPhoto({
           accessibilityRole="button"
           accessibilityLabel={saved ? 'remover dos salvos' : 'salvar post'}
           accessibilityState={{ selected: saved }}
+          style={s.saveBtn}
         >
-          <Text style={[s.action, { color: saved ? t.ink : t.sub }]}>
-            {saved ? 'salvo' : 'salvar'}
+          <Text style={[s.actionIcon, { color: saved ? t.ink : t.sub }]}>
+            {saved ? '★' : '☆'}
           </Text>
         </Pressable>
       </View>
+
+      {/* Flairs + time */}
+      <View style={s.fflairs}>
+        {review.flairs?.map((fl, i) => (
+          <Flair key={i} label={fl} strong={strong && i === 0} />
+        ))}
+        <Text style={[s.time, { color: t.sub }]}>
+          {formatRelative(review.createdAt)}
+        </Text>
+      </View>
     </>
   );
+
   const style = [s.post, { borderBottomColor: t.line }];
   return onPress ? (
     <Pressable
@@ -227,50 +238,66 @@ export function FeedPhoto({
 
 const s = StyleSheet.create({
   post: {
-    paddingVertical: spacing.medio,
     borderBottomWidth: StyleSheet.hairlineWidth,
+    paddingBottom: spacing.interno,
   },
-  uname: { fontFamily: fonts.display700, fontSize: 13.5 },
-  place: { fontSize: 12.5, flexShrink: 1 },
-  placeName: { fontFamily: fonts.corpo600, fontWeight: '600' },
-  time: { marginLeft: 'auto', fontSize: type.small },
-  photoWrap: { position: 'relative' },
-  photo: { width: '100%' },
-  // Leve escuro no topo da foto p/ a linha de texto ter contraste
-  // (sem lib de gradiente nos deps).
-  scrim: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 64,
-    backgroundColor: 'rgba(36,26,34,0.45)',
-  },
-  topOverlay: {
-    position: 'absolute',
-    top: 10,
-    left: 12,
-    right: 12,
+  /* header row */
+  fh: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.interno,
+    gap: 10,
+    paddingHorizontal: spacing.padrao,
+    paddingVertical: 12,
   },
-  noteBottom: {
-    position: 'absolute',
-    bottom: 10,
-    right: 12,
-    backgroundColor: palette.overlayStrong,
-    borderRadius: 8,
-    paddingHorizontal: spacing.interno,
-    paddingVertical: 3,
+  avatarCircle: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
   },
-  noteText: {
+  avatarInitial: {
     fontFamily: fonts.display800,
-    fontSize: type.bodyLarge,
-    color: palette.papel,
+    fontSize: 13,
+    color: '#fff',
   },
-  // Carrossel (docs/15): um único momento de movimento — o dot ativo é
-  // um pill lambe-lambe; o resto fica quieto sobre a foto.
+  who: { flex: 1, minWidth: 0 },
+  uname: { fontFamily: fonts.display700, fontSize: 14 },
+  place: { fontSize: 12, marginTop: 1 },
+  placeBold: { fontFamily: fonts.corpo600, fontWeight: '600' },
+  /* photo */
+  photoWrap: { position: 'relative' },
+  photo: { width: '100%' },
+  gradient: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: 160,
+    backgroundColor: 'rgba(0,0,0,0)',
+    // simulate gradient via nested Views (React Native has no linear gradient in core)
+  },
+  ftitle: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    paddingHorizontal: 18,
+    paddingBottom: 16,
+    paddingTop: 80,
+    backgroundColor: 'rgba(0,0,0,0.52)',
+  },
+  overlayText: {
+    fontFamily: fonts.display700,
+    fontSize: 17,
+    lineHeight: 23,
+    color: '#fff',
+    textShadowColor: 'rgba(0,0,0,0.35)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 6,
+  },
+  /* carousel dots */
   dots: {
     position: 'absolute',
     bottom: 10,
@@ -283,7 +310,7 @@ const s = StyleSheet.create({
     width: 5,
     height: 5,
     borderRadius: 3,
-    backgroundColor: 'rgba(242,240,239,0.55)',
+    backgroundColor: 'rgba(242,242,228,0.55)',
   },
   dotActive: {
     width: 14,
@@ -298,18 +325,37 @@ const s = StyleSheet.create({
     marginLeft: 3,
     textShadowColor: 'rgba(36,26,34,0.6)',
     textShadowRadius: 4,
+    textShadowOffset: { width: 0, height: 1 },
   },
-  caption: {
-    fontSize: type.body,
-    lineHeight: 19,
-    paddingHorizontal: spacing.padrao,
-    paddingTop: spacing.medio,
-  },
+  /* action bar */
   actions: {
     flexDirection: 'row',
-    gap: spacing.padrao,
+    alignItems: 'center',
+    gap: 18,
     paddingHorizontal: spacing.padrao,
-    paddingTop: spacing.medio,
+    paddingTop: 10,
+    paddingBottom: 8,
   },
-  action: { fontSize: type.small },
+  actionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  actionIcon: { fontSize: 20 },
+  actionCount: { fontSize: type.body },
+  actionText: { fontSize: type.small, fontFamily: fonts.corpo500 },
+  saveBtn: { marginLeft: 'auto' },
+  /* flairs */
+  fflairs: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: spacing.interno,
+    paddingHorizontal: spacing.padrao,
+    paddingBottom: spacing.interno,
+  },
+  time: {
+    fontSize: 12,
+    marginLeft: 'auto',
+  },
 });

@@ -1,15 +1,24 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { Avatar } from '../common/Avatar';
 import { ExpandableText } from '../common/ExpandableText';
 import { Flair } from './Flair';
-import { formatRelative, getNote, restaurantName } from '../common/format';
+import { StarRating } from './StarRating';
+import { avatarColor, formatRelative, restaurantName } from '../common/format';
 import { fonts, palette, radius, spacing, type } from '../common/theme';
 import type { Review } from '../common/types';
 
-// Quote card: avaliação textual em destaque (frase forte, sem foto) —
-// fundo de marca, cantos arredondados, mesmo tratamento dos quote cards
-// do diário do perfil. `tone` alterna mostarda/lambe-lambe como no mock.
-// `onPress` (opcional) abre a página do restaurante.
+export type QuoteTone = 'mostarda' | 'lambeLambe' | 'picles';
+
+const TONE_BG: Record<QuoteTone, string> = {
+  mostarda: palette.mostarda,
+  lambeLambe: palette.lambeLambe,
+  picles: palette.picles,
+};
+const TONE_INK: Record<QuoteTone, string> = {
+  mostarda: palette.berinjela,
+  lambeLambe: palette.papel,
+  picles: palette.papel,
+};
+
 export function FeedQuote({
   review,
   tone = 'mostarda',
@@ -22,44 +31,55 @@ export function FeedQuote({
   onDelete,
 }: {
   review: Review;
-  tone?: 'mostarda' | 'lambeLambe';
-  // Flair forte (máx. 1 por tela — quem decide é o decorateFeed).
+  tone?: QuoteTone;
   strong?: boolean;
   onPress?: () => void;
-  // docs/12: abre a thread de comentários (opcional, como `onPress`).
   onComments?: () => void;
   onLike?: () => void;
   onAuthorPress?: () => void;
-  // Editar/apagar: só o App passa quando a review é do próprio usuário.
   onEdit?: () => void;
   onDelete?: () => void;
 }) {
   const nome = restaurantName(review.restaurantId);
-  const bg = tone === 'lambeLambe' ? palette.lambeLambe : palette.mostarda;
-  const ink = tone === 'lambeLambe' ? palette.papel : palette.berinjela;
+  const bg = TONE_BG[tone];
+  const ink = TONE_INK[tone];
+  const avatarBg =
+    tone === 'mostarda'
+      ? 'rgba(36,26,34,0.25)'
+      : 'rgba(255,255,255,0.25)';
+  const initial = review.userId.charAt(0).toUpperCase();
+
   const body = (
     <>
-      <View style={s.top}>
-        <Pressable
-          testID={`author-${review.id}`}
-          onPress={onAuthorPress}
-          disabled={!onAuthorPress}
-          hitSlop={6}
-          accessibilityRole={onAuthorPress ? 'button' : undefined}
-        >
-          <Avatar userId={review.userId} size={28} />
-        </Pressable>
-        <Text style={[s.uname, { color: ink }]}>{review.userId}</Text>
-        <Text style={[s.note, { color: ink }]}>{getNote(review.rating)}</Text>
-      </View>
+      {/* top row: avatar initial, username, stars */}
+      <Pressable
+        style={s.top}
+        testID={`author-${review.id}`}
+        onPress={onAuthorPress}
+        disabled={!onAuthorPress}
+        hitSlop={6}
+        accessibilityRole={onAuthorPress ? 'button' : undefined}
+      >
+        <View style={[s.avatarCircle, { backgroundColor: avatarBg }]}>
+          <Text style={[s.avatarInitial, { color: ink }]}>{initial}</Text>
+        </View>
+        <Text style={[s.uname, { color: ink }]}>@{review.userId}</Text>
+        <View style={s.starWrap}>
+          <StarRating rating={review.rating} />
+        </View>
+      </Pressable>
+
+      {/* quote title / main text */}
       {review.comment ? (
         <ExpandableText
           id={`quote-${review.id}`}
-          text={`“${review.comment}”`}
+          text={review.comment}
           style={[s.text, { color: ink }]}
           color={ink}
         />
       ) : null}
+
+      {/* meta: restaurant + actions */}
       <View style={s.meta}>
         <Text style={[s.place, { color: ink }]} numberOfLines={1}>
           {nome ?? ''}
@@ -75,15 +95,17 @@ export function FeedQuote({
               hitSlop={8}
               accessibilityRole="button"
               accessibilityLabel="curtir avaliação"
+              style={s.actionItem}
             >
-              <Text style={[s.actions, { color: ink }]}>▲ {review.likes}</Text>
+              <Text style={[s.actionIcon, { color: ink }]}>♡</Text>
+              <Text style={[s.actionText, { color: ink }]}>{review.likes}</Text>
             </Pressable>
           ) : (
-            <Text style={[s.actions, { color: ink }]}>▲ {review.likes}</Text>
+            <View style={s.actionItem}>
+              <Text style={[s.actionIcon, { color: ink }]}>♡</Text>
+              <Text style={[s.actionText, { color: ink }]}>{review.likes}</Text>
+            </View>
           )}
-          <Text style={[s.actions, { color: ink }]}>
-            {formatRelative(review.createdAt)}
-          </Text>
           {onComments ? (
             <Pressable
               testID={`comentar-quote-${review.id}`}
@@ -92,7 +114,7 @@ export function FeedQuote({
               accessibilityRole="button"
               accessibilityLabel="abrir comentários"
             >
-              <Text style={[s.actions, { color: ink }]}>💬</Text>
+              <Text style={[s.actionIcon, { color: ink }]}>💬</Text>
             </Pressable>
           ) : null}
           {onEdit ? (
@@ -103,7 +125,7 @@ export function FeedQuote({
               accessibilityRole="button"
               accessibilityLabel="editar avaliação"
             >
-              <Text style={[s.actions, { color: ink }]}>editar</Text>
+              <Text style={[s.actionText, { color: ink }]}>editar</Text>
             </Pressable>
           ) : null}
           {onDelete ? (
@@ -114,13 +136,19 @@ export function FeedQuote({
               accessibilityRole="button"
               accessibilityLabel="apagar avaliação"
             >
-              <Text style={[s.actions, { color: ink }]}>apagar</Text>
+              <Text style={[s.actionText, { color: palette.lambeLambe }]}>
+                apagar
+              </Text>
             </Pressable>
           ) : null}
+          <Text style={[s.time, { color: ink }]}>
+            {formatRelative(review.createdAt)}
+          </Text>
         </View>
       </View>
     </>
   );
+
   const style = [s.card, { backgroundColor: bg }];
   return onPress ? (
     <Pressable
@@ -145,16 +173,32 @@ const s = StyleSheet.create({
     marginVertical: spacing.medio,
     borderRadius: radius.panel,
     paddingHorizontal: spacing.padrao,
-    paddingTop: spacing.padrao,
-    paddingBottom: spacing.padrao,
+    paddingTop: 14,
+    paddingBottom: 14,
   },
-  top: { flexDirection: 'row', alignItems: 'center', gap: spacing.interno },
-  uname: { fontFamily: fonts.display700, fontSize: type.body },
-  note: {
-    marginLeft: 'auto',
+  top: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 9,
+  },
+  avatarCircle: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  avatarInitial: {
     fontFamily: fonts.display800,
-    fontSize: type.bodyLarge,
+    fontSize: 12,
   },
+  uname: {
+    fontFamily: fonts.display700,
+    fontSize: type.body,
+    marginRight: 'auto',
+  },
+  starWrap: { marginLeft: 'auto' },
   text: {
     fontFamily: fonts.display700,
     fontSize: 20,
@@ -175,10 +219,13 @@ const s = StyleSheet.create({
     flexShrink: 1,
   },
   metaRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  actions: {
+  actionItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  actionIcon: { fontSize: 16, opacity: 0.85 },
+  actionText: {
     fontSize: 11.5,
     fontFamily: fonts.corpo600,
     fontWeight: '600',
     opacity: 0.85,
   },
+  time: { fontSize: 11.5, opacity: 0.7 },
 });

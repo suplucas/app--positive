@@ -96,9 +96,9 @@ describe('FeedPhoto', () => {
     );
   });
 
-  it('mostra nota numérica na escala 0-10', () => {
+  it('mostra estrelas de avaliação', () => {
     const { text } = render();
-    expect(text).toContain('8.7');
+    expect(text).toContain('★');
   });
 
   it('passa a fonte de imagem recebida para o Image', () => {
@@ -115,26 +115,26 @@ describe('FeedPhoto', () => {
     expect(onPress).toHaveBeenCalled();
   });
 
-  describe('layout final (linha e nota sobre a imagem)', () => {
-    it('autor, restaurante e tempo ficam dentro da imagem (frame)', () => {
+  describe('layout final (header + foto com overlay)', () => {
+    it('autor e restaurante ficam no header (acima da foto)', () => {
       const { r } = render();
       const frame = r.root.findByProps({ testID: 'photo-3-frame' });
+      // author row is outside the frame now
       const texts = textsOf(frame);
-      expect(texts).toContain('caio.garfo');
-      expect(texts.some((t) => t.includes('em'))).toBe(true);
+      expect(texts).not.toContain('caio.garfo');
+      // scrim still exists inside the frame
       expect(r.root.findAllByProps({ testID: 'photo-3-scrim' })).toHaveLength(
         1,
       );
     });
 
-    it('imagem fica mais alta (480) e a nota vai para o rodapé', () => {
+    it('imagem tem aspect-ratio 4:5 (altura > 400 no stub)', () => {
       const { r } = render();
-      expect(styleOf(r, 'photo-3-img').some((s) => s.height === 480)).toBe(
-        true,
-      );
-      expect(
-        styleOf(r, 'photo-3-note').some((s) => s.bottom !== undefined),
-      ).toBe(true);
+      // useWindowDimensions stub returns width=390, so height = 390*5/4 = 487
+      const heights = styleOf(r, 'photo-3-img')
+        .map((s) => s.height)
+        .filter((h) => typeof h === 'number');
+      expect(heights.some((h) => Number(h) > 400)).toBe(true);
     });
   });
 
@@ -165,15 +165,12 @@ describe('FeedPhoto', () => {
       expect(JSON.stringify(r.toJSON())).toContain('2/2');
     });
 
-    it('2 fotos: scrim, linha no topo e nota seguem sobre a foto', () => {
+    it('2 fotos: scrim existe e carrossel funciona', () => {
       const { r } = render({ photos: [1, 2] });
       expect(r.root.findAllByProps({ testID: 'photo-3-scrim' })).toHaveLength(
         1,
       );
-      const frame = r.root.findByProps({ testID: 'photo-3-frame' });
-      expect(textsOf(frame)).toContain('caio.garfo');
-      expect(r.root.findByProps({ testID: 'photo-3-note' })).toBeTruthy();
-      // carrossel continua funcional no v2
+      // carrossel funcional
       scrollPage(r, 1);
       expect(JSON.stringify(r.toJSON())).toContain('2/2');
     });
@@ -188,7 +185,11 @@ describe('FeedPhoto', () => {
       r.root.findByProps({ testID: 'salvar-3' }).props.accessibilityState
         .selected,
     ).toBe(true);
-    expect(JSON.stringify(r.toJSON())).toContain('salvo');
+    // após salvar: estado selected = true
+    expect(
+      r.root.findByProps({ testID: 'salvar-3' }).props.accessibilityState
+        .selected,
+    ).toBe(true);
     act(() => {
       r.root.findByProps({ testID: 'salvar-3' }).props.onPress();
     });

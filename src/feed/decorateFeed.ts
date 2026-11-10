@@ -1,19 +1,19 @@
 import type { ImageSourcePropType } from 'react-native';
 import { resolvePhotoUrl } from '../common/format';
 import type { Review, ReviewLayout } from '../common/types';
+import type { QuoteTone } from './FeedQuote';
 import { MOCK_POST_PHOTOS, photoFor, photosFor } from './postPhotos';
 
 // Nota forte na escala 0-10: flair "chorei de tão bom" no máx. 1 por tela.
 const STRONG_NOTE = 9;
 
-// Formato de cada item do feed + tom das quote cards (alterna
-// mostarda/lambe-lambe). `layout` explícito vence (feeds mock);
-// senão deriva: foto pela regra de índice, quote para nota >= 9,
-// caso contrário linha compacta.
+// Formato de cada item do feed + tom das quote cards (alterna entre 3 cores).
+// `layout` explícito vence (feeds mock); senão deriva: foto pela regra de índice,
+// quote para nota >= 9, caso contrário linha compacta.
 export type Decorated = {
   layout: ReviewLayout;
   photos?: ImageSourcePropType[];
-  tone?: 'mostarda' | 'lambeLambe';
+  tone?: QuoteTone;
   strong: boolean;
 };
 
@@ -47,9 +47,10 @@ export function decorateFeed(items: Review[]): Map<Review['id'], Decorated> {
         strong,
       });
     } else if (layout === 'quote') {
+      const tones: QuoteTone[] = ['mostarda', 'lambeLambe', 'picles'];
       map.set(item.id, {
         layout,
-        tone: quotes % 2 === 0 ? 'mostarda' : 'lambeLambe',
+        tone: tones[quotes % tones.length]!,
         strong,
       });
       quotes += 1;
