@@ -427,8 +427,6 @@ function MainApp({
               }}
               onEndReachedThreshold={0.4}
               onEndReached={onEndReached}
-              onScroll={handleScroll}
-              scrollEventThrottle={16}
               refreshControl={
                 <RefreshControl
                   refreshing={status === 'loading'}

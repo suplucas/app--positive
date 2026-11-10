@@ -28,9 +28,6 @@ export function Navbar({
       style={[
         s.bar,
         { backgroundColor: t.bg, borderTopColor: t.line },
-        {
-          transform: [{ translateY: navAnim.interpolate({ inputRange: [0, 1], outputRange: [0, 56] }) }],
-        },
       ]}
     >
       <NavItem label="feed" icon="⌂" active={active === 'feed'} onPress={() => onNavigate('feed')} />
@@ -92,16 +89,10 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: palette.berinjela,
     paddingTop: spacing.interno,
     paddingHorizontal: spacing.interno,
-    paddingBottom: spacing.interno + 4, // espaço para barra de gestos do Android
-    backgroundColor: 'transparent',
+    paddingBottom: spacing.interno + 4,
   },
   item: {
     minWidth: 44,
