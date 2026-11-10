@@ -1,4 +1,4 @@
-import { apiFetch } from './client';
+import { ApiError, apiBaseUrl, apiFetch } from './client';
 import type { FeedResponse, Review } from '../common/types';
 
 export async function getFeed(
@@ -59,4 +59,47 @@ export async function likeReview(
     baseUrl,
   });
 }
+
+type RNFile = { uri: string; name: string; type: string };
+
+export async function uploadReviewPhoto(
+  userId: string,
+  uri: string,
+  baseUrl?: string,
+): Promise<string> {
+  return uploadPhoto(userId, uri, '/uploads/review-photo', baseUrl);
+}
+
+export async function uploadAvatarPhoto(
+  userId: string,
+  uri: string,
+  baseUrl?: string,
+): Promise<string> {
+  return uploadPhoto(userId, uri, '/uploads/avatar', baseUrl);
+}
+
+async function uploadPhoto(
+  userId: string,
+  uri: string,
+  path: string,
+  baseUrl?: string,
+): Promise<string> {
+  const form = new FormData();
+  const file: RNFile = { uri, name: 'photo.jpg', type: 'image/jpeg' };
+  (form as { append: (name: string, value: unknown) => void }).append(
+    'file',
+    file,
+  );
+  const res = await fetch(`${baseUrl ?? apiBaseUrl()}${path}`, {
+    method: 'POST',
+    headers: { 'x-user-id': userId, Accept: 'application/json' },
+    body: form,
+  });
+  if (!res.ok) throw new ApiError(res.status, path);
+  const data = (await res.json()) as { url?: unknown };
+  if (typeof data?.url !== 'string')
+    throw new Error(`POST ${path}: invalid payload`);
+  return data.url;
+}
+
 
