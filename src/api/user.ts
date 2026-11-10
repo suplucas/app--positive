@@ -1,5 +1,5 @@
-import { apiFetch } from "./client";
-import type { Review, UserProfile } from "./types";
+import { apiFetch } from './client';
+import type { Review, UserProfile } from './types';
 
 export type SavedRestaurant = {
   id: string;
@@ -20,7 +20,7 @@ export async function getUser(id: string, viewerId?: string, baseUrl?: string) {
 export type UserProfileEdit = {
   name?: string;
   bio?: string | null;
-  handle?: string | null;
+  username?: string | null;
   photoUrl?: string | null;
 };
 
@@ -31,10 +31,10 @@ export async function updateUserProfile(
 ): Promise<UserProfile> {
   const profile = await apiFetch<UserProfile>(
     `/users/${encodeURIComponent(id)}`,
-    { method: "PUT", userId: id, baseUrl, body: data },
+    { method: 'PUT', userId: id, baseUrl, body: data },
   );
-  if (typeof profile !== "object" || profile === null || !profile.id) {
-    throw new Error("PUT /users/:id: invalid payload");
+  if (typeof profile !== 'object' || profile === null || !profile.id) {
+    throw new Error('PUT /users/:id: invalid payload');
   }
   return profile;
 }
@@ -69,7 +69,7 @@ export async function getSaves(
 
 export async function addSave(userId: string, cnpj: string, baseUrl?: string) {
   return apiFetch<{ saved: boolean }>(`/saves/${encodeURIComponent(cnpj)}`, {
-    method: "POST",
+    method: 'POST',
     userId,
     baseUrl,
   });
@@ -81,7 +81,7 @@ export async function removeSave(
   baseUrl?: string,
 ) {
   return apiFetch<{ saved: boolean }>(`/saves/${encodeURIComponent(cnpj)}`, {
-    method: "DELETE",
+    method: 'DELETE',
     userId,
     baseUrl,
   });
@@ -94,7 +94,7 @@ export async function followUser(
 ) {
   return apiFetch<{ following: boolean }>(
     `/users/${encodeURIComponent(targetId)}/follow`,
-    { method: "POST", userId, baseUrl },
+    { method: 'POST', userId, baseUrl },
   );
 }
 
@@ -105,6 +105,6 @@ export async function unfollowUser(
 ) {
   return apiFetch<{ following: boolean }>(
     `/users/${encodeURIComponent(targetId)}/follow`,
-    { method: "DELETE", userId, baseUrl },
+    { method: 'DELETE', userId, baseUrl },
   );
 }

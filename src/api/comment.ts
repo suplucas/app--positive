@@ -1,5 +1,5 @@
-import { apiFetch } from "./client";
-import type { ReviewComment } from "./types";
+import { apiFetch } from './client';
+import type { ReviewComment } from './types';
 
 export async function getComments(
   reviewId: string | number,
@@ -26,7 +26,7 @@ export async function addComment(
 ) {
   return apiFetch<ReviewComment>(
     `/reviews/${encodeURIComponent(String(reviewId))}/comments`,
-    { method: "POST", userId, baseUrl, body: { text } },
+    { method: 'POST', userId, baseUrl, body: { text } },
   );
 }
 
@@ -40,7 +40,7 @@ export async function getNotifications(
     page: number;
     limit: number;
     total: number;
-    results: import("./types").AppNotification[];
+    results: import('./types').AppNotification[];
   }>(`/notifications?page=${page}&limit=${limit}`, { userId, baseUrl });
 }
 
@@ -51,6 +51,6 @@ export async function markNotificationRead(
 ) {
   return apiFetch<{ read: boolean }>(
     `/notifications/${encodeURIComponent(String(id))}/read`,
-    { method: "POST", userId, baseUrl },
+    { method: 'POST', userId, baseUrl },
   );
 }

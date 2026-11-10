@@ -15,7 +15,7 @@
 ## Como Navegar
 
 - Cada arquivo é auto-contido com seus próprios tokens e definições.
-- Tokens referenciados aqui derivam do `identidade_visual.md` e são implementados em `src/theme.ts`.
+- Tokens referenciados aqui derivam do `identidade_visual.md` e são implementados em `src/common/theme.ts`.
 - Para novos tópicos, criar novos arquivos marcados com numeração sequencial (05-, 06-, etc.) ou criar subpastas conforme a documentação cresce.
 
 ## Próximos Passos Possíveis

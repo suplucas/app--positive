@@ -1,6 +1,6 @@
 // DTOs da API usados pelos hooks/telas. Espelham os responses do
 // backend; manter em sincronia com a spec de integração total.
-import type { Review } from "../types";
+import type { Review } from '../common/types';
 
 export type { Review };
 
@@ -30,7 +30,7 @@ export type RestaurantProfile = {
 
 export type PlaceHit = {
   id: string;
-  source: "local" | "osm";
+  source: 'local' | 'osm';
   nome: string;
   endereco: string | null;
   categoria: string | null;
@@ -43,7 +43,7 @@ export type PlaceHit = {
 export type UserProfile = {
   id: string;
   name: string;
-  handle: string | null;
+  username: string | null;
   bio: string | null;
   photoUrl?: string | null;
   isFollowing: boolean;

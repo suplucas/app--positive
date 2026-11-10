@@ -28,7 +28,6 @@ As cores de marca mantêm-se idênticas nos dois modos:
 
 ```css
 --color-mostarda-dark: #F2A93B;  /* Mesma hex, mais contraste ao redor */
---color-pink-dark: ...;          /* Se houver pink na paleta */
 --color-picles-dark: #7A9A3D;   /* Mesma hex */
 ```
 
@@ -37,9 +36,11 @@ As cores de marca mantêm-se idênticas nos dois modos:
 ```css
 --spacing-micro: 4px;     /* Ícones, padding mínimo */
 --spacing-interno: 8px;   /* Espaçamento entre componentes */
+--spacing-medio: 12px;    /* Respiro intermediário */
 --spacing-padrao: 16px;   /* Espaçamento padrão */
+--spacing-grande: 20px;   /* Respiro entre grupos próximos */
 --spacing-secao: 24px;    /* Separador entre blocos maiores */
---spacing-blocO: 32px;    /* Margem de página/seção */
+--spacing-bloco: 32px;    /* Margem de página/seção */
 ```
 
 ## Tipografia
@@ -53,6 +54,31 @@ As cores de marca mantêm-se idênticas nos dois modos:
 --font-corpo-500: 500;                               /* Peso medium */
 --font-corpo-600: 600;                               /* Peso semi-bold */
 ```
+
+### Escala Tipográfica (`type`)
+
+```css
+--type-caption: 11px;     /* Legendas, metadados densos */
+--type-small: 12px;       /* Texto auxiliar */
+--type-body: 13px;        /* Texto corporal padrão */
+--type-body-large: 14px;  /* Corpo em telas de leitura */
+--type-title: 16px;       /* Título de item */
+--type-heading: 18px;     /* Cabeçalho de seção */
+--type-page: 22px;        /* Título de tela */
+--type-hero: 30px;        /* Destaque editorial */
+```
+
+## Raios (`radius`)
+
+```css
+--radius-chip: 5px;       /* Chips e selos */
+--radius-thumb: 10px;     /* Miniaturas */
+--radius-card: 12px;      /* Cards */
+--radius-panel: 16px;     /* Painéis e superfícies maiores */
+--radius-pill: 999px;     /* Formato pílula */
+```
+
+> Meios-pixels são exceção óptica: use-os apenas para alinhar elementos a olho (ícones, traços), nunca como parte da grade.
 
 ## Componentes Específicos
 
@@ -73,4 +99,4 @@ As cores de marca mantêm-se idênticas nos dois modos:
 ```
 
 ---
-*Manter em sincronia com `src/theme.ts` e `identidade_visual.md`.*
+*Manter em sincronia com `src/common/theme.ts` e `identidade_visual.md`.*
