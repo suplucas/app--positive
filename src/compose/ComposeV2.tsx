@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
+  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -7,7 +8,8 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { postReview } from '../api/api';
+import { postReview, uploadReviewPhoto } from '../api/api';
+import { pickPhoto } from './pickPhoto';
 import { importPlace, searchPlaces } from '../api/place';
 import type { PlaceHit } from '../api/types';
 import { NoteSlider } from '../feed/NoteSlider';
@@ -38,6 +40,7 @@ export const FLAIRS = [
   'achado',
 ];
 const MAX_FLAIRS = 2;
+export const MAX_PHOTOS = 1;
 
 // Slug estável p/ testID: 'boa pra ir só' → 'flair-boa-pra-ir-so'.
 export function flairSlug(label: string): string {
@@ -81,6 +84,9 @@ export function ComposeV2({
   const [flairs, setFlairs] = useState<string[]>([]);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [photo, setPhoto] = useState<string | null>(null);
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   const [apiResults, setApiResults] = useState<PlaceHit[]>([]);
 
@@ -159,6 +165,38 @@ export function ComposeV2({
 
   const canSend = selected !== null && !sending;
 
+  const onPickPhoto = async () => {
+    setError(null);
+    setUploading(true);
+    try {
+      const picked = await pickPhoto();
+      const uri =
+        picked && typeof picked === 'object' && 'uri' in picked
+          ? (picked as { uri: string }).uri
+          : null;
+      if (!uri) return;
+      setPhoto(uri);
+      const url = await uploadReviewPhoto(userId, uri);
+      setPhotoUrl(url);
+    } catch (e) {
+      setPhoto(null);
+      setError(
+        e instanceof Error ? e.message : 'não foi possível enviar a foto.',
+      );
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const removePhoto = () => {
+    setPhoto(null);
+    setPhotoUrl(null);
+    setError(null);
+  };
+
+  const photoSource = photo ?? photoUrl;
+  const photos = photoSource ? [{ uri: photoSource }] : [];
+
   const toggleFlair = (label: string) => {
     setFlairs((prev) => {
       if (prev.includes(label)) return prev.filter((f) => f !== label);
@@ -177,6 +215,7 @@ export function ComposeV2({
         restaurantId: selected.cnpj,
         rating: note / 2,
         comment,
+        ...(photoUrl ? { photoUrl } : {}),
         ...(flairs.length > 0 ? { flairs } : {}),
       });
       onPosted();
@@ -351,6 +390,62 @@ export function ComposeV2({
           })}
         </View>
 
+        <SectionTitle>
+          {photos.length > 0
+            ? `fotos · ${photos.length}/${MAX_PHOTOS}`
+            : 'foto (opcional)'}
+        </SectionTitle>
+        {photos.length === 0 ? (
+          <Pressable
+            testID="foto-add"
+            onPress={() => void onPickPhoto()}
+            disabled={uploading || !selected}
+            hitSlop={6}
+            accessibilityRole="button"
+            accessibilityLabel="adicionar foto da galeria"
+            style={[s.photoBox, { borderColor: t.line }]}
+          >
+            <Text style={s.cam}>📷</Text>
+            <Text style={[s.photoText, { color: t.sub }]}>adicionar foto</Text>
+            <Text style={[s.photoSub, { color: t.sub }]}>
+              da sua galeria · 1 foto · sem foto, vira um quote card
+            </Text>
+          </Pressable>
+        ) : (
+          <>
+            <View style={s.shelf}>
+              {photos.map((src, i) => (
+                <View
+                  key={i}
+                  testID={`foto-thumb-${i}`}
+                  style={[s.thumb, { borderColor: t.line }]}
+                >
+                  <Image
+                    testID={i === 0 ? 'foto-preview' : undefined}
+                    source={src}
+                    style={s.thumbImg}
+                    resizeMode="cover"
+                    accessibilityIgnoresInvertColors
+                  />
+                  <Pressable
+                    testID={`foto-tirar-${i}`}
+                    onPress={removePhoto}
+                    style={s.thumbX}
+                    hitSlop={6}
+                    accessibilityRole="button"
+                    accessibilityLabel="remover foto"
+                  >
+                    <Text style={s.thumbXText}>×</Text>
+                  </Pressable>
+                </View>
+              ))}
+            </View>
+            <Text style={[s.photoHint, { color: t.sub }]}>
+              foto · vai para a API · × remove
+            </Text>
+          </>
+        )}
+
         <SectionTitle>preview</SectionTitle>
         <View
           testID="preview-v2"
@@ -477,6 +572,63 @@ const s = StyleSheet.create({
     paddingVertical: spacing.interno,
   },
   flairText: { fontSize: type.small, fontFamily: fonts.corpo500 },
+  photoBox: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.interno,
+    marginHorizontal: spacing.padrao,
+    paddingHorizontal: spacing.padrao,
+    paddingVertical: spacing.padrao,
+    borderRadius: radius.card,
+    borderWidth: 1.5,
+    borderStyle: 'dashed',
+    borderColor: palette.picles,
+    backgroundColor: palette.papel,
+  },
+  cam: { fontSize: 24, lineHeight: 1 },
+  photoText: {
+    fontSize: type.body,
+    fontFamily: fonts.corpo500,
+    fontWeight: '600',
+  },
+  photoSub: { fontSize: 11.5, marginTop: 2, textAlign: 'center' },
+  shelf: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.interno,
+    marginHorizontal: spacing.padrao,
+    marginBottom: spacing.interno,
+  },
+  thumb: {
+    position: 'relative',
+    width: 92,
+    height: 92,
+    borderRadius: radius.card,
+    overflow: 'hidden',
+    borderWidth: 1,
+  },
+  thumbImg: { width: '100%', height: '100%' },
+  thumbX: {
+    position: 'absolute',
+    top: -6,
+    right: -6,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: palette.papel,
+    borderWidth: 1.5,
+    borderColor: palette.picles,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  thumbXText: { fontSize: type.title, lineHeight: 18, color: palette.picles },
+  photoHint: {
+    fontSize: type.caption,
+    marginHorizontal: spacing.padrao,
+    marginTop: spacing.interno,
+    textAlign: 'center',
+  },
   preview: {
     borderRadius: radius.panel,
     marginHorizontal: spacing.padrao,

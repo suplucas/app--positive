@@ -9,6 +9,7 @@ import {
   View,
 } from 'react-native';
 import { Avatar } from '../common/Avatar';
+import { pickPhoto } from '../compose/pickPhoto';
 import {
   fonts,
   palette,
@@ -61,8 +62,7 @@ export function EditProfileForm({
   const canSave = name.trim() !== '' && !saving;
 
   const changePhoto = () => {
-    if (!onPickPhoto) return;
-    void onPickPhoto().then((src) => {
+    void (onPickPhoto ?? pickPhoto)().then((src) => {
       if (src) {
         setPhoto(src);
         setPhotoTouched(true);
