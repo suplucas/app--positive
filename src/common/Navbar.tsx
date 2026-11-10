@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View, Animated } from 'react-native';
 import { fonts, palette, spacing, type, useTheme } from './theme';
 
 export type Screen = 'feed' | 'busca' | 'mapa' | 'perfil' | 'compose';
