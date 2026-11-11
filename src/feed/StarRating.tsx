@@ -3,12 +3,19 @@ import { palette } from '../common/theme';
 
 const W = 13;
 
-function StarCell({ fill }: { fill: number }) {
+// Estrela vazia = mesma cor com alpha 30% (hex 4D); cheia = cor cheia.
+function StarCell({
+  fill,
+  color,
+}: {
+  fill: number;
+  color: string;
+}) {
   return (
     <View style={s.cell}>
-      <Text style={s.base}>★</Text>
+      <Text style={[s.base, { color: `${color}4D` }]}>★</Text>
       <View style={[s.clip, { width: fill * W }]}>
-        <Text style={s.filled}>★</Text>
+        <Text style={[s.filled, { color }]}>★</Text>
       </View>
     </View>
   );
@@ -16,7 +23,7 @@ function StarCell({ fill }: { fill: number }) {
 
 export function StarRating({
   rating,
-  color,
+  color = palette.mostarda,
 }: {
   rating: number | null;
   color?: string;
@@ -28,6 +35,7 @@ export function StarRating({
         <StarCell
           key={k}
           fill={Math.max(0, Math.min(1, rating - k + 1))}
+          color={color}
         />
       ))}
     </View>
@@ -41,7 +49,6 @@ const s = StyleSheet.create({
     position: 'absolute',
     fontSize: W,
     lineHeight: W + 2,
-    color: 'rgba(36,26,34,0.22)',
   },
   clip: {
     position: 'absolute',
@@ -51,6 +58,5 @@ const s = StyleSheet.create({
   filled: {
     fontSize: W,
     lineHeight: W + 2,
-    color: palette.mostarda,
   },
 });
