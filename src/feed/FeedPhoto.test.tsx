@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { create, ReactTestRenderer, act } from 'react-test-renderer';
 import { createElement } from 'react';
+import { Text } from 'react-native';
 import { FeedPhoto } from './FeedPhoto';
 import type { Review } from '../common/types';
 
@@ -10,13 +11,18 @@ const baseReview: Review = {
   restaurantId: '123',
   rating: 4.35,
   comment: 'pastel de feira ainda ganha',
+  title: 'Jantar no Picles',
   likes: 61,
-  createdAt: '2026-01-01T00:00:00.000Z',
+  createdAt: new Date(Date.now() - 3 * 3_600_000).toISOString(),
 };
 
 function render(props: Partial<Parameters<typeof FeedPhoto>[0]> = {}) {
   const r: ReactTestRenderer = create(
-    createElement(FeedPhoto, { review: baseReview, photos: [1], ...props }),
+    createElement(FeedPhoto, {
+      review: baseReview,
+      photos: [1],
+      ...props,
+    }),
   );
   return { r, text: JSON.stringify(r.toJSON()) };
 }
@@ -30,11 +36,9 @@ function scrollPage(r: ReactTestRenderer, page: number) {
   });
 }
 
-function textsOf(
-  inst: ReturnType<ReactTestRenderer['root']['findByProps']>,
-): string[] {
-  return inst
-    .findAll((n) => String(n.type) === 'Text')
+function allTexts(r: ReactTestRenderer): string[] {
+  return r.root
+    .findAllByType(Text)
     .map((n) =>
       Array.isArray(n.props.children)
         ? n.props.children.join('')
@@ -42,38 +46,21 @@ function textsOf(
     );
 }
 
-describe('FeedPhoto (comentários, docs/12)', () => {
-  it('com onComments: botão 💬 abre a thread', () => {
-    const onComments = vi.fn();
-    const { r } = render({ onComments });
-    act(() => {
-      r.root.findByProps({ testID: 'comentar-photo-3' }).props.onPress();
-    });
-    expect(onComments).toHaveBeenCalled();
-  });
-
-  it('sem onComments: sem botão de comentário', () => {
-    const { r } = render();
-    expect(r.root.findAllByProps({ testID: 'comentar-photo-3' })).toHaveLength(
-      0,
-    );
-  });
-
-  it('com strong renderiza flair-forte', () => {
-    const { r } = render({
-      review: { ...baseReview, flairs: ['chorei de tão bom'] },
-      strong: true,
-    });
-    expect(r.root.findAllByProps({ testID: 'flair-forte' })).toHaveLength(1);
-  });
-});
+// Texts com onTextLayout = corpo do ReadMoreText (descrição do overlay).
+function readMoreBodies(r: ReactTestRenderer) {
+  return r.root
+    .findAllByType(Text)
+    .filter((n) => typeof n.props.onTextLayout === 'function');
+}
 
 function styleOf(
   r: ReactTestRenderer,
   testID: string,
 ): Record<string, unknown>[] {
   const p = r.root.findByProps({ testID }).props.style as
-    object | object[] | undefined;
+    | object
+    | object[]
+    | undefined;
   const flat = (Array.isArray(p) ? p.flat() : p ? [p] : []) as Record<
     string,
     unknown
@@ -81,19 +68,68 @@ function styleOf(
   return flat.filter((s) => s && typeof s === 'object');
 }
 
-describe('FeedPhoto', () => {
-  it('renderiza autor, comentário e restaurante', () => {
-    const { text } = render();
-    expect(text).toContain('caio.garfo');
-    expect(text).toContain('pastel de feira ainda ganha');
-    expect(text).toContain('123'); // fallback: sem nome no mapa → CNPJ
-  });
-
-  it('mantém testID photo-{id}', () => {
-    const { r } = render();
+describe('FeedPhoto (spec 8.3 — overlay com título, gradiente e ações)', () => {
+  it('mantém testID photo-{id} e dispara onPress (abre restaurante)', () => {
+    const onPress = vi.fn();
+    const { r } = render({ onPress });
     expect(r.root.findAllByProps({ testID: 'photo-3' }).length).toBeGreaterThan(
       0,
     );
+    act(() => {
+      r.root.findByProps({ testID: 'photo-3' }).props.onPress();
+    });
+    expect(onPress).toHaveBeenCalled();
+  });
+
+  it('header: @handle do author, restaurante e location', () => {
+    const { r } = render({
+      review: {
+        ...baseReview,
+        author: {
+          id: 'caio.garfo',
+          name: 'Caio',
+          handle: 'caio.garfo',
+          photoUrl: null,
+        },
+        restaurant: {
+          id: '123',
+          name: 'Bar do Luiz',
+          location: 'São Paulo',
+        },
+      },
+    });
+    const texts = allTexts(r);
+    expect(texts.some((s) => s.includes('@caio.garfo'))).toBe(true);
+    expect(texts.some((s) => s.includes('Bar do Luiz'))).toBe(true);
+    expect(texts.some((s) => s.includes('São Paulo'))).toBe(true);
+  });
+
+  it('header: sem author enriquecido usa userId; sem restaurant usa fallback', () => {
+    const { r } = render();
+    const texts = allTexts(r);
+    expect(texts.some((s) => s.includes('@caio.garfo'))).toBe(true);
+    expect(texts.some((s) => s.includes('123'))).toBe(true);
+  });
+
+  it('avatar: author.photoUrl vira foto de perfil', () => {
+    const { r } = render({
+      review: {
+        ...baseReview,
+        author: {
+          id: 'caio.garfo',
+          name: 'Caio',
+          handle: 'caio.garfo',
+          photoUrl: '/avatars/caio.jpg',
+        },
+      },
+    });
+    const imgs = r.root.findAll(
+      (n) =>
+        n.props?.source &&
+        typeof n.props.source === 'object' &&
+        String(n.props.source.uri ?? '').includes('/avatars/caio.jpg'),
+    );
+    expect(imgs.length).toBeGreaterThan(0);
   });
 
   it('mostra estrelas de avaliação', () => {
@@ -101,45 +137,49 @@ describe('FeedPhoto', () => {
     expect(text).toContain('★');
   });
 
-  it('passa a fonte de imagem recebida para o Image', () => {
-    const { r } = render({ photos: [42] });
-    expect(r.root.findAllByProps({ source: 42 }).length).toBeGreaterThan(0);
-  });
-
-  it('dispara onPress quando recebido (abre página do restaurante)', () => {
-    const onPress = vi.fn();
-    const { r } = render({ onPress });
-    act(() => {
-      r.root.findByProps({ testID: 'photo-3' }).props.onPress();
-    });
-    expect(onPress).toHaveBeenCalled();
-  });
-
-  describe('layout final (header + foto com overlay)', () => {
-    it('autor e restaurante ficam no header (acima da foto)', () => {
-      const { r } = render();
-      const frame = r.root.findByProps({ testID: 'photo-3-frame' });
-      // author row is outside the frame now
-      const texts = textsOf(frame);
-      expect(texts).not.toContain('caio.garfo');
-      // scrim still exists inside the frame
-      expect(r.root.findAllByProps({ testID: 'photo-3-scrim' })).toHaveLength(
-        1,
+  describe('overlay: título + descrição (fallback D1)', () => {
+    it('com title: título em cima + descrição via ReadMoreText', () => {
+      const { r, text } = render();
+      expect(text).toContain('Jantar no Picles');
+      expect(text).toContain('pastel de feira ainda ganha');
+      const bodies = readMoreBodies(r);
+      expect(bodies).toHaveLength(1);
+      expect(String(bodies[0]!.props.children)).toBe(
+        'pastel de feira ainda ganha',
       );
     });
 
-    it('imagem tem aspect-ratio 4:5 (altura > 400 no stub)', () => {
-      const { r } = render();
-      // useWindowDimensions stub returns width=390, so height = 390*5/4 = 487
-      const heights = styleOf(r, 'photo-3-img')
-        .map((s) => s.height)
-        .filter((h) => typeof h === 'number');
-      expect(heights.some((h) => Number(h) > 400)).toBe(true);
+    it('sem title: título = comment e sem descrição', () => {
+      const { r, text } = render({
+        review: { ...baseReview, title: null },
+      });
+      expect(text).toContain('pastel de feira ainda ganha');
+      expect(readMoreBodies(r)).toHaveLength(0);
     });
   });
 
-  describe('carrossel (docs/15)', () => {
-    it('1 foto: sem UI de carrossel (comportamento atual)', () => {
+  it('gradiente presente sobre a foto (LinearGradient no JSON)', () => {
+    const { r, text } = render();
+    expect(text).toContain('LinearGradient');
+    const scrim = r.root.findAll(
+      (n) => String(n.type) === 'LinearGradient',
+    );
+    expect(scrim.length).toBeGreaterThan(0);
+    expect(
+      JSON.stringify(scrim.map((n) => n.props.colors ?? n.props.children)),
+    ).toContain('rgba(0,0,0,0.72)');
+  });
+
+  it('imagem tem aspect-ratio 4:5 (altura > 400 no stub)', () => {
+    const { r } = render();
+    const heights = styleOf(r, 'photo-3-img')
+      .map((s) => s.height)
+      .filter((h) => typeof h === 'number');
+    expect(heights.some((h) => Number(h) > 400)).toBe(true);
+  });
+
+  describe('carrossel de mock (docs/15)', () => {
+    it('1 foto: sem UI de carrossel', () => {
       const { r } = render();
       expect(r.root.findAllByProps({ testID: 'carousel-3' })).toHaveLength(0);
       expect(
@@ -155,7 +195,6 @@ describe('FeedPhoto', () => {
         r.root.findAllByProps({ testID: 'carousel-dot-3-0' }).length +
           r.root.findAllByProps({ testID: 'carousel-dot-3-1' }).length,
       ).toBe(2);
-      // contador inicia na página 1
       expect(JSON.stringify(r.toJSON())).toContain('1/2');
     });
 
@@ -164,64 +203,106 @@ describe('FeedPhoto', () => {
       scrollPage(r, 1);
       expect(JSON.stringify(r.toJSON())).toContain('2/2');
     });
-
-    it('2 fotos: scrim existe e carrossel funciona', () => {
-      const { r } = render({ photos: [1, 2] });
-      expect(r.root.findAllByProps({ testID: 'photo-3-scrim' })).toHaveLength(
-        1,
-      );
-      // carrossel funcional
-      scrollPage(r, 1);
-      expect(JSON.stringify(r.toJSON())).toContain('2/2');
-    });
   });
 
-  it('salvar alterna para salvo (estado local do card)', () => {
-    const { r } = render();
-    const btn = r.root.findByProps({ testID: 'salvar-3' });
-    expect(btn.props.accessibilityState.selected).toBe(false);
-    act(() => btn.props.onPress());
-    expect(
-      r.root.findByProps({ testID: 'salvar-3' }).props.accessibilityState
-        .selected,
-    ).toBe(true);
-    // após salvar: estado selected = true
-    expect(
-      r.root.findByProps({ testID: 'salvar-3' }).props.accessibilityState
-        .selected,
-    ).toBe(true);
-    act(() => {
-      r.root.findByProps({ testID: 'salvar-3' }).props.onPress();
-    });
-    expect(
-      r.root.findByProps({ testID: 'salvar-3' }).props.accessibilityState
-        .selected,
-    ).toBe(false);
-  });
-
-  describe('editar/apagar review própria', () => {
-    it('com onEdit: botão "editar" dispara o callback', () => {
-      const onEdit = vi.fn();
-      const { r } = render({ onEdit });
+  describe('ações (spec 8.3)', () => {
+    it('curtir: ♥ + count = likes + 1; não repete ao tocar de novo', () => {
+      const onLike = vi.fn();
+      const { r } = render({ onLike });
+      const btn = r.root.findByProps({ testID: 'like-photo-3' });
       act(() => {
-        r.root.findByProps({ testID: 'editar-3' }).props.onPress();
+        btn.props.onPress();
       });
-      expect(onEdit).toHaveBeenCalled();
-    });
-
-    it('com onDelete: botão "apagar" dispara o callback', () => {
-      const onDelete = vi.fn();
-      const { r } = render({ onDelete });
+      const text1 = JSON.stringify(r.toJSON());
+      expect(text1).toContain('♥');
+      expect(text1).toContain('62');
       act(() => {
-        r.root.findByProps({ testID: 'apagar-3' }).props.onPress();
+        r.root.findByProps({ testID: 'like-photo-3' }).props.onPress();
       });
-      expect(onDelete).toHaveBeenCalled();
+      const text2 = JSON.stringify(r.toJSON());
+      expect(text2).toContain('62'); // não soma de novo
+      expect(onLike).toHaveBeenCalledTimes(1);
     });
 
-    it('sem onEdit/onDelete: nenhum botão de dono aparece', () => {
+    it('comentar: 💬 com commentCount do enriquecimento', () => {
+      const onComments = vi.fn();
+      const { r, text } = render({
+        onComments,
+        review: { ...baseReview, commentCount: 12 },
+      });
+      expect(text).toContain('12');
+      act(() => {
+        r.root.findByProps({ testID: 'comentar-photo-3' }).props.onPress();
+      });
+      expect(onComments).toHaveBeenCalled();
+    });
+
+    it('com commentCount ausente: 💬 sem número', () => {
+      const { r, text } = render({ onComments: () => {} });
+      expect(text).toContain('💬');
+      expect(r.root.findByProps({ testID: 'comentar-photo-3' })).toBeTruthy();
+      // sem commentCount → nenhum Text com '0' solto ao lado do 💬
+      const btn = r.root.findByProps({ testID: 'comentar-photo-3' });
+      const counts = btn
+        .findAllByType(Text)
+        .map((n) => String(n.props.children));
+      expect(counts).toEqual(['💬', '']);
+    });
+
+    it('sem onComments: sem botão de comentário', () => {
       const { r } = render();
-      expect(r.root.findAllByProps({ testID: 'editar-3' })).toHaveLength(0);
-      expect(r.root.findAllByProps({ testID: 'apagar-3' })).toHaveLength(0);
+      expect(
+        r.root.findAllByProps({ testID: 'comentar-photo-3' }),
+      ).toHaveLength(0);
     });
+
+    it('salvar controlado: saved prop manda; tap só chama onSave', () => {
+      const onSave = vi.fn();
+      const { r } = render({ onSave, saved: true });
+      const btn = r.root.findByProps({ testID: 'salvar-3' });
+      expect(JSON.stringify(r.toJSON())).toContain('🔖');
+      expect(btn.props.accessibilityState.selected).toBe(true);
+      act(() => {
+        btn.props.onPress();
+      });
+      expect(onSave).toHaveBeenCalledTimes(1);
+      expect(JSON.stringify(r.toJSON())).toContain('🔖'); // continua salvo
+    });
+
+    it('salvar não controlado: alterna estado local do card', () => {
+      const onSave = vi.fn();
+      const { r } = render({ onSave });
+      const btn = r.root.findByProps({ testID: 'salvar-3' });
+      expect(btn.props.accessibilityState.selected).toBe(false);
+      expect(JSON.stringify(r.toJSON())).toContain('☆');
+      act(() => {
+        btn.props.onPress();
+      });
+      expect(
+        r.root.findByProps({ testID: 'salvar-3' }).props.accessibilityState
+          .selected,
+      ).toBe(true);
+      expect(JSON.stringify(r.toJSON())).toContain('🔖');
+      expect(onSave).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it('tempo relativo por extenso (há 3h) na linha abaixo das ações', () => {
+    const { text } = render();
+    expect(text).toContain('há 3h');
+  });
+
+  it('sem flair e sem borda: marginBottom 24 e sem borderBottomWidth', () => {
+    const { r } = render({
+      review: { ...baseReview, flairs: ['volto sim'] },
+    });
+    expect(r.root.findAllByProps({ testID: 'flair-forte' })).toHaveLength(0);
+    expect(r.root.findAllByProps({ testID: 'flair-quieto' })).toHaveLength(0);
+    expect(allTexts(r)).not.toContain('volto sim');
+    const styles = styleOf(r, 'photo-3');
+    const hasBorder = styles.some((s) => s.borderBottomWidth != null);
+    expect(hasBorder).toBe(false);
+    const hasMargin24 = styles.some((s) => s.marginBottom === 24);
+    expect(hasMargin24).toBe(true);
   });
 });
