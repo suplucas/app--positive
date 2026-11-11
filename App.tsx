@@ -38,7 +38,7 @@ import { ProfileScreen } from './src/profile/ProfileScreen';
 import { RestaurantScreen } from './src/restaurant/RestaurantScreen';
 import { SectionTitle } from './src/common/SectionTitle';
 import { MapScreen } from './src/map/MapScreen';
-import { NotificationScreen } from './src/settings/NotificationScreen';
+import { NotificationScreen } from './src/notifications/NotificationScreen';
 import { SearchScreen } from './src/map/SearchScreen';
 import { SettingsScreen, type ThemeMode } from './src/settings/SettingsScreen';
 import { UserProfileScreen } from './src/profile/UserProfileScreen';
@@ -437,11 +437,8 @@ function MainApp({
               <LayerScreen>
                 <NotificationScreen
                   userId={userId}
-                  onOpenRestaurant={(cnpj) => {
-                    setNotifOpen(false);
-                    setRestaurantId(cnpj);
-                  }}
-                  onBack={() => setNotifOpen(false)}
+                  onOpen={() => setNotifOpen(false)}
+                  onClose={() => setNotifOpen(false)}
                 />
               </LayerScreen>
             ) : null}
