@@ -1,4 +1,5 @@
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Bookmark } from 'lucide-react-native';
 import { FeedCard } from '../feed/FeedCard';
 import { FeedQuote } from '../feed/FeedQuote';
 import { SectionTitle } from '../common/SectionTitle';
@@ -128,8 +129,13 @@ export function RestaurantProfileTemplate({
           accessibilityRole="button"
           accessibilityState={{ selected: saved }}
         >
+          <Bookmark
+            size={14}
+            color={saved ? t.bg : t.ink}
+            fill={saved ? t.bg : undefined}
+          />
           <Text style={[s.btnText, { color: saved ? t.bg : t.ink }]}>
-            {saved ? '★ salvo' : '☆ quero ir'}
+            {saved ? 'salvo' : 'quero ir'}
           </Text>
         </Pressable>
       </View>
@@ -288,6 +294,9 @@ const s = StyleSheet.create({
     paddingVertical: spacing.medio,
     borderWidth: 1.5,
     alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 4,
   },
   primary: { borderColor: palette.lambeLambe },
   secondary: { backgroundColor: 'transparent' },

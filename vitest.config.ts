@@ -87,6 +87,24 @@ export const WebView = (props) => createElement('WebView', props, props.children
     if (path.includes('/expo-linear-gradient/'))
       return `import { createElement } from 'react';
 export const LinearGradient = (props) => createElement('LinearGradient', props, props.children);`;
+    // lucide-react-native puxa react-native-svg (fonte com Flow) que não
+    // roda em Node: stub de host-components — cada ícone é um function
+    // component distinto que preserva props (color/fill/size) p/ os testes
+    // localizarem por findByType e lerem o estado curtido/salvo via fill.
+    if (path.includes('/lucide-react-native/'))
+      return `import { createElement } from 'react';
+const icon = (name) => (props) => createElement(name, props, props.children);
+export const Home = icon('Home');
+export const Search = icon('Search');
+export const Plus = icon('Plus');
+export const MapPin = icon('MapPin');
+export const User = icon('User');
+export const Heart = icon('Heart');
+export const Bookmark = icon('Bookmark');
+export const Star = icon('Star');
+export const MessageCircle = icon('MessageCircle');
+export const Bell = icon('Bell');
+export const Settings = icon('Settings');`;
   },
 };
 
@@ -95,6 +113,10 @@ export default defineConfig({
   test: {
     environment: 'node',
     include: ['src/**/*.{test,spec}.{ts,tsx}'],
-    server: { deps: { inline: ['react-native', 'react-test-renderer'] } },
+    server: {
+      deps: {
+        inline: ['react-native', 'react-test-renderer', 'lucide-react-native'],
+      },
+    },
   },
 });

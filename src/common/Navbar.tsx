@@ -1,13 +1,8 @@
 import { useEffect, useState } from 'react';
-import {
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-  Animated,
-  Easing,
-} from 'react-native';
-import { fonts, palette, useTheme } from './theme';
+import { Pressable, StyleSheet, View, Animated, Easing } from 'react-native';
+import { Home, MapPin, Plus, Search, User } from 'lucide-react-native';
+import type { LucideIcon } from 'lucide-react-native';
+import { palette, useTheme } from './theme';
 
 export type Screen = 'feed' | 'busca' | 'mapa' | 'perfil' | 'compose';
 
@@ -78,13 +73,13 @@ export function Navbar({
       ]}
     >
       <NavItem
-        icon="⌂"
+        icon={Home}
         active={active === 'feed'}
         label="feed"
         onPress={() => onNavigate('feed')}
       />
       <NavItem
-        icon="⌕"
+        icon={Search}
         active={active === 'busca'}
         label="buscar"
         onPress={() => onNavigate('busca')}
@@ -96,50 +91,23 @@ export function Navbar({
         accessibilityLabel="avaliar restaurante"
       >
         <View testID="navbar-compose" style={s.add}>
-          <Text style={s.addIcon}>+</Text>
+          <Plus size={24} color={palette.papel} strokeWidth={2.5} />
         </View>
       </Pressable>
-      {/* pino de mapa com Views (D13: sem lib de ícones) */}
-      <Pressable
-        style={s.item}
+      <NavItem
+        icon={MapPin}
+        active={active === 'mapa'}
+        label="mapa"
         onPress={() => onNavigate('mapa')}
-        accessibilityRole="button"
-        accessibilityState={{ selected: active === 'mapa' }}
-        accessibilityLabel="mapa"
-      >
-        <PinIcon color={t.ink} bg={translucent(t.bg, 0.72)} opacity={active === 'mapa' ? 1 : 0.5} />
-      </Pressable>
-      <Pressable
-        style={s.item}
+      />
+      <NavItem
+        icon={User}
+        active={active === 'perfil'}
+        label="perfil"
         onPress={() => onNavigate('perfil')}
-        accessibilityRole="button"
-        accessibilityState={{ selected: active === 'perfil' }}
-        accessibilityLabel="perfil"
-      >
-        <View testID="navbar-perfil" style={s.me} />
-      </Pressable>
+        testID="navbar-perfil"
+      />
     </Animated.View>
-  );
-}
-
-function PinIcon({
-  color,
-  bg,
-  opacity,
-}: {
-  color: string;
-  bg: string;
-  opacity: number;
-}) {
-  return (
-    <View style={{ alignItems: 'center', width: 22, height: 28, opacity }}>
-      {/* Cabeça do pino */}
-      <View style={[s.pinHead, { backgroundColor: color }]}>
-        <View style={[s.pinHole, { backgroundColor: bg }]} />
-      </View>
-      {/* Cauda triangular */}
-      <View style={[s.pinTail, { borderTopColor: color }]} />
-    </View>
   );
 }
 
@@ -149,25 +117,33 @@ function NavItem({
   disabled = false,
   label,
   onPress,
+  testID,
 }: {
-  icon: string;
+  icon: LucideIcon;
   active: boolean;
   disabled?: boolean;
   label: string;
   onPress: () => void;
+  testID?: string;
 }) {
   const t = useTheme();
   const opacity = disabled ? 0.3 : active ? 1 : 0.6;
+  // prop `icon` é minúscula: alias capitalizado para o JSX tratar como
+  // componente
+  const IconCmp = icon;
   return (
     <Pressable
       style={[s.item, active && { backgroundColor: t.line }]}
       disabled={disabled}
       onPress={onPress}
+      testID={testID}
       accessibilityRole="button"
       accessibilityLabel={label}
       accessibilityState={{ selected: active, disabled }}
     >
-      <Text style={[s.itemIcon, { color: t.ink, opacity }]}>{icon}</Text>
+      <View style={{ opacity }}>
+        <IconCmp size={24} color={t.ink} />
+      </View>
     </Pressable>
   );
 }
@@ -193,7 +169,6 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  itemIcon: { fontSize: 24, lineHeight: 26 },
   addHit: {
     width: 48,
     height: 48,
@@ -207,39 +182,5 @@ const s = StyleSheet.create({
     backgroundColor: palette.lambeLambe,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  addIcon: {
-    color: palette.papel,
-    fontSize: 24,
-    lineHeight: 26,
-    fontFamily: fonts.corpo500,
-  },
-  me: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: palette.lambeLambe,
-  },
-  pinHead: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  pinHole: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  pinTail: {
-    width: 0,
-    height: 0,
-    borderLeftWidth: 5.5,
-    borderRightWidth: 5.5,
-    borderTopWidth: 8,
-    borderLeftColor: 'transparent',
-    borderRightColor: 'transparent',
-    marginTop: -1,
   },
 });

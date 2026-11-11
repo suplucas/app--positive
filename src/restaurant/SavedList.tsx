@@ -1,4 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Bookmark } from 'lucide-react-native';
 import type { SavedRestaurant } from '../api/user';
 import { avatarColor } from '../common/format';
 import { restaurantFor } from './restaurantMock';
@@ -6,7 +7,7 @@ import { fonts, radius, spacing, type, useTheme } from '../common/theme';
 
 // Lista "quero ir" (docs/16): vira a aba do perfil. Fonte única é o
 // `savedCnpjs` do App; aqui só renderiza (linha = miniatura + nome +
-// meta + ★ remover). Sem ScrollView próprio (mora dentro do perfil).
+// meta + Bookmark remover). Sem ScrollView próprio (mora dentro do perfil).
 export function SavedList({
   cnpjs,
   items,
@@ -72,7 +73,7 @@ export function SavedList({
               accessibilityRole="button"
               accessibilityLabel={`remover ${nome} da lista`}
             >
-              <Text style={[s.removeText, { color: t.sub }]}>★</Text>
+              <Bookmark size={14} color={t.sub} fill={t.sub} />
             </Pressable>
           </View>
         );
@@ -106,5 +107,4 @@ const s = StyleSheet.create({
     justifyContent: 'center',
     flexShrink: 0,
   },
-  removeText: { fontSize: type.bodyLarge },
 });

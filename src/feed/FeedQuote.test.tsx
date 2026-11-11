@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { create, ReactTestRenderer, act } from 'react-test-renderer';
 import { createElement } from 'react';
 import { Text } from 'react-native';
+import { Heart, MessageCircle, Star } from 'lucide-react-native';
 import { FeedQuote } from './FeedQuote';
 import type { Review } from '../common/types';
 import { palette } from '../common/theme';
@@ -98,13 +99,11 @@ describe('FeedQuote (spec 8.3 — card colorido com título grande)', () => {
     const texts = allTexts(r);
     expect(texts.some((s) => s.includes('@bea_come_tudo'))).toBe(true);
     // ink do tone mostarda = berinjela
-    const starTexts = r.root
-      .findAllByType(Text)
-      .filter((n) => String(n.props.children) === '★');
-    expect(starTexts.length).toBeGreaterThan(0);
+    const stars = r.root.findAllByType(Star);
+    expect(stars.length).toBeGreaterThan(0);
     expect(
-      starTexts.some((n) =>
-        [n.props.style].flat().some((s) => s?.color === palette.berinjela),
+      stars.some(
+        (n) => n.props.color === palette.berinjela && n.props.fill === palette.berinjela,
       ),
     ).toBe(true);
   });
@@ -150,15 +149,16 @@ describe('FeedQuote (spec 8.3 — card colorido com título grande)', () => {
   });
 
   describe('ações na cor do ink', () => {
-    it('curtir: ♥ + count = likes + 1; não repete', () => {
+    it('curtir: Heart preenchido ink + count = likes + 1; não repete', () => {
       const onLike = vi.fn();
       const { r } = render({ onLike });
+      const btn = r.root.findByProps({ testID: 'like-quote-7' });
+      expect(btn.findByType(Heart).props.fill).toBeUndefined();
       act(() => {
-        r.root.findByProps({ testID: 'like-quote-7' }).props.onPress();
+        btn.props.onPress();
       });
-      const text1 = JSON.stringify(r.toJSON());
-      expect(text1).toContain('♥');
-      expect(text1).toContain('13');
+      expect(btn.findByType(Heart).props.fill).toBe(palette.berinjela);
+      expect(JSON.stringify(r.toJSON())).toContain('13');
       act(() => {
         r.root.findByProps({ testID: 'like-quote-7' }).props.onPress();
       });
@@ -166,12 +166,17 @@ describe('FeedQuote (spec 8.3 — card colorido com título grande)', () => {
       expect(onLike).toHaveBeenCalledTimes(1);
     });
 
-    it('comentar: 💬 com commentCount; abre thread', () => {
+    it('comentar: MessageCircle com commentCount; abre thread', () => {
       const onComments = vi.fn();
       const { r, text } = render({
         onComments,
         review: { ...baseReview, commentCount: 5 },
       });
+      expect(
+        r.root.findByProps({ testID: 'comentar-quote-7' }).findByType(
+          MessageCircle,
+        ),
+      ).toBeTruthy();
       expect(text).toContain('5');
       act(() => {
         r.root.findByProps({ testID: 'comentar-quote-7' }).props.onPress();

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Settings as SettingsIcon } from 'lucide-react-native';
 import { Avatar } from '../common/Avatar';
 import { FeedCard } from '../feed/FeedCard';
 import { displayName } from '../common/mockData';
@@ -7,7 +8,6 @@ import { resolvePhotoUrl } from '../common/format';
 import { SavedList } from '../restaurant/SavedList';
 import type { SavedRestaurant } from '../api/user';
 import type { UserProfile } from '../api/types';
-import { SectionTitle } from '../common/SectionTitle';
 import { useProfile } from './useProfile';
 import {
   fonts,
@@ -24,7 +24,6 @@ type Tab = 'queroir' | 'diario';
 // Perfil final: bio abaixo do username, stats, quero ir e diário.
 export function ProfileScreen({
   onSettings,
-  onNotifications,
   savedCnpjs = [],
   savedItems,
   onRemoveSaved,
@@ -39,7 +38,6 @@ export function ProfileScreen({
 }: {
   onSettings?: () => void;
   // docs/16: notificações saíram da navbar e ganharam atalho (sino) aqui.
-  onNotifications?: () => void;
   // Lista "quero ir" (docs/16): o estado vive no App; a aba do perfil
   // (v2) só renderiza. Fonte: `savedCnpjs`/`savedItems`.
   savedCnpjs?: string[];
@@ -85,18 +83,6 @@ export function ProfileScreen({
       contentContainerStyle={s.scroll}
     >
       <View style={s.versaoRow}>
-        {onNotifications ? (
-          <Pressable
-            testID="abrir-notificacoes"
-            onPress={onNotifications}
-            hitSlop={8}
-            style={[s.settingsBtn, { borderColor: t.line }]}
-            accessibilityRole="button"
-            accessibilityLabel="abrir notificações"
-          >
-            <Text style={{ fontSize: type.bodyLarge }}>♡</Text>
-          </Pressable>
-        ) : null}
         {onSettings ? (
           <Pressable
             testID="configuracoes"
@@ -104,9 +90,8 @@ export function ProfileScreen({
             hitSlop={8}
             style={[s.settingsBtn, { borderColor: t.line }]}
             accessibilityRole="button"
-            accessibilityLabel="abrir configurações"
-          >
-            <Text style={{ fontSize: type.bodyLarge }}>⚙</Text>
+            accessibilityLabel="abrir configurações">
+          <SettingsIcon size={14} color={t.ink} />
           </Pressable>
         ) : null}
       </View>

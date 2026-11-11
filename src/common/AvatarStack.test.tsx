@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { create } from 'react-test-renderer';
 import { createElement } from 'react';
 import { Image, Text, View } from 'react-native';
+import { Heart } from 'lucide-react-native';
 import { AvatarStack } from './AvatarStack';
 
 const people1 = [{ id: 'bea', name: 'Bea' }];
@@ -52,15 +53,14 @@ describe('AvatarStack (painel de notificações)', () => {
     expect(r.root.findAllByType(Image)).toHaveLength(1);
   });
 
-  it('tag mostra o glifo no selo colorido', () => {
+  it('tag mostra o ícone lucide no selo colorido', () => {
     const r = create(
       createElement(AvatarStack, {
         people: people1,
-        tag: { color: '#E63E75', glyph: '♥' },
+        tag: { color: '#E63E75', icon: Heart },
       }),
     );
-    const texts = r.root.findAllByType(Text).map((n) => n.props.children);
-    expect(texts).toContain('♥');
+    expect(r.root.findByType(Heart)).toBeTruthy();
     const badge = r.root
       .findAllByType(View)
       .find((n) => flat(n.props.style).some((s) => s?.backgroundColor === '#E63E75'));

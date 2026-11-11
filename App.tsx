@@ -59,6 +59,7 @@ import { useFeed } from './src/feed/useFeed';
 import { useSaves } from './src/restaurant/useSaves';
 import { useSession } from './src/auth/useSession';
 import type { Review } from './src/common/types';
+import { Bell } from 'lucide-react-native';
 
 export default function App() {
   // Fontes da identidade na RAIZ (antes do login): sem isso o logo/título
@@ -120,8 +121,8 @@ function MainApp({
   // o toggle da página do restaurante.
   const saves = useSaves(userId);
   const savedCnpjs = saves.ids;
-  // Visita expandida (spec 8.4): review aberta pelo 💬 de um card, pela
-  // busca ou por uma notificação.
+  // Visita expandida (spec 8.4): review aberta pelo ícone de comentário
+  // de um card, pela busca ou por uma notificação.
   const [postReview, setPostReview] = useState<Review | null>(null);
   // Notificações (docs/09) saíram da navbar (o mock docs/16 pôs o mapa
   // no lugar): viram camada aberta pelo coração do header (D17).
@@ -263,26 +264,13 @@ function MainApp({
                           : 'notificações'
                       }
                     >
-                      <Text style={[styles.heart, { color: theme.ink }]}>
-                        ♡
-                      </Text>
+                      <Bell size={26} color={theme.ink} />
                       {notifs.unreadCount > seenUnread ? (
                         <View
                           testID="badge-notif"
                           style={[styles.badge, { borderColor: theme.bg }]}
                         />
                       ) : null}
-                    </Pressable>
-                    <Pressable
-                      testID="tema-header"
-                      onPress={toggleTheme}
-                      style={[styles.themeBtn, { borderColor: theme.line }]}
-                      accessibilityRole="button"
-                      accessibilityLabel="trocar tema"
-                    >
-                      <Text style={styles.themeIcon}>
-                        {mode === 'dark' ? '☀️' : '🌙'}
-                      </Text>
                     </Pressable>
                   </>
                 ) : null}
@@ -344,7 +332,6 @@ function MainApp({
                 key={profileVersion}
                 userId={userId}
                 onSettings={() => setSettingsOpen(true)}
-                onNotifications={openNotif}
                 savedCnpjs={savedCnpjs}
                 savedItems={saves.items}
                 onRemoveSaved={(cnpj) => {
@@ -621,7 +608,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  heart: { fontSize: 26 },
   badge: {
     position: 'absolute',
     top: 8,

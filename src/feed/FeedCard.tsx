@@ -1,4 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { MessageCircle } from 'lucide-react-native';
 import { Avatar } from '../common/Avatar';
 import { ExpandableText } from '../common/ExpandableText';
 import { Flair } from './Flair';
@@ -90,7 +91,7 @@ export function FeedCard({
               accessibilityRole="button"
               accessibilityLabel="abrir comentários"
             >
-              <Text style={[s.metaText, { color: t.sub }]}>💬</Text>
+              <MessageCircle size={13} color={t.sub} />
             </Pressable>
           ) : null}
           {review.flairs?.[0] ? (

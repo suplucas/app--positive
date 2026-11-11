@@ -1,7 +1,8 @@
 import { describe, it, expect, vi } from 'vitest';
 import { act, create, ReactTestRenderer } from 'react-test-renderer';
 import { createElement } from 'react';
-import { Animated } from 'react-native';
+import { Animated, View } from 'react-native';
+import { Home, MapPin, Plus, Search, User } from 'lucide-react-native';
 import { Navbar } from './Navbar';
 import { lightTheme, palette } from './theme';
 
@@ -134,21 +135,38 @@ describe('Navbar (spec D13 — pill flutuante)', () => {
     expect(style.borderWidth).toBeGreaterThan(0);
   });
 
-  it('perfil é círculo rosa 28 (sem glyph)', () => {
+  it('ícones lucide: Home/Search/MapPin com cor ink 24', () => {
     const r = render();
-    const me = r.root.findByProps({ testID: 'navbar-perfil' });
-    const style = merged(me.props.style);
-    expect(style.width).toBe(28);
-    expect(style.height).toBe(28);
-    expect(style.borderRadius).toBe(14);
-    expect(style.backgroundColor).toBe(palette.lambeLambe);
+    const home = r.root.findByType(Home);
+    expect(home.props.color).toBe(lightTheme.ink);
+    expect(home.props.size).toBe(24);
+    expect(r.root.findByType(Search).props.size).toBe(24);
+    expect(r.root.findByType(MapPin).props.size).toBe(24);
   });
 
-  it('botão + é círculo rosa', () => {
+  it('perfil renderiza User sem círculo rosa', () => {
+    const r = render();
+    const user = r.root.findByProps({ testID: 'navbar-perfil' }).findByType(User);
+    expect(user.props.size).toBe(24);
+    expect(user.props.color).toBe(lightTheme.ink);
+    // sem o círculo rosa: nenhum View lambeLambe 28x28 no navbar
+    const pink = r.root
+      .findAllByType(View)
+      .filter((n) => {
+        const st = merged(n.props.style);
+        return st.backgroundColor === palette.lambeLambe && st.width === 28;
+      });
+    expect(pink).toHaveLength(0);
+  });
+
+  it('botão avaliar: círculo rosa com Plus papel dentro', () => {
     const r = render();
     const add = r.root.findByProps({ testID: 'navbar-compose' });
     const style = merged(add.props.style);
     expect(style.backgroundColor).toBe(palette.lambeLambe);
     expect(style.borderRadius).toBe(24);
+    const plus = add.findByType(Plus);
+    expect(plus.props.color).toBe(palette.papel);
+    expect(plus.props.size).toBe(24);
   });
 });

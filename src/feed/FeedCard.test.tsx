@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { create, ReactTestRenderer, act } from 'react-test-renderer';
 import { createElement } from 'react';
+import { MessageCircle } from 'lucide-react-native';
 import { FeedCard } from './FeedCard';
 import type { Review } from '../common/types';
 
@@ -23,9 +24,14 @@ function render(props: Partial<Parameters<typeof FeedCard>[0]> = {}) {
 }
 
 describe('FeedCard (comentários, docs/12)', () => {
-  it('com onComments: botão 💬 abre a thread', () => {
+  it('com onComments: botão MessageCircle abre a thread', () => {
     const onComments = vi.fn();
     const { r } = render({ onComments });
+    expect(
+      r.root.findByProps({ testID: 'comentar-card-1' }).findByType(
+        MessageCircle,
+      ),
+    ).toBeTruthy();
     act(() => {
       r.root.findByProps({ testID: 'comentar-card-1' }).props.onPress();
     });

@@ -1,23 +1,24 @@
 import { describe, it, expect } from 'vitest';
 import { create } from 'react-test-renderer';
 import { createElement } from 'react';
-import { Text } from 'react-native';
+import { Star } from 'lucide-react-native';
 import { StarRating } from './StarRating';
 import { palette } from '../common/theme';
 
-const flat = (style: unknown): Record<string, unknown>[] =>
-  Array.isArray(style) ? style.flatMap(flat) : [style as Record<string, unknown>];
-
-// Cada célula tem 2 Texts em ordem: estrela-base (vazia) e estrela cheia
-// (recortada). Com rating 3: células 1–3 cheias, 4–5 vazias.
+// Cada célula tem 2 Stars em ordem: estrela-base (vazia, sem fill) e
+// estrela cheia (recortada, color + fill). Com rating 3: células 1–3
+// cheias, 4–5 vazias.
 function starColors(r: ReturnType<typeof create>): {
   base: (string | undefined)[];
   filled: (string | undefined)[];
 } {
-  const texts = r.root.findAllByType(Text);
-  const colors = texts.map((n) => flat(n.props.style).find((s) => 'color' in s)?.color as string | undefined);
-  const base = colors.filter((_, i) => i % 2 === 0);
-  const filled = colors.filter((_, i) => i % 2 === 1);
+  const stars = r.root.findAllByType(Star);
+  const base = stars
+    .filter((n) => n.props.fill == null)
+    .map((n) => n.props.color as string | undefined);
+  const filled = stars
+    .filter((n) => n.props.fill != null)
+    .map((n) => n.props.color as string | undefined);
   return { base, filled };
 }
 

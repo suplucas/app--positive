@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { act, create, ReactTestRenderer } from 'react-test-renderer';
 import { createElement } from 'react';
+import { Settings as SettingsIcon } from 'lucide-react-native';
 import { ProfileScreen } from './ProfileScreen';
 import { bioFor, displayName } from '../common/mockData';
 
@@ -195,17 +196,16 @@ describe('ProfileScreen (usuário ativo, N5)', () => {
   });
 });
 
-describe('ProfileScreen (notificações, docs/16)', () => {
-  it('sino só aparece com onNotifications e chama o callback', () => {
-    expect(
-      render().r.root.findAllByProps({ testID: 'abrir-notificacoes' }).length,
-    ).toBe(0);
-    const onNotifications = vi.fn();
-    const { r } = render({ onNotifications });
+describe('ProfileScreen (atalho de configurações)', () => {
+  it('engrenagem lucide aparece com onSettings e chama o callback', () => {
+    const onSettings = vi.fn();
+    const { r } = render({ onSettings });
+    const btn = r.root.findByProps({ testID: 'configuracoes' });
+    expect(btn.findByType(SettingsIcon)).toBeTruthy();
     act(() => {
-      r.root.findByProps({ testID: 'abrir-notificacoes' }).props.onPress();
+      btn.props.onPress();
     });
-    expect(onNotifications).toHaveBeenCalled();
+    expect(onSettings).toHaveBeenCalled();
   });
 });
 

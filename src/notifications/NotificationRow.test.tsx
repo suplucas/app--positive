@@ -1,7 +1,8 @@
 import { describe, it, expect, vi } from 'vitest';
 import { create, ReactTestRenderer, act } from 'react-test-renderer';
-import { createElement } from 'react';
+import { createElement, type ElementType } from 'react';
 import { Text } from 'react-native';
+import { Bell, Bookmark, Heart, MessageCircle, Plus } from 'lucide-react-native';
 import { NotificationRow } from './NotificationRow';
 import type { AppNotification } from '../api/types';
 import { lightTheme, palette } from '../common/theme';
@@ -62,14 +63,15 @@ function allText(r: ReactTestRenderer): string {
     .join('');
 }
 
-// Cor do selo do tipo: acha o Text do glyph e sobe 2 níveis (Text-f →
+// Cor do selo do tipo: acha o ícone lucide e sobe 2 níveis (Icon-f →
 // host View → View-f do tag) até o View que carrega o backgroundColor.
-function tagColorOf(r: ReactTestRenderer, glyph: string): string | null {
-  const glyphText = r.root
-    .findAllByType(Text)
-    .find((n) => String(n.props.children) === glyph);
-  if (!glyphText?.parent?.parent) return null;
-  const styles = flat(glyphText.parent.parent.props.style);
+function tagColorOf(
+  r: ReactTestRenderer,
+  icon: ElementType,
+): string | null {
+  const iconNode = r.root.findAllByType(icon)[0];
+  if (!iconNode?.parent?.parent) return null;
+  const styles = flat(iconNode.parent.parent.props.style);
   const bg = styles.map((s) => s.backgroundColor).find(Boolean);
   return (bg as string) ?? null;
 }
@@ -112,32 +114,30 @@ describe('NotificationRow (spec 8.5 — row rica do painel)', () => {
     ).toBe(false);
   });
 
-  it('selo por tipo: ♥ lambeLambe / 💬 berinjela / ＋ picles / 🔖 mostarda', () => {
-    expect(tagColorOf(render({}, over({ type: 'like' })), '♥')).toBe(
+  it('selo por tipo: Heart lambeLambe / MessageCircle berinjela / Plus picles / Bookmark mostarda', () => {
+    expect(tagColorOf(render({}, over({ type: 'like' })), Heart)).toBe(
       palette.lambeLambe,
     );
     expect(
-      tagColorOf(render({}, over({ type: 'comment' })), '💬'),
+      tagColorOf(render({}, over({ type: 'comment' })), MessageCircle),
     ).toBe(palette.berinjela);
-    expect(tagColorOf(render({}, over({ type: 'follow' })), '＋')).toBe(
+    expect(tagColorOf(render({}, over({ type: 'follow' })), Plus)).toBe(
       palette.picles,
     );
-    expect(tagColorOf(render({}, over({ type: 'save' })), '🔖')).toBe(
+    expect(tagColorOf(render({}, over({ type: 'save' })), Bookmark)).toBe(
       palette.mostarda,
     );
     expect(
-      tagColorOf(render({}, over({ type: 'network_visit' })), '🔖'),
+      tagColorOf(render({}, over({ type: 'network_visit' })), Bookmark),
     ).toBe(palette.mostarda);
   });
 
-  it('milestone: círculo berinjela 44 com 🔔 (sem AvatarStack)', () => {
+  it('milestone: círculo berinjela 44 com Bell (sem AvatarStack)', () => {
     const r = render(
       {},
       over({ type: 'milestone', previewText: '50º registro' }),
     );
-    const bell = r.root.findAllByType(Text).find(
-      (n) => String(n.props.children) === '🔔',
-    );
+    const bell = r.root.findByType(Bell);
     expect(bell).toBeTruthy();
     const circle = bell?.parent?.parent;
     const styles = flat(circle?.props.style);

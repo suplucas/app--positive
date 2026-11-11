@@ -1,9 +1,11 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Star } from 'lucide-react-native';
 import { palette } from '../common/theme';
 
 const W = 13;
 
-// Estrela vazia = mesma cor com alpha 30% (hex 4D); cheia = cor cheia.
+// Estrela vazia = mesma cor com alpha 30% (hex 4D); cheia = cor cheia +
+// fill. O overlay recortado mantém o suporte a meia estrela.
 function StarCell({
   fill,
   color,
@@ -13,9 +15,9 @@ function StarCell({
 }) {
   return (
     <View style={s.cell}>
-      <Text style={[s.base, { color: `${color}4D` }]}>★</Text>
+      <Star size={W} color={`${color}4D`} />
       <View style={[s.clip, { width: fill * W }]}>
-        <Text style={[s.filled, { color }]}>★</Text>
+        <Star size={W} color={color} fill={color} />
       </View>
     </View>
   );
@@ -45,18 +47,9 @@ export function StarRating({
 const s = StyleSheet.create({
   row: { flexDirection: 'row', gap: 1, alignItems: 'center' },
   cell: { width: W, height: W },
-  base: {
-    position: 'absolute',
-    fontSize: W,
-    lineHeight: W + 2,
-  },
   clip: {
     position: 'absolute',
     overflow: 'hidden',
     height: W + 2,
-  },
-  filled: {
-    fontSize: W,
-    lineHeight: W + 2,
   },
 });

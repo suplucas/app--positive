@@ -1,4 +1,6 @@
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Bell, Bookmark, Heart, MessageCircle, Plus } from 'lucide-react-native';
+import type { LucideIcon } from 'lucide-react-native';
 import type { AppNotification } from '../api/types';
 import { AvatarStack } from '../common/AvatarStack';
 import {
@@ -10,15 +12,15 @@ import {
 import { fonts, palette, type, useTheme } from '../common/theme';
 import { notificationSegments } from './notificationText';
 
-// Selo do tipo no canto do AvatarStack (spec 8.5): ♥ rosa / 💬 berinjela /
-// ＋ picles / 🔖 mostarda (save e network_visit). Milestone não usa selo —
-// vira círculo berinjela com 🔔.
-const TAG_BY_TYPE: Record<string, { color: string; glyph: string }> = {
-  like: { color: palette.lambeLambe, glyph: '♥' },
-  comment: { color: palette.berinjela, glyph: '💬' },
-  follow: { color: palette.picles, glyph: '＋' },
-  save: { color: palette.mostarda, glyph: '🔖' },
-  network_visit: { color: palette.mostarda, glyph: '🔖' },
+// Selo do tipo no canto do AvatarStack (spec 8.5): Heart rosa /
+// MessageCircle berinjela / Plus picles / Bookmark mostarda (save e
+// network_visit). Milestone não usa selo — vira círculo berinjela com Bell.
+const TAG_BY_TYPE: Record<string, { color: string; icon: LucideIcon }> = {
+  like: { color: palette.lambeLambe, icon: Heart },
+  comment: { color: palette.berinjela, icon: MessageCircle },
+  follow: { color: palette.picles, icon: Plus },
+  save: { color: palette.mostarda, icon: Bookmark },
+  network_visit: { color: palette.mostarda, icon: Bookmark },
 };
 
 // Row do painel de notificações (spec 8.5): avatar + selo, copy em
@@ -66,7 +68,7 @@ export function NotificationRow({
     >
       {isMilestone ? (
         <View style={s.milestoneCircle}>
-          <Text style={s.bell}>🔔</Text>
+          <Bell size={20} color={palette.papel} />
         </View>
       ) : (
         <AvatarStack people={item.actors} tag={tag} />
@@ -143,9 +145,7 @@ const s = StyleSheet.create({
     justifyContent: 'center',
     flexShrink: 0,
   },
-  bell: { fontSize: 20 },
-  txt: { flex: 1, minWidth: 0 },
-  base: {
+  txt: { flex: 1, minWidth: 0 },  base: {
     fontFamily: fonts.corpo,
     fontSize: 13.5,
     lineHeight: 19,

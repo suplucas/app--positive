@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { act, create, type ReactTestRenderer } from 'react-test-renderer';
 import { createElement } from 'react';
+import { Bookmark } from 'lucide-react-native';
 import { RestaurantProfileTemplate } from './RestaurantProfileTemplate';
 import type { RestaurantData } from './restaurantMock';
 
@@ -75,10 +76,12 @@ describe('RestaurantProfileTemplate (template de apresentação)', () => {
     expect(text).toContain((data.reviews[0]!.rating! * 2).toFixed(1));
   });
 
-  it('saved controla o rótulo do botão quero ir', () => {
+  it('saved controla o botão quero ir: Bookmark preenchido + salvo', () => {
     const { r } = render({ saved: true });
-    expect(JSON.stringify(r.toJSON())).toContain('★ salvo');
-    expect(byID(r, 'quero-ir').props.accessibilityState.selected).toBe(true);
+    const btn = byID(r, 'quero-ir');
+    expect(btn.findByType(Bookmark).props.fill).toBeDefined();
+    expect(JSON.stringify(r.toJSON())).toContain('salvo');
+    expect(btn.props.accessibilityState.selected).toBe(true);
   });
 
   it('encaminha voltar, avaliar e quero ir', () => {

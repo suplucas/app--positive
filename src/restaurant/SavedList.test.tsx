@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { act, create, ReactTestRenderer } from 'react-test-renderer';
 import { createElement } from 'react';
+import { Bookmark } from 'lucide-react-native';
 import { SavedList } from './SavedList';
 
 const CJNPJ_1 = '09597505000150'; // BAR DO LECO
@@ -53,11 +54,13 @@ describe('SavedList (docs/16, lista "quero ir")', () => {
     expect(onOpenRestaurant).toHaveBeenCalledWith(CJNPJ_1);
   });
 
-  it('botão ★ remove', () => {
+  it('botão Bookmark remove', () => {
     const onRemove = vi.fn();
     const r = render({ onRemove });
+    const btn = r.root.findByProps({ testID: `salvo-tirar-${CJNPJ_2}` });
+    expect(btn.findByType(Bookmark)).toBeTruthy();
     act(() => {
-      r.root.findByProps({ testID: `salvo-tirar-${CJNPJ_2}` }).props.onPress();
+      btn.props.onPress();
     });
     expect(onRemove).toHaveBeenCalledWith(CJNPJ_2);
   });

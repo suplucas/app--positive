@@ -1,4 +1,5 @@
 import { Image, StyleSheet, Text, View } from 'react-native';
+import type { LucideIcon } from 'lucide-react-native';
 import { avatarColor } from './format';
 import { fonts, palette, useTheme } from './theme';
 
@@ -17,9 +18,10 @@ export function AvatarStack({
   tag,
 }: {
   people: Person[];
-  tag?: { color: string; glyph: string } | null;
+  tag?: { color: string; icon: LucideIcon } | null;
 }) {
   const shown = people.slice(0, 2);
+  const TagIcon = tag?.icon;
 
   return (
     <View style={s.wrap}>
@@ -39,9 +41,9 @@ export function AvatarStack({
           </View>
         </View>
       )}
-      {tag ? (
+      {tag && TagIcon ? (
         <View style={[s.tag, { backgroundColor: tag.color }]}>
-          <Text style={s.tagGlyph}>{tag.glyph}</Text>
+          <TagIcon size={11} color={palette.papel} strokeWidth={2.2} />
         </View>
       ) : null}
     </View>
@@ -115,5 +117,4 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  tagGlyph: { color: palette.papel, fontSize: 10, lineHeight: 12 },
 });

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { create, ReactTestRenderer, act } from 'react-test-renderer';
 import { createElement } from 'react';
+import { Bookmark } from 'lucide-react-native';
 import { RestaurantScreen } from './RestaurantScreen';
 import { restaurantFor } from './restaurantMock';
 import { restaurantNames } from './restaurantNames';
@@ -79,19 +80,23 @@ describe('RestaurantScreen (docs_05)', () => {
     );
   });
 
-  it('quero ir sem estado salvo: inativo, chama onSaveToggle', () => {
+  it('quero ir sem estado salvo: Bookmark vazio, chama onSaveToggle', () => {
     const onSaveToggle = vi.fn();
     const r = render({ onSaveToggle });
-    expect(byID(r, 'quero-ir').props.accessibilityState.selected).toBe(false);
-    expect(JSON.stringify(r.toJSON())).toContain('☆ quero ir');
-    act(() => byID(r, 'quero-ir').props.onPress());
+    const btn = byID(r, 'quero-ir');
+    expect(btn.props.accessibilityState.selected).toBe(false);
+    expect(btn.findByType(Bookmark).props.fill).toBeUndefined();
+    expect(JSON.stringify(r.toJSON())).toContain('quero ir');
+    act(() => btn.props.onPress());
     expect(onSaveToggle).toHaveBeenCalled();
   });
 
-  it('estado compartilhado: saved=true reflete "★ salvo"', () => {
+  it('estado compartilhado: saved=true reflete Bookmark preenchido + salvo', () => {
     const r = render({ saved: true });
-    expect(byID(r, 'quero-ir').props.accessibilityState.selected).toBe(true);
-    expect(JSON.stringify(r.toJSON())).toContain('★ salvo');
+    const btn = byID(r, 'quero-ir');
+    expect(btn.props.accessibilityState.selected).toBe(true);
+    expect(btn.findByType(Bookmark).props.fill).toBeDefined();
+    expect(JSON.stringify(r.toJSON())).toContain('salvo');
   });
 
   it('flairs agregados: 1º é forte, resto quieto', () => {

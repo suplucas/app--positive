@@ -2,7 +2,9 @@ import { describe, it, expect, vi } from 'vitest';
 import { create, ReactTestRenderer, act } from 'react-test-renderer';
 import { createElement } from 'react';
 import { Text } from 'react-native';
+import { Bookmark, Heart, MessageCircle, Star } from 'lucide-react-native';
 import { FeedPhoto } from './FeedPhoto';
+import { palette } from '../common/theme';
 import type { Review } from '../common/types';
 
 const baseReview: Review = {
@@ -133,8 +135,8 @@ describe('FeedPhoto (spec 8.3 — overlay com título, gradiente e ações)', ()
   });
 
   it('mostra estrelas de avaliação', () => {
-    const { text } = render();
-    expect(text).toContain('★');
+    const { r } = render();
+    expect(r.root.findAllByType(Star).length).toBeGreaterThanOrEqual(5);
   });
 
   describe('overlay: título + descrição (fallback D1)', () => {
@@ -206,16 +208,17 @@ describe('FeedPhoto (spec 8.3 — overlay com título, gradiente e ações)', ()
   });
 
   describe('ações (spec 8.3)', () => {
-    it('curtir: ♥ + count = likes + 1; não repete ao tocar de novo', () => {
+    it('curtir: Heart preenchido lambeLambe + count = likes + 1; não repete', () => {
       const onLike = vi.fn();
       const { r } = render({ onLike });
       const btn = r.root.findByProps({ testID: 'like-photo-3' });
+      expect(btn.findByType(Heart).props.fill).toBeUndefined();
       act(() => {
         btn.props.onPress();
       });
-      const text1 = JSON.stringify(r.toJSON());
-      expect(text1).toContain('♥');
-      expect(text1).toContain('62');
+      expect(btn.findByType(Heart).props.fill).toBe(palette.lambeLambe);
+      expect(btn.findByType(Heart).props.color).toBe(palette.lambeLambe);
+      expect(JSON.stringify(r.toJSON())).toContain('62');
       act(() => {
         r.root.findByProps({ testID: 'like-photo-3' }).props.onPress();
       });
@@ -224,12 +227,17 @@ describe('FeedPhoto (spec 8.3 — overlay com título, gradiente e ações)', ()
       expect(onLike).toHaveBeenCalledTimes(1);
     });
 
-    it('comentar: 💬 com commentCount do enriquecimento', () => {
+    it('comentar: MessageCircle com commentCount do enriquecimento', () => {
       const onComments = vi.fn();
       const { r, text } = render({
         onComments,
         review: { ...baseReview, commentCount: 12 },
       });
+      expect(
+        r.root.findByProps({ testID: 'comentar-photo-3' }).findByType(
+          MessageCircle,
+        ),
+      ).toBeTruthy();
       expect(text).toContain('12');
       act(() => {
         r.root.findByProps({ testID: 'comentar-photo-3' }).props.onPress();
@@ -237,16 +245,15 @@ describe('FeedPhoto (spec 8.3 — overlay com título, gradiente e ações)', ()
       expect(onComments).toHaveBeenCalled();
     });
 
-    it('com commentCount ausente: 💬 sem número', () => {
-      const { r, text } = render({ onComments: () => {} });
-      expect(text).toContain('💬');
-      expect(r.root.findByProps({ testID: 'comentar-photo-3' })).toBeTruthy();
-      // sem commentCount → nenhum Text com '0' solto ao lado do 💬
+    it('com commentCount ausente: MessageCircle sem número', () => {
+      const { r } = render({ onComments: () => {} });
       const btn = r.root.findByProps({ testID: 'comentar-photo-3' });
+      expect(btn.findByType(MessageCircle)).toBeTruthy();
+      // sem commentCount → nenhum Text com '0' solto ao lado do ícone
       const counts = btn
         .findAllByType(Text)
         .map((n) => String(n.props.children));
-      expect(counts).toEqual(['💬', '']);
+      expect(counts).toEqual(['']);
     });
 
     it('sem onComments: sem botão de comentário', () => {
@@ -260,13 +267,14 @@ describe('FeedPhoto (spec 8.3 — overlay com título, gradiente e ações)', ()
       const onSave = vi.fn();
       const { r } = render({ onSave, saved: true });
       const btn = r.root.findByProps({ testID: 'salvar-3' });
-      expect(JSON.stringify(r.toJSON())).toContain('🔖');
+      expect(btn.findByType(Bookmark).props.fill).toBe(palette.mostarda);
+      expect(btn.findByType(Bookmark).props.color).toBe(palette.mostarda);
       expect(btn.props.accessibilityState.selected).toBe(true);
       act(() => {
         btn.props.onPress();
       });
       expect(onSave).toHaveBeenCalledTimes(1);
-      expect(JSON.stringify(r.toJSON())).toContain('🔖'); // continua salvo
+      expect(btn.findByType(Bookmark).props.fill).toBe(palette.mostarda); // continua salvo
     });
 
     it('salvar não controlado: alterna estado local do card', () => {
@@ -274,7 +282,7 @@ describe('FeedPhoto (spec 8.3 — overlay com título, gradiente e ações)', ()
       const { r } = render({ onSave });
       const btn = r.root.findByProps({ testID: 'salvar-3' });
       expect(btn.props.accessibilityState.selected).toBe(false);
-      expect(JSON.stringify(r.toJSON())).toContain('☆');
+      expect(btn.findByType(Bookmark).props.fill).toBeUndefined();
       act(() => {
         btn.props.onPress();
       });
@@ -282,7 +290,7 @@ describe('FeedPhoto (spec 8.3 — overlay com título, gradiente e ações)', ()
         r.root.findByProps({ testID: 'salvar-3' }).props.accessibilityState
           .selected,
       ).toBe(true);
-      expect(JSON.stringify(r.toJSON())).toContain('🔖');
+      expect(btn.findByType(Bookmark).props.fill).toBe(palette.mostarda);
       expect(onSave).toHaveBeenCalledTimes(1);
     });
   });

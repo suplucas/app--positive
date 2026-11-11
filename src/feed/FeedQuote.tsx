@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Bookmark, Heart, MessageCircle } from 'lucide-react-native';
 import { ReadMoreText } from '../common/ReadMoreText';
 import { StarRating } from './StarRating';
 import {
@@ -127,9 +128,7 @@ export function FeedQuote({
             accessibilityState={{ selected: liked }}
             style={s.actionItem}
           >
-            <Text style={[s.actionIcon, { color: ink }]}>
-              {liked ? '♥' : '♡'}
-            </Text>
+            <Heart size={16} color={ink} opacity={0.85} fill={liked ? ink : undefined} />
             <Text style={[s.actionText, { color: ink }]}>
               {review.likes + (liked ? 1 : 0)}
             </Text>
@@ -143,7 +142,7 @@ export function FeedQuote({
               accessibilityLabel="abrir comentários"
               style={s.actionItem}
             >
-              <Text style={[s.actionIcon, { color: ink }]}>💬</Text>
+              <MessageCircle size={16} color={ink} opacity={0.85} />
               <Text style={[s.actionText, { color: ink }]}>
                 {review.commentCount ?? ''}
               </Text>
@@ -158,9 +157,7 @@ export function FeedQuote({
             accessibilityState={{ selected: isSaved }}
             style={s.actionItem}
           >
-            <Text style={[s.actionIcon, { color: ink }]}>
-              {isSaved ? '🔖' : '☆'}
-            </Text>
+            <Bookmark size={16} color={ink} opacity={0.85} fill={isSaved ? ink : undefined} />
           </Pressable>
           <Text style={[s.time, { color: ink }]}>
             {formatRelativeLong(review.createdAt)}
@@ -246,7 +243,6 @@ const s = StyleSheet.create({
   },
   metaRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   actionItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  actionIcon: { fontSize: 16, opacity: 0.85 },
   actionText: {
     fontSize: 11.5,
     fontFamily: fonts.corpo600,

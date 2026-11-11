@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { act, create, ReactTestRenderer } from 'react-test-renderer';
 import { createElement } from 'react';
 import { Text } from 'react-native';
+import { Bookmark, Heart, Star } from 'lucide-react-native';
 import { PostDetailScreen } from './PostDetailScreen';
 import { addComment, getComments } from '../api/comment';
 import { formatShortDate } from '../common/format';
@@ -111,7 +112,7 @@ describe('PostDetailScreen (spec 8.4 — visita expandida)', () => {
     const { r } = await render();
     const text = allText(r);
     expect(text).toContain('@bea_come_tudo');
-    expect(text).toContain('★');
+    expect(r.root.findAllByType(Star).length).toBeGreaterThan(0);
   });
 
   it('hero quote: card colorido raio 18 com título 23 e descrição 15', async () => {
@@ -187,12 +188,14 @@ describe('PostDetailScreen (spec 8.4 — visita expandida)', () => {
     act(() => {
       like.props.onPress();
     });
+    expect(like.findByType(Heart).props.fill).toBe(palette.lambeLambe);
     expect(allText(r)).toContain('129');
     expect(allText(r)).toContain('2');
+    const save = r.root.findByProps({ testID: 'salvar-post-mock-1' });
     act(() => {
-      r.root.findByProps({ testID: 'salvar-post-mock-1' }).props.onPress();
+      save.props.onPress();
     });
-    expect(allText(r)).toContain('🔖');
+    expect(save.findByType(Bookmark).props.fill).toBe(palette.mostarda);
   });
 
   it('comentários renderizam com tempo', async () => {

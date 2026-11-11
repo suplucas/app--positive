@@ -10,6 +10,7 @@ import {
   View,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Bookmark, Heart, MessageCircle } from 'lucide-react-native';
 import { StarRating } from './StarRating';
 import { photosFor } from './postPhotos';
 import type { QuoteTone } from './FeedQuote';
@@ -214,17 +215,17 @@ export function PostDetailScreen({
             accessibilityState={{ selected: liked }}
             style={s.actionItem}
           >
-            <Text
-              style={[s.actionIcon, { color: liked ? palette.lambeLambe : t.sub }]}
-            >
-              {liked ? '♥' : '♡'}
-            </Text>
+            <Heart
+              size={20}
+              color={liked ? palette.lambeLambe : t.sub}
+              fill={liked ? palette.lambeLambe : undefined}
+            />
             <Text style={[s.actionCount, { color: t.sub }]}>
               {review.likes + (liked ? 1 : 0)}
             </Text>
           </Pressable>
           <View style={s.actionItem}>
-            <Text style={[s.actionIcon, { color: t.sub }]}>💬</Text>
+            <MessageCircle size={20} color={t.sub} />
             <Text style={[s.actionCount, { color: t.sub }]}>
               {review.commentCount ?? ''}
             </Text>
@@ -238,11 +239,11 @@ export function PostDetailScreen({
             accessibilityState={{ selected: saved }}
             style={s.saveBtn}
           >
-            <Text
-              style={[s.actionIcon, { color: saved ? palette.mostarda : t.sub }]}
-            >
-              {saved ? '🔖' : '☆'}
-            </Text>
+            <Bookmark
+              size={20}
+              color={saved ? palette.mostarda : t.sub}
+              fill={saved ? palette.mostarda : undefined}
+            />
           </Pressable>
         </View>
 
@@ -437,9 +438,7 @@ const s = StyleSheet.create({
     alignItems: 'center',
     gap: 4,
   },
-  actionIcon: { fontSize: 20 },
-  actionCount: { fontSize: type.body },
-  saveBtn: { marginLeft: 'auto' },
+  actionCount: { fontSize: type.body },  saveBtn: { marginLeft: 'auto' },
   /* comentários */
   ctitle: {
     fontFamily: fonts.display700,

@@ -10,6 +10,7 @@ import {
   View,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Bookmark, Heart, MessageCircle } from 'lucide-react-native';
 import { ReadMoreText } from '../common/ReadMoreText';
 import { StarRating } from './StarRating';
 import {
@@ -198,11 +199,11 @@ export function FeedPhoto({
           accessibilityState={{ selected: liked }}
           style={s.actionItem}
         >
-          <Text
-            style={[s.actionIcon, { color: liked ? palette.lambeLambe : t.sub }]}
-          >
-            {liked ? '♥' : '♡'}
-          </Text>
+          <Heart
+            size={20}
+            color={liked ? palette.lambeLambe : t.sub}
+            fill={liked ? palette.lambeLambe : undefined}
+          />
           <Text style={[s.actionCount, { color: t.sub }]}>
             {review.likes + (liked ? 1 : 0)}
           </Text>
@@ -216,7 +217,7 @@ export function FeedPhoto({
             accessibilityLabel="abrir comentários"
             style={s.actionItem}
           >
-            <Text style={[s.actionIcon, { color: t.sub }]}>💬</Text>
+            <MessageCircle size={20} color={t.sub} />
             <Text style={[s.actionCount, { color: t.sub }]}>
               {review.commentCount ?? ''}
             </Text>
@@ -231,9 +232,11 @@ export function FeedPhoto({
           accessibilityState={{ selected: isSaved }}
           style={s.saveBtn}
         >
-          <Text style={[s.actionIcon, { color: isSaved ? palette.mostarda : t.sub }]}>
-            {isSaved ? '🔖' : '☆'}
-          </Text>
+          <Bookmark
+            size={20}
+            color={isSaved ? palette.mostarda : t.sub}
+            fill={isSaved ? palette.mostarda : undefined}
+          />
         </Pressable>
       </View>
 
@@ -372,7 +375,6 @@ const s = StyleSheet.create({
     alignItems: 'center',
     gap: 4,
   },
-  actionIcon: { fontSize: 20 },
   actionCount: { fontSize: type.body },
   saveBtn: { marginLeft: 'auto' },
   /* tempo */
