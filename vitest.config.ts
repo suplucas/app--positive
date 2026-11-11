@@ -15,16 +15,23 @@ export const SafeAreaView = host('SafeAreaView');
 export const Image = host('Image');
 export const StyleSheet = { create: (s) => s, hairlineWidth: 1 };
 export const useWindowDimensions = () => ({ width: 390, height: 844, scale: 2, fontScale: 1 });
-// Animated mínimo p/ testes: timing resolve na hora, Value guarda o valor
-// inicial e interpolate devolve um placeholder (o estilo animado não é
-// inspecionado nos testes).
+// Animated mínimo p/ testes: timing resolve na hora aplicando o toValue no
+// Value (transições ficam inspecionáveis via .v), Value guarda o valor
+// e interpolate devolve o próprio value.
 const makeTiming = () => ({ start: (cb) => cb && cb({ finished: true }), stop: () => {} });
-class AnimValue { constructor(v) { this.v = v; } interpolate(cfg) { return this; } }
+class AnimValue { constructor(v) { this.v = v; } setValue(v) { this.v = v; } interpolate(cfg) { return this; } }
 export const Animated = {
   View: host('AnimatedView'),
   Text: host('AnimatedText'),
   Value: AnimValue,
-  timing: makeTiming,
+  // timing aplica o toValue na hora (stub) para os testes lerem .v.
+  timing: (value, cfg) => ({
+    start: (cb) => {
+      if (value && cfg && typeof cfg.toValue === 'number') value.v = cfg.toValue;
+      if (cb) cb({ finished: true });
+    },
+    stop: () => {},
+  }),
   spring: makeTiming,
   decay: makeTiming,
 };
