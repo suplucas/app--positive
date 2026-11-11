@@ -70,9 +70,9 @@ function allText(r: ReactTestRenderer): string {
 
 beforeEach(() => {
   vi.mocked(getNotifications).mockReset().mockResolvedValue({
-    page: 1,
-    limit: 20,
     total: items.length,
+    unreadCount: items.length,
+    withinDays: 30,
     results: items,
   });
   vi.mocked(markNotificationRead).mockReset().mockResolvedValue({ read: true });

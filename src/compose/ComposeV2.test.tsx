@@ -116,6 +116,7 @@ describe('ComposeV2', () => {
     expect(postReviewMock).toHaveBeenCalledWith('user_1', {
       restaurantId: cnpjExemplo,
       rating: 4,
+      title: '',
       comment: null,
     });
     expect(onPosted).toHaveBeenCalled();
@@ -134,6 +135,7 @@ describe('ComposeV2', () => {
     expect(postReviewMock).toHaveBeenCalledWith('user_1', {
       restaurantId: cnpjExemplo,
       rating: 4.75,
+      title: '',
       comment: null,
     });
   });
@@ -181,6 +183,7 @@ describe('ComposeV2', () => {
     expect(payload).toEqual({
       restaurantId: cnpjExemplo,
       rating: 4,
+      title: '',
       comment: null,
     });
   });

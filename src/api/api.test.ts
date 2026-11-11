@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { getFeed, likeReview, postReview } from './api';
+import { getFeed, getReview, likeReview, postReview } from './api';
 
 const okBody = {
   page: 1,
@@ -105,6 +105,50 @@ describe('likeReview', () => {
   });
 });
 
+describe('getReview', () => {
+  const reviewBody = {
+    id: 12,
+    userId: 'user_1',
+    restaurantId: '123',
+    rating: 4.5,
+    comment: 'pastel de feira',
+    title: 'Pastel da feira',
+    likes: 3,
+    commentCount: 2,
+    createdAt: '2026-01-01T00:00:00.000Z',
+  };
+
+  it('bate GET /reviews/:id e devolve o payload validado', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => reviewBody,
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const res = await getReview(12, 'http://api.test');
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      'http://api.test/reviews/12',
+      expect.objectContaining({
+        method: 'GET',
+        headers: expect.objectContaining({ Accept: 'application/json' }),
+      }),
+    );
+    expect(res.id).toBe(12);
+    expect(res.title).toBe('Pastel da feira');
+  });
+
+  it('lança quando payload não tem id', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({ ok: true, json: async () => ({}) }),
+    );
+    await expect(getReview(12, 'http://api.test')).rejects.toThrow(
+      /invalid payload/,
+    );
+  });
+});
+
 describe('postReview', () => {
   const created = {
     id: 99,
@@ -112,11 +156,12 @@ describe('postReview', () => {
     restaurantId: '123',
     rating: 4,
     comment: 'bom',
+    title: 'Jantar no Picles',
     likes: 0,
     createdAt: '2026-09-24T00:00:00.000Z',
   };
 
-  it('monta URL, method, headers e body', async () => {
+  it('monta URL, method, headers e body (com title)', async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => created,
@@ -125,7 +170,12 @@ describe('postReview', () => {
 
     const r = await postReview(
       'user_19',
-      { restaurantId: '123', rating: 4, comment: 'bom' },
+      {
+        restaurantId: '123',
+        rating: 4,
+        comment: 'bom',
+        title: 'Jantar no Picles',
+      },
       'http://api.test',
     );
 
@@ -141,6 +191,7 @@ describe('postReview', () => {
           restaurantId: '123',
           rating: 4,
           comment: 'bom',
+          title: 'Jantar no Picles',
         }),
       }),
     );
@@ -159,7 +210,7 @@ describe('postReview', () => {
     await expect(
       postReview(
         'user_1',
-        { restaurantId: '1', rating: 3, comment: null },
+        { restaurantId: '1', rating: 3, comment: null, title: 'Título' },
         'http://api.test',
       ),
     ).rejects.toThrow(/400/);
@@ -176,10 +227,9 @@ describe('postReview', () => {
     await expect(
       postReview(
         'user_1',
-        { restaurantId: '1', rating: 3, comment: null },
+        { restaurantId: '1', rating: 3, comment: null, title: 'Título' },
         'http://api.test',
       ),
     ).rejects.toThrow(/invalid payload/);
   });
 });
-

@@ -30,18 +30,27 @@ export async function addComment(
   );
 }
 
-export async function getNotifications(
+// Painel v1 (spec 6.5): itens colapsados + enriquecidos, janela de 30d.
+// Sem paginação — a API devolve tudo dentro da janela.
+export async function getNotifications(userId: string, baseUrl?: string) {
+  return apiFetch<import('./types').NotificationsResponse>('/notifications', {
+    userId,
+    baseUrl,
+  });
+}
+
+// Marca várias notificações como lidas de uma vez (POST /notifications/read).
+export async function markNotificationsRead(
   userId: string,
-  page = 1,
-  limit = 20,
+  ids: (string | number)[],
   baseUrl?: string,
 ) {
-  return apiFetch<{
-    page: number;
-    limit: number;
-    total: number;
-    results: import('./types').AppNotification[];
-  }>(`/notifications?page=${page}&limit=${limit}`, { userId, baseUrl });
+  return apiFetch<{ read: boolean; updated: number }>('/notifications/read', {
+    method: 'POST',
+    userId,
+    baseUrl,
+    body: { ids },
+  });
 }
 
 export async function markNotificationRead(

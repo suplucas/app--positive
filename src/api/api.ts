@@ -21,10 +21,28 @@ export async function getFeed(
   return data;
 }
 
+// Detalhe de um post (spec 6.3): usado pela tela do post (hero, likes,
+// comentários). Sem userId — o endpoint é público no v1.
+export async function getReview(
+  id: string | number,
+  baseUrl?: string,
+): Promise<Review> {
+  const data = await apiFetch<Review>(
+    `/reviews/${encodeURIComponent(String(id))}`,
+    { baseUrl },
+  );
+  if (typeof data !== 'object' || data === null || data.id === undefined) {
+    throw new Error('GET /reviews/:id: invalid payload');
+  }
+  return data;
+}
+
 export type NewReview = {
   restaurantId: string;
   // escala da API 0-5; a UI v2 envia float (nota 0-10 / 2).
   rating: number;
+  // Título obrigatório no compose v1 (spec 6.2: 1–60 chars no backend).
+  title: string;
   comment: string | null;
   photoUrl?: string | null;
   flairs?: string[];
@@ -101,5 +119,3 @@ async function uploadPhoto(
     throw new Error(`POST ${path}: invalid payload`);
   return data.url;
 }
-
-

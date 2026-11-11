@@ -214,6 +214,9 @@ export function ComposeV2({
       await postReview(userId, {
         restaurantId: selected.cnpj,
         rating: note / 2,
+        // title é obrigatório na API (spec 6.2); o campo próprio chega na
+        // Task 32 — até lá a legenda vale de título.
+        title: comment ?? '',
         comment,
         ...(photoUrl ? { photoUrl } : {}),
         ...(flairs.length > 0 ? { flairs } : {}),
