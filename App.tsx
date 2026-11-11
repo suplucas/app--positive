@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   FlatList,
   Pressable,
@@ -126,8 +126,10 @@ function MainApp({
   // Notificações (docs/09) saíram da navbar (o mock docs/16 pôs o mapa
   // no lugar): viram camada aberta pelo coração do header (D17).
   const [notifOpen, setNotifOpen] = useState(false);
-  // Badge do coração some depois de abrir o painel nesta sessão (D17).
-  const [notifSeen, setNotifSeen] = useState(false);
+  // Badge do coração (D17 + checklist §14): guarda quantas não-lidas
+  // havia ao abrir o painel; a base desce junto com as leituras e só
+  // não-lidas NOVAS (unreadCount acima da base) reacendem o badge.
+  const [seenUnread, setSeenUnread] = useState(0);
   // Erro pontual do feed (ex.: review de notificação 404, spec §10) —
   // sobrepõe o banner até um tentar de novo/refresh.
   const [feedError, setFeedError] = useState<string | null>(null);
@@ -174,11 +176,22 @@ function MainApp({
           ? friendlyApiError(error, 'feed')
           : null;
 
-  // Coração do header (D17): abrir o painel esconde o badge na sessão.
+  // Coração do header (D17): abrir o painel atualiza a base do badge.
   const openNotif = () => {
-    setNotifSeen(true);
+    setSeenUnread(notifs.unreadCount);
     setNotifOpen(true);
   };
+  // Fechar sincroniza a base com o servidor — não-lidas que chegaram
+  // enquanto o painel estava aberto reacendem o badge (§14).
+  const closeNotif = () => {
+    setNotifOpen(false);
+    void notifs.refresh();
+  };
+  // Leituras dentro do painel (markRead) abaixam o unreadCount — a base
+  // desce junto (clamp) para o badge medir só o que é novo.
+  useEffect(() => {
+    setSeenUnread((prev) => Math.min(prev, notifs.unreadCount));
+  }, [notifs.unreadCount]);
   // Toggle de tema do header (D17): alterna light/dark (o seletor de 3
   // opções continua nas configurações).
   const toggleTheme = () => setThemeMode(mode === 'dark' ? 'light' : 'dark');
@@ -200,12 +213,12 @@ function MainApp({
     notifs.markRead(item.ids);
     if (item.type === 'follow') {
       if (item.actorId) setProfileUserId(item.actorId);
-      setNotifOpen(false);
+      closeNotif();
       return;
     }
     if (item.type === 'milestone') return;
     if (item.reviewId == null) return;
-    setNotifOpen(false);
+    closeNotif();
     void openReviewById(item.reviewId);
   };
 
@@ -253,7 +266,7 @@ function MainApp({
                       <Text style={[styles.heart, { color: theme.ink }]}>
                         ♡
                       </Text>
-                      {notifs.unreadCount > 0 && !notifSeen ? (
+                      {notifs.unreadCount > seenUnread ? (
                         <View
                           testID="badge-notif"
                           style={[styles.badge, { borderColor: theme.bg }]}
@@ -553,15 +566,11 @@ function MainApp({
             </SlideOver>
           ) : null}
           {notifOpen ? (
-            <SlideOver
-              visible
-              onClose={() => setNotifOpen(false)}
-              testID="slide-notif"
-            >
+            <SlideOver visible onClose={closeNotif} testID="slide-notif">
               <NotificationScreen
                 userId={userId}
                 onOpen={handleNotifOpen}
-                onClose={() => setNotifOpen(false)}
+                onClose={closeNotif}
               />
             </SlideOver>
           ) : null}
