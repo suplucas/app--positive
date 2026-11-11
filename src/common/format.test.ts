@@ -2,6 +2,9 @@ import { describe, it, expect } from 'vitest';
 import {
   getNote,
   formatRelative,
+  formatRelativeLong,
+  formatShortDate,
+  displayName,
   avatarColor,
   restaurantName,
   searchRestaurants,
@@ -126,5 +129,44 @@ describe('searchRestaurants', () => {
 
   it('respeita o limite de resultados', () => {
     expect(searchRestaurants('', map, 2)).toHaveLength(2);
+  });
+});
+
+describe('formatRelativeLong (POC notificações)', () => {
+  const iso = (msAgo: number) =>
+    new Date(Date.now() - msAgo).toISOString();
+
+  it('59s → agora; 61s → há 1m', () => {
+    expect(formatRelativeLong(iso(59_000))).toBe('agora');
+    expect(formatRelativeLong(iso(61_000))).toBe('há 1m');
+  });
+
+  it('23h59 → há 23h; 24h → há 1d', () => {
+    expect(formatRelativeLong(iso(23 * 3_600_000 + 59 * 60_000))).toBe(
+      'há 23h',
+    );
+    expect(formatRelativeLong(iso(24 * 3_600_000))).toBe('há 1d');
+  });
+});
+
+describe('formatShortDate', () => {
+  it('dia e mês abreviado pt-BR', () => {
+    expect(formatShortDate('2026-11-10T14:00:00Z')).toBe('10 nov');
+  });
+});
+
+describe('displayName', () => {
+  it('handle vira @handle', () => {
+    expect(displayName({ name: 'Bea', handle: 'bea_come' })).toBe(
+      '@bea_come',
+    );
+  });
+
+  it('sem handle usa o name; sem nada usa alguém', () => {
+    expect(displayName({ name: 'Mari', handle: null })).toBe('Mari');
+    expect(displayName(null)).toBe('alguém');
+    expect(displayName({ name: undefined, handle: undefined })).toBe(
+      'alguém',
+    );
   });
 });

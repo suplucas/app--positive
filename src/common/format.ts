@@ -25,6 +25,55 @@ export function formatRelative(iso: string, now: number = Date.now()): string {
   return `${Math.floor(hours / 24)}d`;
 }
 
+// Versão "escrita" do tempo relativo (POC painel/feed): 'agora', 'há 3m',
+// 'há 3h', 'há 2d'.
+export function formatRelativeLong(
+  iso: string,
+  now: number = Date.now(),
+): string {
+  const diff = now - Date.parse(iso);
+  if (!Number.isFinite(diff) || diff < 60_000) return 'agora';
+  const minutes = Math.floor(diff / 60_000);
+  if (minutes < 60) return `há ${minutes}m`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `há ${hours}h`;
+  return `há ${Math.floor(hours / 24)}d`;
+}
+
+// '10 nov' — dia e mês abreviado pt-BR (data expandida do post).
+const MONTHS_PT = [
+  'jan',
+  'fev',
+  'mar',
+  'abr',
+  'mai',
+  'jun',
+  'jul',
+  'ago',
+  'set',
+  'out',
+  'nov',
+  'dez',
+];
+
+export function formatShortDate(iso: string): string {
+  const date = new Date(iso);
+  const day = date.getDate();
+  const month = MONTHS_PT[date.getMonth()];
+  return `${day} ${month}`;
+}
+
+// Autor com handle → '@handle'; senão name; senão 'alguém'.
+export function displayName(
+  author: {
+    name?: string;
+    handle?: string | null;
+  } | null,
+): string {
+  if (author?.handle) return `@${author.handle}`;
+  return author?.name || 'alguém';
+}
+
 const AVATAR_COLORS = [palette.mostarda, palette.lambeLambe, palette.picles];
 
 export function avatarColor(userId: string): string {
