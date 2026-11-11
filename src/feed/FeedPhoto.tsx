@@ -270,7 +270,7 @@ const s = StyleSheet.create({
   fh: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 8,
     paddingHorizontal: spacing.padrao,
     paddingVertical: spacing.medio,
   },
@@ -362,15 +362,15 @@ const s = StyleSheet.create({
   actions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 18,
+    gap: 16,
     paddingHorizontal: spacing.padrao,
-    paddingTop: 10,
+    paddingTop: 12,
     paddingBottom: spacing.interno,
   },
   actionItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 4,
   },
   actionIcon: { fontSize: 20 },
   actionCount: { fontSize: type.body },
