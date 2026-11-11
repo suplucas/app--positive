@@ -9,7 +9,7 @@ import {
   useTheme,
 } from '../common/theme';
 import { layout } from '../common/layout';
-import { useNotifications } from '../comments/useNotifications';
+import { useNotifications } from '../notifications/useNotifications';
 import type { AppNotification } from '../api/types';
 
 function iconFor(type: string): string {
@@ -103,7 +103,7 @@ export function NotificationScreen({
             key={n.id}
             testID={`notif-${n.id}`}
             onPress={() => {
-              void markRead(n.id);
+              void markRead([n.id]);
               onOpenRestaurant?.(legacy.cnpj!);
             }}
             style={({ pressed }) => [
@@ -120,7 +120,7 @@ export function NotificationScreen({
           <Pressable
             key={n.id}
             testID={`notif-${n.id}`}
-            onPress={() => void markRead(n.id)}
+            onPress={() => void markRead([n.id])}
             style={[s.row, { borderBottomColor: t.line }]}
             accessibilityRole="button"
             accessibilityLabel={texto}

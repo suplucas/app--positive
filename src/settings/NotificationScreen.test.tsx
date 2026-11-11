@@ -2,11 +2,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { act, create, ReactTestRenderer } from 'react-test-renderer';
 import { createElement } from 'react';
 import { NotificationScreen } from './NotificationScreen';
-import { getNotifications, markNotificationRead } from '../api/comment';
+import { getNotifications, markNotificationsRead } from '../api/comment';
 
 vi.mock('../api/comment', () => ({
   getNotifications: vi.fn(),
-  markNotificationRead: vi.fn(),
+  markNotificationsRead: vi.fn(),
 }));
 
 // Shape antigo (campo cnpj) + campos obrigatórios do painel v1 — esta
@@ -75,7 +75,9 @@ beforeEach(() => {
     withinDays: 30,
     results: items,
   });
-  vi.mocked(markNotificationRead).mockReset().mockResolvedValue({ read: true });
+  vi.mocked(markNotificationsRead)
+    .mockReset()
+    .mockResolvedValue({ read: true, updated: 1 });
 });
 
 describe('NotificationScreen (docs/09)', () => {
@@ -100,7 +102,7 @@ describe('NotificationScreen (docs/09)', () => {
       r.root.findByProps({ testID: 'notif-1' }).props.onPress();
     });
     expect(onOpenRestaurant).toHaveBeenCalledWith('64523266000100');
-    expect(markNotificationRead).toHaveBeenCalledWith('u', 1);
+    expect(markNotificationsRead).toHaveBeenCalledWith('u', [1]);
   });
 
   it('linha sem cnpj marca como lida', async () => {
@@ -108,7 +110,7 @@ describe('NotificationScreen (docs/09)', () => {
     await act(async () => {
       r.root.findByProps({ testID: 'notif-2' }).props.onPress();
     });
-    expect(markNotificationRead).toHaveBeenCalledWith('u', 2);
+    expect(markNotificationsRead).toHaveBeenCalledWith('u', [2]);
   });
 
   it('com onBack: botão voltar', async () => {
