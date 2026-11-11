@@ -291,7 +291,6 @@ function MainApp({
                       <FeedPhoto
                         review={item}
                         photos={d.photos}
-                        strong={d.strong}
                         onPress={openPlace}
                         onComments={openComments}
                         onLike={() => void like(item)}
@@ -305,7 +304,6 @@ function MainApp({
                       <FeedQuote
                         review={item}
                         tone={d.tone}
-                        strong={d.strong}
                         onPress={openPlace}
                         onComments={openComments}
                         onLike={() => void like(item)}
@@ -317,7 +315,6 @@ function MainApp({
                   return (
                     <FeedCard
                       review={item}
-                      strong={d?.strong ?? false}
                       onPress={openPlace}
                       onComments={openComments}
                       onLike={() => void like(item)}
