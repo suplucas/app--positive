@@ -15,6 +15,20 @@ export const SafeAreaView = host('SafeAreaView');
 export const Image = host('Image');
 export const StyleSheet = { create: (s) => s, hairlineWidth: 1 };
 export const useWindowDimensions = () => ({ width: 390, height: 844, scale: 2, fontScale: 1 });
+// Animated mínimo p/ testes: timing resolve na hora, Value guarda o valor
+// inicial e interpolate devolve um placeholder (o estilo animado não é
+// inspecionado nos testes).
+const makeTiming = () => ({ start: (cb) => cb && cb({ finished: true }), stop: () => {} });
+class AnimValue { constructor(v) { this.v = v; } interpolate(cfg) { return this; } }
+export const Animated = {
+  View: host('AnimatedView'),
+  Text: host('AnimatedText'),
+  Value: AnimValue,
+  timing: makeTiming,
+  spring: makeTiming,
+  decay: makeTiming,
+};
+export const Easing = { in: (x) => x, out: (x) => x, quad: { quad: true }, cubic: (x) => x, bezier: () => ({}) };
 `;
 
 // React 19 test-renderer renders asynchronously; flush bare create() via act
