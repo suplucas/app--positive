@@ -26,23 +26,25 @@ import { EditProfileScreen } from './src/profile/EditProfileScreen';
 import { EmptyState } from './src/common/EmptyState';
 import { ErrorBoundary } from './src/common/ErrorBoundary';
 import { LayerScreen } from './src/common/LayerScreen';
+import { SlideOver } from './src/common/SlideOver';
 import { FeedCard } from './src/feed/FeedCard';
 import { FeedPhoto } from './src/feed/FeedPhoto';
 import { FeedQuote } from './src/feed/FeedQuote';
 import { decorateFeed } from './src/feed/decorateFeed';
+import { useTabBarMinimize } from './src/feed/useTabBarMinimize';
 import { ComposeScreen } from './src/compose/ComposeScreen';
 import { Navbar, type Screen } from './src/common/Navbar';
 import { PageTitle } from './src/common/PageTitle';
-import { Podium } from './src/common/Podium';
 import { ProfileScreen } from './src/profile/ProfileScreen';
 import { RestaurantScreen } from './src/restaurant/RestaurantScreen';
-import { SectionTitle } from './src/common/SectionTitle';
 import { MapScreen } from './src/map/MapScreen';
 import { NotificationScreen } from './src/notifications/NotificationScreen';
+import { useNotifications } from './src/notifications/useNotifications';
 import { SearchScreen } from './src/map/SearchScreen';
 import { SettingsScreen, type ThemeMode } from './src/settings/SettingsScreen';
 import { UserProfileScreen } from './src/profile/UserProfileScreen';
-import type { PlaceHit } from './src/api/types';
+import { getReview } from './src/api/api';
+import type { AppNotification, PlaceHit } from './src/api/types';
 import {
   ThemeContext,
   darkTheme,
@@ -118,11 +120,21 @@ function MainApp({
   // o toggle da página do restaurante.
   const saves = useSaves(userId);
   const savedCnpjs = saves.ids;
-  // Thread de comentários (docs/12): review aberta pelo 💬 de um card.
-  const [commentReview, setCommentReview] = useState<Review | null>(null);
+  // Visita expandida (spec 8.4): review aberta pelo 💬 de um card, pela
+  // busca ou por uma notificação.
+  const [postReview, setPostReview] = useState<Review | null>(null);
   // Notificações (docs/09) saíram da navbar (o mock docs/16 pôs o mapa
-  // no lugar): viram camada aberta pelo sino no perfil.
+  // no lugar): viram camada aberta pelo coração do header (D17).
   const [notifOpen, setNotifOpen] = useState(false);
+  // Badge do coração some depois de abrir o painel nesta sessão (D17).
+  const [notifSeen, setNotifSeen] = useState(false);
+  // Erro pontual do feed (ex.: review de notificação 404, spec §10) —
+  // sobrepõe o banner até um tentar de novo/refresh.
+  const [feedError, setFeedError] = useState<string | null>(null);
+  // Notificações no topo do App: alimenta o badge do coração.
+  const notifs = useNotifications(userId);
+  // Pill da tab bar encolhe ao descer o feed (D13).
+  const { mini, onScroll } = useTabBarMinimize();
   // Busca em modo picker (docs/16): "trocar" da avaliação abre a busca
   // como camada; o resultado vira `composePickedCnpj`.
   const [composePickerOpen, setComposePickerOpen] = useState(false);
@@ -151,13 +163,51 @@ function MainApp({
   const decorated = useMemo(() => decorateFeed(items), [items]);
 
   // Só estados que pedem atenção; o feed vazio ganha um empty state
-  // próprio (abaixo), não o banner. Paginação não aparece mais.
+  // próprio (abaixo), não o banner. Paginação não aparece mais. Erro
+  // pontual (ex.: 404 da review de uma notificação) sobrepõe (spec §10).
   const banner =
-    status === 'loading' && items.length === 0
-      ? 'Carregando feed…'
-      : status === 'error'
-        ? friendlyApiError(error, 'feed')
-        : null;
+    feedError != null
+      ? friendlyApiError(feedError, 'feed')
+      : status === 'loading' && items.length === 0
+        ? 'Carregando feed…'
+        : status === 'error'
+          ? friendlyApiError(error, 'feed')
+          : null;
+
+  // Coração do header (D17): abrir o painel esconde o badge na sessão.
+  const openNotif = () => {
+    setNotifSeen(true);
+    setNotifOpen(true);
+  };
+  // Toggle de tema do header (D17): alterna light/dark (o seletor de 3
+  // opções continua nas configurações).
+  const toggleTheme = () => setThemeMode(mode === 'dark' ? 'light' : 'dark');
+
+  // Abre a visita expandida pelo id (busca/notificações); 404 e cia.
+  // ficam sem overlay e acendem o banner de erro do feed (spec §10).
+  const openReviewById = async (reviewId: string | number) => {
+    try {
+      setPostReview(await getReview(reviewId));
+    } catch (e) {
+      setFeedError(e instanceof Error ? e.message : String(e));
+    }
+  };
+
+  // Tap numa notificação (spec 6.5/8.5): marca como lida e navega por
+  // tipo — review (like/comment/save/network_visit) abre a visita,
+  // follow abre o perfil, milestone só marca.
+  const handleNotifOpen = (item: AppNotification) => {
+    notifs.markRead(item.ids);
+    if (item.type === 'follow') {
+      if (item.actorId) setProfileUserId(item.actorId);
+      setNotifOpen(false);
+      return;
+    }
+    if (item.type === 'milestone') return;
+    if (item.reviewId == null) return;
+    setNotifOpen(false);
+    void openReviewById(item.reviewId);
+  };
 
   return (
     <ThemeContext.Provider value={theme}>
@@ -170,19 +220,60 @@ function MainApp({
           screen === 'mapa' ||
           screen === 'perfil' ? null : (
             <View style={[styles.header, { borderBottomColor: theme.line }]}>
-              <PageTitle>
-                {screen === 'feed' ? (
+              <View style={styles.headerRow}>
+                <View style={styles.headerWord}>
+                  <PageTitle>
+                    {screen === 'feed' ? (
+                      <>
+                        t<Text style={{ color: palette.lambeLambe }}>im</Text>
+                      </>
+                    ) : screen === 'busca' ? (
+                      'busca'
+                    ) : screen === 'perfil' ? (
+                      'perfil'
+                    ) : (
+                      'avaliar'
+                    )}
+                  </PageTitle>
+                </View>
+                {feedVisible ? (
                   <>
-                    t<Text style={{ color: palette.lambeLambe }}>im</Text>
+                    <Pressable
+                      testID="notificacoes-header"
+                      onPress={openNotif}
+                      style={styles.iconBtn}
+                      hitSlop={6}
+                      accessibilityRole="button"
+                      accessibilityLabel={
+                        notifs.unreadCount > 0
+                          ? `notificações, ${notifs.unreadCount} novas`
+                          : 'notificações'
+                      }
+                    >
+                      <Text style={[styles.heart, { color: theme.ink }]}>
+                        ♡
+                      </Text>
+                      {notifs.unreadCount > 0 && !notifSeen ? (
+                        <View
+                          testID="badge-notif"
+                          style={[styles.badge, { borderColor: theme.bg }]}
+                        />
+                      ) : null}
+                    </Pressable>
+                    <Pressable
+                      testID="tema-header"
+                      onPress={toggleTheme}
+                      style={[styles.themeBtn, { borderColor: theme.line }]}
+                      accessibilityRole="button"
+                      accessibilityLabel="trocar tema"
+                    >
+                      <Text style={styles.themeIcon}>
+                        {mode === 'dark' ? '☀️' : '🌙'}
+                      </Text>
+                    </Pressable>
                   </>
-                ) : screen === 'busca' ? (
-                  'busca'
-                ) : screen === 'perfil' ? (
-                  'perfil'
-                ) : (
-                  'avaliar'
-                )}
-              </PageTitle>
+                ) : null}
+              </View>
               {feedVisible && banner ? (
                 <View
                   style={[styles.banner, { backgroundColor: theme.quietBg }]}
@@ -190,9 +281,12 @@ function MainApp({
                   <Text style={[styles.bannerText, { color: theme.sub }]}>
                     {banner}
                   </Text>
-                  {status === 'error' ? (
+                  {status === 'error' || feedError != null ? (
                     <Pressable
-                      onPress={() => void refresh()}
+                      onPress={() => {
+                        setFeedError(null);
+                        void refresh();
+                      }}
                       hitSlop={6}
                       accessibilityRole="button"
                       accessibilityLabel="tentar carregar o feed de novo"
@@ -222,11 +316,8 @@ function MainApp({
                 onOpenReview={(reviewId) => {
                   setRestaurantId(null);
                   setOsmPlace(null);
-                  // Abre a review: define como comentando essa review
-                  setCommentReview(
-                    items.find((i) => String(i.id) === String(reviewId)) ??
-                      null,
-                  );
+                  // Visita expandida via GET /reviews/:id (spec 8.6).
+                  void openReviewById(reviewId);
                 }}
                 onOpenProfile={(userId) => {
                   setProfileUserId(userId);
@@ -240,7 +331,7 @@ function MainApp({
                 key={profileVersion}
                 userId={userId}
                 onSettings={() => setSettingsOpen(true)}
-                onNotifications={() => setNotifOpen(true)}
+                onNotifications={openNotif}
                 savedCnpjs={savedCnpjs}
                 savedItems={saves.items}
                 onRemoveSaved={(cnpj) => {
@@ -253,14 +344,6 @@ function MainApp({
               <FlatList<Review>
                 data={items}
                 keyExtractor={(item) => String(item.id)}
-                ListHeaderComponent={
-                  status === 'empty' ? undefined : (
-                    <View>
-                      {/* <Podium /> */}
-                      <SectionTitle>reviews recentes</SectionTitle>
-                    </View>
-                  )
-                }
                 ListEmptyComponent={
                   status === 'empty' ? (
                     <EmptyState
@@ -284,8 +367,19 @@ function MainApp({
                       setRestaurantId(String(item.restaurantId));
                     }
                   };
-                  const openComments = () => setCommentReview(item);
-                  const ownerProps = {};
+                  const openComments = () => setPostReview(item);
+                  // Salvar lugar (spec 8.6): cards do feed usam o mesmo
+                  // useSaves da página do restaurante.
+                  const ownerProps = {
+                    saved:
+                      item.restaurantId != null &&
+                      savedCnpjs.includes(String(item.restaurantId)),
+                    onSave: () => {
+                      if (item.restaurantId != null) {
+                        toggleSaved(String(item.restaurantId));
+                      }
+                    },
+                  };
                   if (d?.layout === 'photo' && d.photos) {
                     return (
                       <FeedPhoto
@@ -319,16 +413,21 @@ function MainApp({
                       onComments={openComments}
                       onLike={() => void like(item)}
                       onAuthorPress={() => setProfileUserId(item.userId)}
-                      {...ownerProps}
                     />
                   );
                 }}
+                onScroll={onScroll}
+                scrollEventThrottle={16}
+                contentContainerStyle={{ paddingBottom: 104 }}
                 onEndReachedThreshold={0.4}
                 onEndReached={onEndReached}
                 refreshControl={
                   <RefreshControl
                     refreshing={status === 'loading'}
-                    onRefresh={() => void refresh()}
+                    onRefresh={() => {
+                      setFeedError(null);
+                      void refresh();
+                    }}
                   />
                 }
               />
@@ -424,24 +523,6 @@ function MainApp({
                 />
               </LayerScreen>
             ) : null}
-            {commentReview ? (
-              <LayerScreen>
-                <PostDetailScreen
-                  review={commentReview}
-                  authorId={userId}
-                  onBack={() => setCommentReview(null)}
-                />
-              </LayerScreen>
-            ) : null}
-            {notifOpen ? (
-              <LayerScreen>
-                <NotificationScreen
-                  userId={userId}
-                  onOpen={() => setNotifOpen(false)}
-                  onClose={() => setNotifOpen(false)}
-                />
-              </LayerScreen>
-            ) : null}
             {editProfileOpen ? (
               <LayerScreen>
                 <EditProfileScreen
@@ -456,8 +537,37 @@ function MainApp({
             ) : null}
           </View>
 
+          {/* Painéis deslizantes (D16): cobrem o header — cada tela traz
+            o próprio (← visita / notificações), como as .view do POC. */}
+          {postReview ? (
+            <SlideOver
+              visible
+              onClose={() => setPostReview(null)}
+              testID="slide-post"
+            >
+              <PostDetailScreen
+                review={postReview}
+                authorId={userId}
+                onBack={() => setPostReview(null)}
+              />
+            </SlideOver>
+          ) : null}
+          {notifOpen ? (
+            <SlideOver
+              visible
+              onClose={() => setNotifOpen(false)}
+              testID="slide-notif"
+            >
+              <NotificationScreen
+                userId={userId}
+                onOpen={handleNotifOpen}
+                onClose={() => setNotifOpen(false)}
+              />
+            </SlideOver>
+          ) : null}
+
           {settingsOpen ||
-          commentReview ||
+          postReview ||
           notifOpen ||
           composePickerOpen ||
           editProfileOpen ||
@@ -466,6 +576,7 @@ function MainApp({
           profileUserId ? null : (
             <Navbar
               active={screen}
+              mini={mini}
               onNavigate={(s) => {
                 // Navegação pela navbar fecha sub-telas (ex.: restaurante).
                 setRestaurantId(null);
@@ -493,6 +604,34 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     gap: spacing.interno,
   },
+  headerRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.micro },
+  headerWord: { flex: 1 },
+  iconBtn: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  heart: { fontSize: 26 },
+  badge: {
+    position: 'absolute',
+    top: 8,
+    right: 6,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: palette.lambeLambe,
+    borderWidth: 2,
+  },
+  themeBtn: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  themeIcon: { fontSize: 14 },
   banner: {
     borderRadius: 5,
     paddingHorizontal: spacing.interno,
