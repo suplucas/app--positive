@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { palette, radius, spacing, type } from './theme';
+import { darkTheme, lightTheme, palette, radius, spacing, type } from './theme';
 
 describe('tokens de design', () => {
   it('espaçamento segue a grade de 4px', () => {
@@ -21,5 +21,11 @@ describe('tokens de design', () => {
     expect(palette.overlayStrong).toBe('rgba(36,26,34,0.82)');
     expect(type.body).toBe(13);
     expect(radius.card).toBe(12);
+  });
+
+  it('token unreadBg por modo (POC notificações)', () => {
+    expect(lightTheme.unreadBg).toBe('rgba(242,169,59,0.14)');
+    expect(darkTheme.unreadBg).toBe('rgba(242,169,59,0.09)');
+    expect(lightTheme.unreadBg).not.toBe(darkTheme.unreadBg);
   });
 });

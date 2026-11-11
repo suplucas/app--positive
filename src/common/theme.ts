@@ -60,6 +60,8 @@ export type Theme = {
   quietBg: string;
   chipActiveBg: string;
   chipActiveInk: string;
+  // Fundo da linha de notificação não-lida (POC painel).
+  unreadBg: string;
 };
 
 // Dark mode: fundo neutro #121212 (nunca berinjela), texto #F2F0EF.
@@ -72,6 +74,7 @@ export const lightTheme: Theme = {
   quietBg: 'rgba(36,26,34,0.06)',
   chipActiveBg: palette.berinjela,
   chipActiveInk: palette.papel,
+  unreadBg: 'rgba(242,169,59,0.14)',
 };
 
 export const darkTheme: Theme = {
@@ -83,6 +86,7 @@ export const darkTheme: Theme = {
   quietBg: 'rgba(242,240,239,0.10)',
   chipActiveBg: '#F2F0EF',
   chipActiveInk: '#121212',
+  unreadBg: 'rgba(242,169,59,0.09)',
 };
 
 // Default claro para componentes renderizados fora do provider (testes).
