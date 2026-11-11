@@ -109,6 +109,14 @@ export function friendlyApiError(
   if (technical != null && OFFLINE_PATTERN.test(technical)) {
     return 'Sem conexão. Verifique a rede e tente de novo.';
   }
+  // Copy de produto que o backend manda pronta no body do POST /reviews
+  // (400): repassa em vez da genérica de publicação (spec 8.7).
+  if (context === 'publish' && technical != null) {
+    const m = technical.match(
+      /title obrigatório|title deve ter no máximo \d+ caracteres/i,
+    );
+    if (m) return m[0];
+  }
   if (context === 'profile') {
     return 'Não consegui atualizar o perfil. Tente de novo.';
   }

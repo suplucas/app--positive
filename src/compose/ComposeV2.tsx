@@ -80,6 +80,9 @@ export function ComposeV2({
     initialCnpj ? { cnpj: initialCnpj, nome: restaurantName(initialCnpj) ?? initialCnpj } : null,
   );
   const [note, setNote] = useState(8);
+  // Título obrigatório da visita (spec 8.7): 1–60 chars, validado no
+  // backend (POST /reviews 400).
+  const [title, setTitle] = useState('');
   const [caption, setCaption] = useState('');
   const [flairs, setFlairs] = useState<string[]>([]);
   const [sending, setSending] = useState(false);
@@ -163,7 +166,9 @@ export function ComposeV2({
     }
   }, [pickedCnpj]);
 
-  const canSend = selected !== null && !sending;
+  // Título obrigatório (spec 8.7): sem ele o publicar fica desabilitado.
+  const canSend =
+    selected !== null && !sending && title.trim() !== '';
 
   const onPickPhoto = async () => {
     setError(null);
@@ -214,9 +219,7 @@ export function ComposeV2({
       await postReview(userId, {
         restaurantId: selected.cnpj,
         rating: note / 2,
-        // title é obrigatório na API (spec 6.2); o campo próprio chega na
-        // Task 32 — até lá a legenda vale de título.
-        title: comment ?? '',
+        title: title.trim(),
         comment,
         ...(photoUrl ? { photoUrl } : {}),
         ...(flairs.length > 0 ? { flairs } : {}),
@@ -234,8 +237,9 @@ export function ComposeV2({
     }
   };
 
+  // Preview do quote usa o título (spec 8.7); sem título, placeholder.
   const previewCaption =
-    caption.trim() === '' ? 'Como foi? Seja direto.' : caption.trim();
+    title.trim() === '' ? 'Como foi? Seja direto.' : title.trim();
 
   return (
     <View style={{ flex: 1, backgroundColor: t.bg }}>
@@ -346,6 +350,18 @@ export function ComposeV2({
           {/* O rótulo "nota" (centralizado, docs/16) vive dentro do slider. */}
           <NoteSlider value={note} onChange={setNote} />
         </View>
+
+        <SectionTitle>título</SectionTitle>
+        <TextInput
+          testID="titulo-visita"
+          value={title}
+          onChangeText={setTitle}
+          placeholder="Dá um título pra visita (máx. 60)"
+          placeholderTextColor={t.sub}
+          maxLength={60}
+          style={[s.input, { backgroundColor: t.quietBg, color: t.ink }]}
+          accessibilityLabel="título da visita"
+        />
 
         <SectionTitle>o que achou?</SectionTitle>
         <TextInput

@@ -54,6 +54,13 @@ function pick(r: ReactTestRenderer, cnpj: string = cnpjExemplo) {
   });
 }
 
+// Digita o título da visita (spec 8.7).
+function typeTitle(r: ReactTestRenderer, text: string) {
+  act(() => {
+    byID(r, 'titulo-visita').props.onChangeText(text);
+  });
+}
+
 describe('ComposeV2 (cabeçalho, docs/16)', () => {
   it('cabeçalho "nova avaliação" com cancelar e tim!', () => {
     const r = render();
@@ -102,11 +109,24 @@ describe('ComposeV2', () => {
     expect(byID(r, 'publicar-v2').props.accessibilityState.disabled).toBe(true);
   });
 
+  it('sem título: publicar desabilitado mesmo com restaurante', () => {
+    const r = render();
+    pick(r);
+    expect(byID(r, 'publicar-v2').props.accessibilityState.disabled).toBe(true);
+  });
+
+  it('campo de título: maxLength 60 e placeholder da spec 8.7', () => {
+    const r = render();
+    const input = byID(r, 'titulo-visita');
+    expect(input.props.maxLength).toBe(60);
+    expect(input.props.placeholder).toBe('Dá um título pra visita (máx. 60)');
+  });
+
   it('seleciona restaurante e publica com nota padrão 8.0 → rating 4', async () => {
     const onPosted = vi.fn();
     const r = render({ onPosted });
     pick(r);
-
+    typeTitle(r, 'Jantar no Picles');
     expect(byID(r, 'publicar-v2').props.accessibilityState.disabled).toBe(
       false,
     );
@@ -116,7 +136,7 @@ describe('ComposeV2', () => {
     expect(postReviewMock).toHaveBeenCalledWith('user_1', {
       restaurantId: cnpjExemplo,
       rating: 4,
-      title: '',
+      title: 'Jantar no Picles',
       comment: null,
     });
     expect(onPosted).toHaveBeenCalled();
@@ -126,6 +146,7 @@ describe('ComposeV2', () => {
     const onPosted = vi.fn();
     const r = render({ onPosted });
     pick(r);
+    typeTitle(r, 'Noite de picles');
     act(() => {
       byID(r, 'nota-tick-9.5').props.onPress();
     });
@@ -135,12 +156,12 @@ describe('ComposeV2', () => {
     expect(postReviewMock).toHaveBeenCalledWith('user_1', {
       restaurantId: cnpjExemplo,
       rating: 4.75,
-      title: '',
+      title: 'Noite de picles',
       comment: null,
     });
   });
 
-  it('preview acompanha nota e legenda', () => {
+  it('preview acompanha nota e usa o título (legenda não entra)', () => {
     const r = render();
     pick(r);
     expect(subtreeTexts(r, 'preview-v2')).toContain('8.0');
@@ -148,10 +169,14 @@ describe('ComposeV2', () => {
       byID(r, 'nota-tick-6.5').props.onPress();
     });
     expect(subtreeTexts(r, 'preview-v2')).toContain('6.5');
+    // sem título: placeholder do preview
+    expect(subtreeTexts(r, 'preview-v2')).toContain('Como foi? Seja direto.');
+    typeTitle(r, 'Jantar no Picles');
+    expect(subtreeTexts(r, 'preview-v2')).toContain('Jantar no Picles');
     act(() => {
       byID(r, 'legenda').props.onChangeText('fila longa, mas valeu');
     });
-    expect(subtreeTexts(r, 'preview-v2')).toContain('fila longa, mas valeu');
+    expect(subtreeTexts(r, 'preview-v2')).not.toContain('fila longa');
   });
 
   it('limpa o primeiro flair ao escolher o terceiro', () => {
@@ -175,6 +200,7 @@ describe('ComposeV2', () => {
       onPosted,
     });
     pick(r);
+    typeTitle(r, 'Sem foto');
     await act(async () => {
       byID(r, 'publicar-v2').props.onPress();
     });
@@ -183,7 +209,7 @@ describe('ComposeV2', () => {
     expect(payload).toEqual({
       restaurantId: cnpjExemplo,
       rating: 4,
-      title: '',
+      title: 'Sem foto',
       comment: null,
     });
   });
@@ -193,6 +219,7 @@ describe('ComposeV2', () => {
     const onPosted = vi.fn();
     const r = render({ onPosted });
     pick(r);
+    typeTitle(r, 'Erro de rede');
     await act(async () => {
       byID(r, 'publicar-v2').props.onPress();
     });
@@ -204,6 +231,21 @@ describe('ComposeV2', () => {
     expect(byID(r, 'publicar-v2').props.accessibilityState.disabled).toBe(
       false,
     );
+  });
+
+  it('erro 400 de title chega como copy do backend', async () => {
+    postReviewMock.mockRejectedValue(
+      new Error('POST /reviews failed: 400: title obrigatório'),
+    );
+    const onPosted = vi.fn();
+    const r = render({ onPosted });
+    pick(r);
+    typeTitle(r, 'x');
+    await act(async () => {
+      byID(r, 'publicar-v2').props.onPress();
+    });
+    expect(onPosted).not.toHaveBeenCalled();
+    expect(JSON.stringify(r.toJSON())).toContain('title obrigatório');
   });
 
   it('cancelar chama onCancel', () => {
@@ -218,6 +260,11 @@ describe('ComposeV2', () => {
     // campo de busca não existe com local selecionado
     expect(r.root.findAllByProps({ testID: 'buscar-v2' })).toHaveLength(0);
     expect(JSON.stringify(r.toJSON())).toContain(restaurantNames[cnpjOutro]);
+    // sem título ainda não publica; com título, habilita
+    expect(byID(r, 'publicar-v2').props.accessibilityState.disabled).toBe(
+      true,
+    );
+    typeTitle(r, 'Volta confirmada');
     expect(byID(r, 'publicar-v2').props.accessibilityState.disabled).toBe(
       false,
     );

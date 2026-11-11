@@ -216,6 +216,27 @@ describe('postReview', () => {
     ).rejects.toThrow(/400/);
   });
 
+  it('non-2xx com message no body vira detail do erro (title 400)', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 400,
+        json: async () => ({
+          message: 'title deve ter no máximo 60 caracteres',
+          statusCode: 400,
+        }),
+      }),
+    );
+    await expect(
+      postReview(
+        'user_1',
+        { restaurantId: '1', rating: 3, comment: null, title: 'Título' },
+        'http://api.test',
+      ),
+    ).rejects.toThrow(/failed: 400: title deve ter no máximo 60 caracteres/);
+  });
+
   it('lança quando payload inválido', async () => {
     vi.stubGlobal(
       'fetch',

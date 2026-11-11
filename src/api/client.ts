@@ -5,8 +5,14 @@
 export class ApiError extends Error {
   readonly status: number;
 
-  constructor(status: number, path: string) {
-    super(`${path} failed: ${status}`);
+  // `detail` é a mensagem de produto que o backend manda no body de 4xx
+  // (ex.: "title obrigatório" do POST /reviews) — chega ao friendlyApiError.
+  constructor(status: number, path: string, detail?: string) {
+    super(
+      detail
+        ? `${path} failed: ${status}: ${detail}`
+        : `${path} failed: ${status}`,
+    );
     this.name = 'ApiError';
     this.status = status;
   }
@@ -70,7 +76,23 @@ export async function apiFetch<T>(
     });
 
     if (!res.ok) {
-      throw new ApiError(res.status, path);
+      // Body de erro pode trazer copy de produto (message do Nest);
+      // não-JSON não quebra o fluxo.
+      let detail: string | undefined;
+      try {
+        const body = (await res.json()) as { message?: unknown };
+        const msg = body?.message;
+        detail = Array.isArray(msg)
+          ? typeof msg[0] === 'string'
+            ? msg[0]
+            : undefined
+          : typeof msg === 'string'
+            ? msg
+            : undefined;
+      } catch {
+        // sem body JSON
+      }
+      throw new ApiError(res.status, path, detail);
     }
     if (res.status === 204) {
       return undefined as T;
