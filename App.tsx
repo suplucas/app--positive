@@ -20,7 +20,7 @@ import {
   InstrumentSans_600SemiBold,
 } from '@expo-google-fonts/instrument-sans';
 import { useFonts } from 'expo-font';
-import { CommentThreadScreen } from './src/comments/CommentThreadScreen';
+import { PostDetailScreen } from './src/feed/PostDetailScreen';
 import { AuthFlow } from './src/auth/AuthFlow';
 import { EditProfileScreen } from './src/profile/EditProfileScreen';
 import { EmptyState } from './src/common/EmptyState';
@@ -426,7 +426,7 @@ function MainApp({
             ) : null}
             {commentReview ? (
               <LayerScreen>
-                <CommentThreadScreen
+                <PostDetailScreen
                   review={commentReview}
                   authorId={userId}
                   onBack={() => setCommentReview(null)}
