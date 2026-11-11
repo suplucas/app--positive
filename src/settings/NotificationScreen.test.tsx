@@ -9,26 +9,38 @@ vi.mock('../api/comment', () => ({
   markNotificationRead: vi.fn(),
 }));
 
+// Shape antigo (campo cnpj) + campos obrigatórios do painel v1 — esta
+// tela/teste é substituída na Task 29.
 const items = [
   {
     id: 1,
+    ids: [1],
     type: 'like',
     actorId: 'caio.garfo',
+    actors: [],
+    count: 1,
     reviewId: 10,
+    restaurantId: null,
+    previewText: null,
     cnpj: '64523266000100',
     readAt: null,
     createdAt: new Date(Date.now() - 2 * 3_600_000).toISOString(),
   },
   {
     id: 2,
+    ids: [2],
     type: 'follow',
     actorId: 'isa.mastiga',
+    actors: [],
+    count: 1,
     reviewId: null,
+    restaurantId: null,
+    previewText: null,
     cnpj: null,
     readAt: null,
     createdAt: new Date(Date.now() - 30 * 3_600_000).toISOString(),
   },
-];
+] as unknown as import('../api/types').AppNotification[];
 
 async function render(
   props: Partial<Parameters<typeof NotificationScreen>[0]> = {},

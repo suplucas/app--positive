@@ -2,6 +2,22 @@
 // layout para reproduzir o mix de cards (foto / quote / linha).
 export type ReviewLayout = 'photo' | 'quote' | 'row';
 
+// Autor enriquecido pelo backend (spec 6.1): uma query batch por feed.
+export type ReviewAuthor = {
+  id: string;
+  name: string;
+  handle: string | null;
+  photoUrl: string | null;
+};
+
+// Restaurante enriquecido pelo backend (spec 6.1): nome resolvido
+// (nomeFantasia ?? razaoSocial ?? id) e município.
+export type ReviewRestaurant = {
+  id: string;
+  name: string;
+  location: string | null;
+};
+
 export type Review = {
   id: string | number;
   userId: string;
@@ -20,6 +36,12 @@ export type Review = {
   // Mídia/flairs persistidos na API (integração total).
   photoUrl?: string | null;
   flairs?: string[];
+  // Feed v1 (spec 6.1): título obrigatório no compose e enriquecimento
+  // em batch — autor, restaurante e contagem de comentários.
+  title?: string | null;
+  commentCount?: number | null;
+  author?: ReviewAuthor | null;
+  restaurant?: ReviewRestaurant | null;
 };
 
 export type FeedResponse = {

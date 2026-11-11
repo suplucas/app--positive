@@ -1,8 +1,8 @@
 // DTOs da API usados pelos hooks/telas. Espelham os responses do
 // backend; manter em sincronia com a spec de integração total.
-import type { Review } from '../common/types';
+import type { Review, ReviewAuthor, ReviewRestaurant } from '../common/types';
 
-export type { Review };
+export type { Review, ReviewAuthor, ReviewRestaurant };
 
 export type FeedResponseDto = {
   page: number;
@@ -63,12 +63,32 @@ export type ReviewComment = {
   createdAt: string;
 };
 
+// Notificação do painel v1 (spec 6.5): GET /notifications devolve itens
+// já colapsados (likes/saves num único item com actors/count) e
+// enriquecidos (author, restaurante, review com rating/foto).
 export type AppNotification = {
   id: string | number;
+  ids: (string | number)[];
   type: string;
   actorId: string | null;
+  actors: ReviewAuthor[];
+  count: number;
   reviewId: string | number | null;
-  cnpj: string | null;
+  review?: {
+    id: string | number;
+    rating: number | null;
+    photoUrl: string | null;
+  } | null;
+  restaurantId: string | null;
+  restaurant?: ReviewRestaurant | null;
+  previewText: string | null;
   readAt: string | null;
   createdAt: string;
+};
+
+export type NotificationsResponse = {
+  total: number;
+  unreadCount: number;
+  withinDays: number;
+  results: AppNotification[];
 };

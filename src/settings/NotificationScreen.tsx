@@ -29,6 +29,10 @@ function textFor(n: AppNotification): string {
   return n.type;
 }
 
+// Shape antigo da API (campo cnpj) — esta tela é substituída pelo painel
+// v1; o cast existe só para compilar até lá (plano Task 19).
+type LegacyNotification = AppNotification & { cnpj?: string | null };
+
 // Notificações (docs/09) em camada aberta pelo sino do perfil.
 export function NotificationScreen({
   userId,
@@ -74,6 +78,7 @@ export function NotificationScreen({
       ) : null}
 
       {items.map((n) => {
+        const legacy = n as LegacyNotification;
         const texto = textFor(n);
         const row = (
           <>
@@ -93,13 +98,13 @@ export function NotificationScreen({
             </Text>
           </>
         );
-        return n.cnpj ? (
+        return legacy.cnpj ? (
           <Pressable
             key={n.id}
             testID={`notif-${n.id}`}
             onPress={() => {
               void markRead(n.id);
-              onOpenRestaurant?.(n.cnpj!);
+              onOpenRestaurant?.(legacy.cnpj!);
             }}
             style={({ pressed }) => [
               s.row,
